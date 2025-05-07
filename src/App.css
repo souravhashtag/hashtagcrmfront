@@ -1,38 +1,255 @@
-.App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+/* Main container */
+.login-container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  flex-direction: row;
+  height: 100vh;
+  width: 100%;
+  font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+}
+
+/* Banner section - left side */
+.banner-section {
+  flex: 3;
+  background: linear-gradient(to bottom, #1e4b5a, #2a6573, #2a8994);
+  display: flex;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  align-items: center;
+  padding: 2rem;
+}
+
+.banner-card {
+  background-color: rgba(31, 71, 84, 0.5);
+  border-radius: 8px;
+  padding: 3rem;
+  max-width: 400px;
+  text-align: center;
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.user-icon-circle {
+  width: 64px;
+  height: 64px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  color: white;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+.banner-tagline {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.5rem;
+}
+
+.banner-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.banner-description {
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+/* Login section - right side */
+.login-section {
+  flex: 2;
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+.login-content {
+  width: 100%;
+  max-width: 380px;
+}
+
+/* Brand header */
+.brand-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2.5rem;
+}
+
+.brand-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.brand-tag {
+  color: #20a69c;
+}
+
+.brand-biz {
+  color: #a0a0a0;
+  font-size: 1.25rem;
+}
+
+.brand-solutions {
+  font-size: 0.6rem;
+  margin-left: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Login header */
+.login-header {
+  margin-bottom: 2rem;
+}
+
+.login-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.login-subtitle {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Form styles */
+.login-form {
+  width: 100%;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #20a69c;
+  box-shadow: 0 0 0 2px rgba(32, 166, 156, 0.1);
+}
+
+/* Password input styles */
+.password-input-container {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.password-toggle:hover {
+  color: #666;
+}
+
+/* Form footer */
+.form-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.remember-container {
+  display: flex;
+  align-items: center;
+}
+
+.remember-checkbox {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #20a69c;
+}
+
+.remember-label {
+  margin-left: 0.5rem;
+  font-size: 0.8rem;
+  color: #555;
+}
+
+.forgot-password {
+  font-size: 0.8rem;
+  color: #20a69c;
+  text-decoration: none;
+}
+
+.forgot-password:hover {
+  text-decoration: underline;
+}
+
+/* Continue button */
+.continue-button {
+  width: 100%;
+  background-color: #20a69c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.9rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  text-transform: uppercase;
+}
+
+.continue-button:hover {
+  background-color: #188e85;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .login-container {
+    flex-direction: column;
   }
-  to {
-    transform: rotate(360deg);
+  
+  .banner-section {
+    flex: none;
+    padding: 2rem 1rem;
+    min-height: 40vh;
+  }
+  
+  .banner-card {
+    padding: 2rem 1rem;
+  }
+  
+  .login-section {
+    flex: none;
+    padding: 2rem 1rem;
+  }
+  
+  .banner-title {
+    font-size: 2rem;
   }
 }
