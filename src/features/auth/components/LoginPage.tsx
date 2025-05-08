@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import './LoginPage.css';
+import {login} from '../../../services/authService';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -10,7 +12,16 @@ const LoginPage: React.FC = () => {
     e.preventDefault();
     console.log({ email, password, rememberMe });
   };
+  
 
+  const handleLogin = async () => {
+    try {
+      const data = await login({email:'user@example.com', password:'password123'});
+      console.log('Login successful', data);
+    } catch (error) {
+      console.error('Login failed', error);
+    }
+  };
   return (
     <div className="login-container">
       {/* Left Banner Section */}
