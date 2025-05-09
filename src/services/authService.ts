@@ -6,18 +6,17 @@ interface LoginPayload {
 }
 
 interface AuthResponse {
-  token: string;
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    role: string;
-  };
+  accessToken: string;
+  refreshToken: string;
 }
 
 export const login = async (payload: LoginPayload): Promise<AuthResponse> => {
-  const response = await apiClient.post<AuthResponse>('/auth/login', payload);
-  return response.data;
+  try {
+    const response = await apiClient.post<AuthResponse>('auth/login', payload);
+    return response.data;
+  } catch (error) {
+    throw error; 
+  }
 };
 
 // Optional helper

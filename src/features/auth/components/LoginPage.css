@@ -253,3 +253,36 @@
       font-size: 2rem;
     }
   }
+
+  .input-error {
+    border-color: #e53935 !important;
+    background-color: rgba(229, 57, 53, 0.05);
+  }
+  
+  .error-message {
+    color: #e53935;
+    font-size: 0.8rem;
+    margin-top: 4px;
+    font-weight: 500;
+  }
+  
+  /* Style for disabled button during submission */
+  .continue-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+  
+  /* Improve focus state for accessibility */
+  .form-input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  }
+  
+  /* Make sure error messages don't cause layout shifts */
+  .form-group {
+    position: relative;
+    margin-bottom: 1.5rem;
+    min-height: 78px;
+  }

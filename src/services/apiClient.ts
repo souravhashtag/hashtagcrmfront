@@ -27,13 +27,11 @@ apiClient.interceptors.response.use(
         const refreshToken = localStorage.getItem('refreshToken');
         if (!refreshToken) throw new Error('No refresh token found');
 
-        // Type-safe refresh call
         const refreshResponse = await axios.post<RefreshResponse>(
           `${process.env.REACT_APP_API_URL}/auth/refresh-token`,
           { refreshToken }
         );
 
-        // Safe usage with known structure
         const newAccessToken = refreshResponse.data.accessToken;
         localStorage.setItem('token', newAccessToken);
 
