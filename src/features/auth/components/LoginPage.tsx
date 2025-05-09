@@ -125,10 +125,8 @@ const LoginPage: React.FC = () => {
       <div className="login-section">
         <div className="login-content">
           <div className="brand-header">
-            <h2 className="brand-name">
-              HAS<span className="brand-tag">TAG</span><span className="brand-biz">BIZ</span>
-            </h2>
-            <p className="brand-solutions">SOLUTIONS</p>
+          <img src="/images/logo.png" alt="Logo" className="brand-logo" style={{ height: '60px' }} />
+
           </div>
           
           <div className="login-header">
