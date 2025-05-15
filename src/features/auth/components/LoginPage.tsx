@@ -76,7 +76,9 @@ const LoginPage: React.FC = () => {
         const data = await login({ email, password });
         localStorage.setItem('token', data.accessToken);
         localStorage.setItem('refreshToken', data.refreshToken);
-        navigate('/dashboard');
+        //navigate('/dashboard');
+        //navigate('/dashboard', { replace: true });
+        window.location.href='/dashboard'
         console.log('Login successful', data);
       } catch (error: any) {
         console.error('Login failed', error);
