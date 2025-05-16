@@ -13,22 +13,22 @@
       "output": "dist"
     },
     "files": [
-      "**/*",
-      "!dist",
-      "!src",
-      "!*.log",
-      "build/**/*"  
+      "build/**/*",        
+      "main.js",           
+      "package.json"       
     ],
     "win": {
-      "target": "nsis",
-      "verifyUpdateCodeSignature": false,
-      "signingHashAlgorithms": []
+      "target": "portable"
     }
   },
   "scripts": {
     "start": "react-scripts start",
+    "react-build": "react-scripts build",
     "build": "react-scripts build",
-    "electron-start": "cross-env ELECTRON_START_URL=http://localhost:3000 electron ."
+    "copy-build": "copyfiles -u 1 \"build/**/*\" electron-app/build",
+    "prepack-electron": "npm run react-build && npm run copy-build",
+    "electron-start": "cross-env ELECTRON_START_URL=http://localhost:3000 electron .",
+    "electron-pack": "npm run react-build && electron-builder --win --x64"
   },
   "dependencies": {
     "@testing-library/dom": "^10.4.0",

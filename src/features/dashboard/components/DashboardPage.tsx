@@ -76,7 +76,11 @@ const DashboardPage: React.FC = () => {
     }
     setCapturing(false);
   };
-
+  const logout = () =>{
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    window.location.href="/"
+  }
   return (
     <div>
       <h2>Auto Screen Capture (5s interval)</h2>
@@ -88,6 +92,7 @@ const DashboardPage: React.FC = () => {
           ? 'Capturing... screenshots will be downloaded every 5 seconds.'
           : 'Click "Start Screen Capture" and grant permission.'}
       </p>
+      <a onClick={logout} >Logout</a>
     </div>
   );
 };
