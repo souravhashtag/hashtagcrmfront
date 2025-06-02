@@ -12,10 +12,13 @@
     "directories": {
       "output": "dist"
     },
+    "asarUnpack": [
+      "**/node_modules/screenshot-desktop/**"
+    ],
     "files": [
-      "build/**/*",        
-      "main.js",           
-      "package.json"       
+      "build/**/*",
+      "main.js",
+      "package.json"
     ],
     "win": {
       "target": "portable"
@@ -27,7 +30,7 @@
     "build": "react-scripts build",
     "copy-build": "copyfiles -u 1 \"build/**/*\" electron-app/build",
     "prepack-electron": "npm run react-build && npm run copy-build",
-    "electron-start": "cross-env ELECTRON_START_URL=http://localhost:3000 electron .",
+    "electron": "cross-env ELECTRON_START_URL=http://localhost:3000 electron .",
     "electron-pack": "npm run react-build && electron-builder --win --x64"
   },
   "dependencies": {
@@ -40,7 +43,10 @@
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "axios": "^1.5.1",
+    "cors": "^2.8.5",
+    "electron-store": "^8.2.0",
     "html2canvas": "^1.4.1",
+    "jsdom": "^26.1.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.5.3",

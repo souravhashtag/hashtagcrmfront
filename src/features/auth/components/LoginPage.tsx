@@ -1,7 +1,15 @@
-import React, { useState } from 'react';
+
+import React, { useState,useEffect } from 'react';
 import './LoginPage.css';
 import {login} from '../../../services/authService';
 import { useNavigate } from 'react-router-dom';
+declare global {
+  interface Window {
+    electronAPI?: {
+      sendUserData: (data: { token: string; userId: string }) => void;
+    };
+  }
+}
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -30,7 +38,13 @@ const LoginPage: React.FC = () => {
     setEmailError('');
     return true;
   };
-
+  // React.useEffect(() => {
+  //   if (window.electronAPI) {
+  //     console.log(' electronAPI is exposed on window!');
+  //   } else {
+  //     console.error(' electronAPI NOT found on window!');
+  //   }
+  // }, []);
   // Password validation function
   const validatePassword = (password: string): boolean => {
     if (!password) {
@@ -76,9 +90,16 @@ const LoginPage: React.FC = () => {
         const data = await login({ email, password });
         localStorage.setItem('token', data.accessToken);
         localStorage.setItem('refreshToken', data.refreshToken);
-        //navigate('/dashboard');
-        //navigate('/dashboard', { replace: true });
-        window.location.href='/dashboard'
+        const accessToken = data.accessToken;
+        if (window.electronAPI && window.electronAPI.sendUserData) {
+          window.electronAPI.sendUserData({
+            token: data.accessToken,
+            userId: data.accessToken,
+          });
+        } else {
+          console.warn('electronAPI not available on window');
+        }
+        window.location.href='dashboard'
         console.log('Login successful', data);
       } catch (error: any) {
         console.error('Login failed', error);
@@ -127,7 +148,7 @@ const LoginPage: React.FC = () => {
       <div className="login-section">
         <div className="login-content">
           <div className="brand-header">
-          <img src="/images/logo.png" alt="Logo" className="brand-logo" style={{ height: '60px' }} />
+          <img src="images/logo.png" alt="Logo" className="brand-logo" style={{ height: '60px' }} />
 
           </div>
           

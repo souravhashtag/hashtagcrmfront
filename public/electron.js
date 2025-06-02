@@ -1,65 +1,90 @@
-const { app, BrowserWindow } = require('electron');
-const path = require('path');
-const screenshot = require('screenshot-desktop');
+const express = require('express');
 const fs = require('fs');
 const os = require('os');
+const path = require('path');
+const screenshot = require('screenshot-desktop');
+const axios = require('axios');
+const FormData = require('form-data');
+const cors = require('cors');
+const { JSDOM } = require('jsdom');
+const ElectronStore = require('electron-store').default;
+const store = new ElectronStore();
 
-let win;
-const desktopDir = path.join(os.homedir(), 'Desktop');
-const logFile = path.join(desktopDir, 'screenshot-log.txt');
+const app = express();
+app.use(cors()); 
+app.use(express.json());
 
-// Helper: write logs with timestamp
-function logToFile(message) {
-  const time = new Date().toISOString();
-  try {
-    fs.appendFileSync(logFile, `[${time}] ${message}\n`);
-  } catch (err) {
-    console.error('⚠️ Failed to write to log file:', err);
-  }
-}
+app.use(express.json());
 
-// Helper: create window
-function createWindow() {
-  win = new BrowserWindow({
-    width: 1024,
-    height: 768,
+const tokenFilePath = path.join(os.homedir(), 'electron-user-token.txt');
+
+
+// Start Electron + screenshot job
+const electron = require('electron');
+const { app: electronApp, BrowserWindow, ipcMain } = electron;
+
+let mainWindow;
+
+electronApp.whenReady().then(() => {
+  mainWindow = new BrowserWindow({
+    width: 800,
+    height: 600,
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      preload: path.join(__dirname, 'preload.js'), 
+      contextIsolation: true,                     
+      nodeIntegration: false,                      
     },
   });
 
-  const localIndex = path.join(__dirname, 'build', 'index.html');
-  const startUrl = `http://localhost:3000/` || `file://${localIndex}`;
+   mainWindow.loadURL('https://quotehives.com/hashtagcrm/');
+  //mainWindow.loadURL('http://localhost:3000');
+  ipcMain.on('set-user-data', (event, data) => {
+    userData = data;
+    store.set('userSession', {
+      token: data.token,
+    }); 
+    console.log('User data received:', userData);
+  });
+  setInterval(() => {    
+    
+    // if (fs.existsSync(tokenFilePath)) {
+    //   const token = fs.readFileSync(tokenFilePath, 'utf8').trim();
+      const session = store.get('userSession');
+      console.log("session.token",session);
+      if(session?.token){
+          console.log("session.token",session.token);
+          takeAndUploadScreenshot(session.token);
+      }
+    //}
+  }, 10 * 60 * 1000); 
+});
 
-    win.loadURL(startUrl).catch(err => {
-      logToFile(`❌ Failed to load URL: ${err.message}`);
+
+async function takeAndUploadScreenshot(token) {
+  try {
+    //console.log(token)
+    const fileName = path.join(os.tmpdir(), `screen-${Date.now()}.jpg`);
+    await screenshot({ filename: fileName });
+
+    const form = new FormData();
+    form.append('image', fs.createReadStream(fileName));
+
+    const res = await axios.post('https://hashtagcrmapi.onrender.com/api/V1/auth/screenshotupload', form, {
+      headers: {
+        ...form.getHeaders(),
+        Authorization: `Bearer ${token}`,
+      },
     });
-  
-
-  // Enable DevTools in dev environment (optional)
-  // win.webContents.openDevTools({ mode: 'detach' });
+    const desktopPath = path.join(os.homedir(), 'Desktop');
+    const logFilePath = path.join(desktopPath, 'HashtagCRM-error-log.txt');
+    fs.appendFileSync(logFilePath, 'Screenshot function triggered.\n');
+    console.log('Screenshot uploaded', res.status);
+  } catch (err) {
+    const desktopPath = path.join(os.homedir(), 'Desktop');
+    const logFilePath = path.join(desktopPath, 'HashtagCRM-error-log.txt');
+    fs.appendFileSync(logFilePath, err.message+'\n');
+    console.error('Upload failed:', err.message);
+  }
 }
 
-// App ready
-app.whenReady().then(() => {
-  createWindow();
 
-  // Start periodic screenshots
-  setInterval(async () => {
-    try {
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const filePath = path.join(desktopDir, `screenshot-${timestamp}.jpg`);
-      const imgBuffer = await screenshot();
-      fs.writeFileSync(filePath, imgBuffer);
-      logToFile(`📸 Screenshot saved at: ${filePath}`);
-    } catch (e) {
-      logToFile(`❌ Screenshot error: ${e.message}`);
-    }
-  }, 10 * 60 * 1000); // Every 10 minutes
-});
-
-// Close app
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit();
-});

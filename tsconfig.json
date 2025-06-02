@@ -7,6 +7,7 @@
       "esnext"
     ],
     "allowJs": true,
+    "checkJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -21,6 +22,6 @@
     "jsx": "preserve"
   },
   "include": [
-    "src"
+    "src", "global.d.ts"
   ]
 }
