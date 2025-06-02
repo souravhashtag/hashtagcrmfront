@@ -1,0 +1,23 @@
+.sidebar {
+  width: 250px;
+  background: #E1F7EF;
+  padding: 20px;
+}
+.nav li {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  cursor: pointer;
+}
+.nav li.active {
+  background-color: #15C9B7;
+  font-weight: bold;
+}
+.icon {
+  margin-right: 10px;
+}
+.theme-toggle button {
+  margin-top: 10px;
+  margin-right: 10px;
+  cursor: pointer;
+}
