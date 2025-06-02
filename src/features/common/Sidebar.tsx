@@ -48,7 +48,8 @@ const Sidebar = (): React.ReactElement => {
   return (
     <div className="sidebar">
       <div className="logo">
-        <img src={logo} alt="Hashtag Biz Logo" />
+      <img src={logo} alt="Hashtag Biz Logo" style={{ width: '90%', height: 'auto'}} />
+
       </div>
 
       <ul className="nav">
