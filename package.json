@@ -34,6 +34,7 @@
     "electron-pack": "npm run react-build && electron-builder --win --x64"
   },
   "dependencies": {
+    "@reduxjs/toolkit": "^2.8.2",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
@@ -50,6 +51,7 @@
     "lucide-react": "^0.511.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-redux": "^9.2.0",
     "react-router-dom": "^7.5.3",
     "react-scripts": "^5.0.1",
     "screenshot-desktop": "^1.15.1",

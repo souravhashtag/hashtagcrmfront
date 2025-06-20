@@ -1,88 +1,201 @@
-import React, { useState } from 'react';
-import logo from '../../images/logo.png'; // relative path to file in src
-
-
-import {
-  LayoutDashboard,
-  Users,
-  BriefcaseBusiness,
-  CalendarCheck,
-  Wallet,
-  Briefcase,
-  UserCheck,
-  ClipboardList,
-  CalendarDays,
-  Settings,
-  Sun,
-  Moon,
-} from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
-
-type MenuItem = {
-  name: string;
-  icon: LucideIcon;
-};
-
+import React, { useState, useEffect } from 'react';
+import logo from '../../images/logo.png';
+import { Link, useLocation } from 'react-router-dom';
+import { getIconComponent } from '../../utils/getIconComponent';
+import { Sun, Moon, ChevronDown, ChevronRight } from 'lucide-react';
+import { useUser } from "../dashboard/context/DashboardContext";
+// import './sidebar.css';
 const Sidebar = (): React.ReactElement => {
-  const [active, setActive] = useState('Dashboard');
+  const location = useLocation();
+  const [menuItems, setMenuItems] = useState<any[]>([]);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set());
+  const { user } = useUser();
+
+  const getActiveMenuItem = (slug: string): boolean => {
+    return location.pathname === slug || location.pathname.startsWith(slug + '/');
+  };
+
+  // Check if any submenu is active
+  const isParentActive = (item: any): boolean => {
+    if (getActiveMenuItem(item.slug)) return true;
+    
+    if (item.submenu && Array.isArray(item.submenu)) {
+      return item.submenu.some((subItem: any) => getActiveMenuItem(subItem.slug));
+    }
+    
+    return false;
+  };
+
+  const toggleMenu = (menuName: string) => {
+    setExpandedMenus(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(menuName)) {
+        newSet.delete(menuName);
+      } else {
+        newSet.add(menuName);
+      }
+      return newSet;
+    });
+  };
 
   const handleThemeToggle = (newTheme: 'light' | 'dark') => {
     setTheme(newTheme);
-    // Optional: apply theme to document.body or via context
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
   };
 
-  const menuItems: MenuItem[] = [
-    { name: 'Dashboard', icon: LayoutDashboard },
-    { name: 'All Employees', icon: Users },
-    { name: 'All Departments', icon: BriefcaseBusiness },
-    { name: 'Attendance', icon: CalendarCheck },
-    { name: 'Payroll', icon: Wallet },
-    { name: 'Jobs', icon: Briefcase },
-    { name: 'Candidates', icon: UserCheck },
-    { name: 'Leaves', icon: ClipboardList },
-    { name: 'Holidays', icon: CalendarDays },
-    { name: 'Settings', icon: Settings },
-  ];
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+  }, []);
 
-  return (
-    <div className="sidebar">
-      <div className="logo">
-      <img src={logo} alt="Hashtag Biz Logo" style={{ width: '90%', height: 'auto'}} />
+  useEffect(() => {
+    if (user?.role?.menulist && Array.isArray(user.role.menulist)) {
+      console.log("Loading menu items:", user.role.menulist);
+      setMenuItems(user.role.menulist);
+      
+      // Auto-expand menus that have active submenus
+      const menusToExpand = new Set<string>();
+      user.role.menulist.forEach((item: any) => {
+        if (item.submenu && Array.isArray(item.submenu)) {
+          const hasActiveSubmenu = item.submenu.some((subItem: any) => 
+            getActiveMenuItem(subItem.slug)
+          );
+          if (hasActiveSubmenu) {
+            menusToExpand.add(item.name);
+          }
+        }
+      });
+      setExpandedMenus(menusToExpand);
+    } else {
+      setMenuItems([]);
+    }
+  }, [user?.role?.menulist, location.pathname]);
 
-      </div>
+  const renderMenuItem = (item: any) => {
+    const IconComponent = getIconComponent(item.icon);
+    const isActive = getActiveMenuItem(item.slug);
+    const hasSubmenu = item.submenu && Array.isArray(item.submenu) && item.submenu.length > 0;
+    const isExpanded = expandedMenus.has(item.name);
+    const isParentActiveMenu = isParentActive(item);
 
-      <ul className="nav">
-        {menuItems.map((item) => {
-          const IconComponent = item.icon;
-          return (
-            <li
-              key={item.name}
-              className={active === item.name ? 'active' : ''}
-              onClick={() => setActive(item.name)}
-              style={{ cursor: 'pointer' }}
+    return (
+      <li key={`${item.name}-${item.slug}`} className="menu-item">
+        {hasSubmenu ? (
+          <>
+            {/* Parent menu with submenu */}
+            <div 
+              className={`menu-link parent-menu ${isParentActiveMenu ? 'active' : ''}`}
+              onClick={() => toggleMenu(item.name)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  toggleMenu(item.name);
+                }
+              }}
             >
-              <span className="icon">
+              <span className="menu-content">
+                <span className="icon" aria-hidden="true">
+                  <IconComponent className="w-5 h-5" />
+                </span>
+                <span className="menu-text">{item.name}</span>
+              </span>
+              <span className="expand-icon" aria-hidden="true">
+                {isExpanded ? (
+                  <ChevronDown className="w-4 h-4" />
+                ) : (
+                  <ChevronRight className="w-4 h-4" />
+                )}
+              </span>
+            </div>
+            
+            {/* Submenu */}
+            {isExpanded && (
+              <ul className="submenu">
+                {item.submenu.map((subItem: any) => {
+                  const SubIconComponent = getIconComponent(subItem.icon);
+                  const isSubActive = getActiveMenuItem(subItem.slug);
+                  
+                  return (
+                    <li key={`${subItem.name}-${subItem.slug}`} className="submenu-item">
+                      <Link
+                        to={subItem.slug}
+                        className={`menu-link submenu-link ${isSubActive ? 'active' : ''}`}
+                        aria-current={isSubActive ? 'page' : undefined}
+                      >
+                        <span className="icon" aria-hidden="true">
+                          <SubIconComponent className="w-4 h-4" />
+                        </span>
+                        <span className="menu-text">{subItem.name}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </>
+        ) : (
+        
+          <Link
+            to={item.slug}
+            className={`menu-link ${isActive ? 'active' : ''}`}
+            aria-current={isActive ? 'page' : undefined}
+          >
+            <span className="menu-content">
+              <span className="icon" aria-hidden="true">
                 <IconComponent className="w-5 h-5" />
               </span>
-              {item.name}
-            </li>
-          );
-        })}
-      </ul>
+              <span className="menu-text">{item.name}</span>
+            </span>
+          </Link>
+        )}
+      </li>
+    );
+  };
 
-      <div className="theme-toggle">
+  return (
+    <div className="sidebar" data-theme={theme}>
+      <div className="logo">
+        <img 
+          src={logo} 
+          alt="Hashtag Biz Logo" 
+          style={{ width: '90%', height: 'auto' }}
+          loading="lazy"
+        />
+      </div>
+
+      <nav className="nav" role="navigation">
+        <ul className="menu-list">
+          {menuItems.map((item) => renderMenuItem(item))}
+        </ul>
+      </nav>
+
+      <div className="theme-toggle" role="group" aria-label="Theme selection">
         <button
-          className={theme === 'light' ? 'light active' : 'light'}
+          type="button"
+          className={`theme-btn light ${theme === 'light' ? 'active' : ''}`}
           onClick={() => handleThemeToggle('light')}
+          aria-pressed={theme === 'light'}
+          aria-label="Switch to light theme"
         >
-          <Sun className="w-4 h-4" /> Light
+          <Sun className="w-4 h-4" aria-hidden="true" />
+          <span>Light</span>
         </button>
         <button
-          className={theme === 'dark' ? 'dark active' : 'dark'}
+          type="button"
+          className={`theme-btn dark ${theme === 'dark' ? 'active' : ''}`}
           onClick={() => handleThemeToggle('dark')}
+          aria-pressed={theme === 'dark'}
+          aria-label="Switch to dark theme"
         >
-          <Moon className="w-4 h-4" /> Dark
+          <Moon className="w-4 h-4" aria-hidden="true" />
+          <span>Dark</span>
         </button>
       </div>
     </div>
