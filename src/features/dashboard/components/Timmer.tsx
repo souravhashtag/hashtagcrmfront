@@ -276,14 +276,14 @@ const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBr
   useEffect(() => {
     getIndividualClockInData();
   }, [getAttendanceData?.data?.length >0]);
-
+  //console.log("user",user);
   return (
     <>
       <div className="col-span-8 bg-gradient-to-r from-teal-400 to-teal-500 rounded-xl p-6 text-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <div className="w-12 h-12 bg-white rounded-full mr-4 overflow-hidden">
-              <div className="w-full h-full bg-orange-400"></div>
+              <div className="w-full h-full bg-orange-400"><img src={`${user?.profilePicture}`}></img> </div>
             </div>
             <div>
               <h3 className="text-xl font-bold">
