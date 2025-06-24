@@ -46,7 +46,20 @@ export const getScreenshots = async (): Promise<ScreenShotResponse[]> => {
     throw error;
   }
 };
+export const getUserData = async (): Promise<any> => {
+  try {
+    const response = await apiClient.get<any>('/auth/getuserdata');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
 // Optional helper
-export const logout = () => {
-  localStorage.removeItem('token');
+export const logout = async() => {
+    try {
+      const response = await apiClient.post<any>('auth/userlogout');
+        return response.data;
+    } catch (error) {
+        throw error; 
+    }
 };
