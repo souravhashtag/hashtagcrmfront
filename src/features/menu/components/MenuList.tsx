@@ -431,7 +431,7 @@ const MenuList: React.FC = () => {
             placeholder="Search menus by name or slug"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="block w-full pl-10 pr-10 py-3 border border-[#14b8a6] rounded-lg"
           />
           {search && (
             <button
@@ -460,7 +460,7 @@ const MenuList: React.FC = () => {
             onClick={() => setShowHierarchy(!showHierarchy)}
             className={`px-3 py-2 rounded-lg transition ${
               showHierarchy 
-                ? 'bg-blue-600 text-white' 
+                ? 'bg-[#284084] text-white' 
                 : 'text-blue-600 bg-blue-50 hover:bg-blue-100'
             }`}
           >
@@ -471,13 +471,13 @@ const MenuList: React.FC = () => {
             <>
               <button
                 onClick={expandAll}
-                className="px-3 py-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition"
+                className="px-3 py-2 text-white rounded-lg hover:bg-[#00d9b0] transition bg-[#00bebb]"
               >
                 Expand All
               </button>
               <button
                 onClick={collapseAll}
-                className="px-3 py-2 text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
+                className="px-3 py-2 text-white bg-[#05332a] rounded-lg hover:bg-gray-100 transition hover:bg-[#2f645a]"
               >
                 Collapse All
               </button>
@@ -489,8 +489,8 @@ const MenuList: React.FC = () => {
       {/* Menu List */}
       <div className="border border-gray-200 rounded-lg overflow-hidden">
         {/* Header */}
-        <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-          <div className="flex items-center gap-3 font-medium text-gray-700 text-sm">
+        <div className="px-4 py-3 border-b border-gray-200 bg-[#129990]">
+          <div className="flex items-center gap-3 font-medium uppercase text-[#FFF] text-sm">
             {showHierarchy && <div className="w-4"></div>} {/* Expand button space */}
             <div className="w-5"></div> {/* Icon space */}
             <div className="flex-1">Menu Information</div>

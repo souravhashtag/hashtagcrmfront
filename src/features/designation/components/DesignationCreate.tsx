@@ -156,7 +156,7 @@ const DesignationCreate: React.FC = () => {
   const activeDepartments = data?.data || [];
 //   console.log("activeDepartments===>",activeDepartments);
   return (
-    <div className=" mx-auto p-6 bg-white shadow-lg rounded-lg">
+    <div className=" mx-auto p-6 shadow-lg rounded-lg">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900">
           {isEdit ? 'Edit Designation' : 'Create New Designation'}

@@ -30,8 +30,8 @@ const BirthDay: React.FC = () => {
   };
 
   return (
-    <div className="col-span-4 bg-blue-900 rounded-xl p-6 text-white">
-      <h3 className="font-bold mb-4">{birthdays[currentIndex]?.header}</h3>
+    <div className="col-span-4 bg-gradient-to-r from-[#0E4980] to-[#000000] rounded-xl p-6 text-white text-center h-[300px]">
+      <h3 className="font-normal mb-4 tracking-wide">{birthdays[currentIndex]?.header}</h3>
       
       <div className="relative">
         <div className="text-center">

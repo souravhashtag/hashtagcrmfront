@@ -10,7 +10,7 @@ import {
   handleBreak,
 } from "../../../services/AttendanceService";
 import { useUser } from "../context/DashboardContext";
-
+import WorkingHours from './WorkingHours';
 
 const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBreak,setIsTimmerReady}) => {
   const [getAttendanceData, setAttendanceData] = useState<any>();
@@ -27,6 +27,7 @@ const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBr
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
   const [totalBreakTime, setTotalBreakTime] = useState(0);
   const [currentBreakStart, setCurrentBreakStart] = useState<Date | null>(null);
+  const [getTimerReady, setTimerReady] = useState<boolean>(false);
   const { user } = useUser();
 
   const calculateWorkingTime = () => {
@@ -270,26 +271,28 @@ const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBr
     } finally {
       setLoading(false);
       setIsTimmerReady(true)
+      setTimerReady(true)
     }
   };
 
   useEffect(() => {
     getIndividualClockInData();
   }, [getAttendanceData?.data?.length >0]);
-  //console.log("user",user);
+
   return (
     <>
-      <div className="col-span-8 bg-gradient-to-r from-teal-400 to-teal-500 rounded-xl p-6 text-white">
+      <div className="col-span-8 from-teal-400 to-teal-500 rounded-xl text-white">
+              <div className="col-span-8 bg-[#E1F7EF] from-teal-400 to-teal-500 rounded-xl text-white h-32 mb-4 border border-[#0BB8A7]">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <div className="w-12 h-12 bg-white rounded-full mr-4 overflow-hidden">
-              <div className="w-full h-full bg-orange-400"><img src={`${user?.profilePicture}`}></img> </div>
+            <div className="w-12 h-12 bg-white rounded-full mr-4 overflow-hidden ml-5 font-poppins">
+              <div className="w-full h-full bg-orange-400"></div>
             </div>
             <div>
-              <h3 className="text-xl font-bold">
+              <h3 className="text-xl font-bold text-[#000] mb-2">
                 {user?.firstName} {user?.lastName}
               </h3>
-              <p className="text-teal-100">{user?.position}</p>
+              <p className="font-medium	text-[#000]">{user?.position}</p>
             </div>
           </div>
           <div className="flex items-center space-x-6">
@@ -331,22 +334,23 @@ const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBr
             )}
 
             {/* Time Display Section */}
-            <div className="text-right">
+            <div className="text-right h-[126px] bg-[#50E5D7] rounded-xl font-poppins">
               <div className="flex flex-col items-end space-y-1">
-                <div className="text-2xl font-bold font-mono tracking-wider">
+                <div className="text-[22px] p-4 pb-0 font-bold font-mono tracking-wider text-[#024C45] mt-5 font-poppins">
                   {formatTime(displayTime)}
                 </div>
-                <div className="text-xs text-teal-100 uppercase tracking-wide">
+                <div className="w-full text-xs capitalize tracking-wide text-center font-bold  text-[#000]">
                   {TakeaBreak ? "ON BREAK" : isClockedIn ? "WORKING" : "OFFLINE"}
                 </div>
               </div>
             </div>
           </div>
         </div>
-
+</div>
         {/* Total Working Hours Display */}
+           <div className="col-span-8 bg-[#fff] from-teal-400 to-teal-500 rounded-xl p-4 text-black h-40 mb-4 border border-[#65e3d7]">
         {getWorkingHour && (
-          <div className="mt-6 pt-4 border-t border-teal-300/30">
+          <div className="mt-6 pt-4 border-t border-teal-300/30 ">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
@@ -355,8 +359,8 @@ const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBr
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm text-teal-100 font-medium">Total Working Hours</p>
-                  <p className="text-xl font-bold font-mono tracking-wider">{getWorkingHour}</p>
+                  <p className="text-sm text-teal-200 font-medium">Total Working Hours</p>
+                  <p className="text-xl font-bold tracking-wider">{getWorkingHour}</p>
                 </div>
               </div>
               <div className="text-right">
@@ -368,7 +372,12 @@ const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBr
             </div>
           </div>
         )}
+        {getTimerReady && (
+        <WorkingHours isClockedIn={isClockedIn} TakeaBreak={TakeaBreak} />
+      )}
       </div>
+      </div>
+      
     </>
   );
 };

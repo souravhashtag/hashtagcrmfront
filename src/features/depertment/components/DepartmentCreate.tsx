@@ -314,7 +314,7 @@ const DepartmentForm: React.FC = () => {
             <button
               type="button"
               onClick={handleCancel}
-              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
+              className="px-4 py-2 text-white bg-[#6366f1] rounded-md hover:bg-[#5355d5] transition"
             >
               Cancel
             </button>

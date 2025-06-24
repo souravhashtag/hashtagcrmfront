@@ -1219,7 +1219,7 @@ const EmployeeCreate: React.FC = () => {
                     setActiveTab(tabs[currentIndex + 1].key as any);
                   }
                 }}
-                className="px-4 py-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition"
+                className="px-4 py-2 text-white rounded-lg hover:bg-[#00d9b0] transition bg-[#00bebb]"
               >
                 Next
               </button>
@@ -1228,7 +1228,7 @@ const EmployeeCreate: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading || (isEditMode && !hasChanges)}
-              className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-6 py-2  bg-[#284084] text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>

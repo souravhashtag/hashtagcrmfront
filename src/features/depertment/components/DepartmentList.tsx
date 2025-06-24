@@ -73,7 +73,7 @@ const DepartmentList: React.FC = () => {
           <p className="text-sm text-gray-600 mt-1">Manage organizational departments</p>
         </div>
         <button
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+          className="flex items-center gap-2 bg-[#05445E] text-white px-4 py-2 rounded-lg hover:bg-[#D4F1F4] hover:text-black transition"
           onClick={() => navigate('/department/create')}
         >
           <Plus size={18} /> Create Department
@@ -90,7 +90,7 @@ const DepartmentList: React.FC = () => {
           placeholder="Search departments by name or description"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="block w-full pl-10 pr-10 py-3 border border-[#14b8a6] rounded-lg"
         />
         {search && (
           <button
@@ -119,22 +119,22 @@ const DepartmentList: React.FC = () => {
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 bg-[#096B68]">
+            <thead className="bg-[#096B68]">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-bold text-black-500 uppercase tracking-wider">
                   Department Info
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-bold text-black-500 uppercase tracking-wider">
                   Description
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-bold text-black-500 uppercase tracking-wider">
                   Employee Count
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-bold text-black-500 uppercase tracking-wider">
                   Created Date
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-bold text-black-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>

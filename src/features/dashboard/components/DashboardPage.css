@@ -22,6 +22,7 @@
   background-size: cover;
 }
 
+
 .banner-card {
     /* background-color: rgba(31, 71, 84, 0.5); */
     border-radius: 8px;
@@ -924,4 +925,7 @@ body {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 0.25
+}
+.sub_color_heading{
+  background: #00544d;
 }

@@ -265,14 +265,14 @@ const EmployeeList: React.FC = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role & Department</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Personal Info</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employment</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Compensation</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Emergency Contact</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Performance</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-[#FFF] uppercase tracking-wider">Employee</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-[#FFF] uppercase tracking-wider">Role & Department</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-[#FFF] uppercase tracking-wider">Personal Info</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-[#FFF] uppercase tracking-wider">Employment</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-[#FFF] uppercase tracking-wider">Compensation</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-[#FFF] uppercase tracking-wider">Emergency Contact</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-[#FFF] uppercase tracking-wider">Performance</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-[#FFF] uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">

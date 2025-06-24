@@ -62,7 +62,7 @@ const RoleList: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Role Management</h2>
         <button
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+          className="flex items-center gap-2 bg-[#05445E] text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
           onClick={() => navigate('/role/create')}
         >
           <Plus size={18} /> Create Role
@@ -79,7 +79,7 @@ const RoleList: React.FC = () => {
           placeholder="Search roles by name, display name, or description"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="block w-full pl-10 pr-10 py-3 border border-[#14b8a6] rounded-lg"
         />
         {search && (
           <button
@@ -99,13 +99,13 @@ const RoleList: React.FC = () => {
         <p className="text-center text-gray-500">No roles found.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y bg-[#129990] uppercase text-[#FFF]">
+            <thead className="bg-[#129990] text-[#FFF]">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Display Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-bold  text-[#FFF] uppercase tracking-wider">Name</th>
+                <th className="px-6 py-3 text-left text-xs font-bold  text-[#FFF] uppercase tracking-wider">Display Name</th>
+                <th className="px-6 py-3 text-left text-xs font-bold  text-[#FFF] uppercase tracking-wider">Description</th>
+                <th className="px-6 py-3 text-right text-xs font-bold  text-[#FFF] uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">

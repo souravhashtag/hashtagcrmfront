@@ -129,32 +129,30 @@ const WorkingHours: React.FC<any> = ({isClockedIn,TakeaBreak}) => {
 
   return (
     <>
-      <div className="col-span-8 bg-white rounded-xl p-6">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-lg font-bold">Working Hours</h3>
-          <p className="text-sm text-gray-500">Update: {getCurrentDate()}</p>
+          <p className="text-sm font-medium">Update: {getCurrentDate()}</p>
         </div>
         <div className="grid grid-cols-4 gap-4">
           <div>
-            <p className="text-sm text-gray-500 mb-1">Total Working Hours</p>
+            <p className="text-sm font-semibold	mb-1 bg-[#FFF6D0] p-2">Total Working Hours</p>
             <p className="text-xl font-bold">
               {formatTime(displayTime + (totalBreakTime / 1000))}
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-500 mb-1">Productive Hours</p>
+          <p className="text-sm font-semibold	mb-1 bg-[#CEFFFB] p-2">Productive Hours</p>
             <p className="text-xl font-bold">{formatTime(displayTime)}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500 mb-1">Break Hours</p>
+           <p className="text-sm font-semibold	mb-1 bg-[#FEE0E0] p-2">Break Hours</p>
             <p className="text-xl font-bold">{formatTime(totalBreakTime / 1000)}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500 mb-1">Over Time</p>
+            <p className="text-sm font-semibold	mb-1 bg-[#DEE3FA] p-2">Over Time</p>
             <p className="text-xl font-bold">{formatTime(overTime)}</p>
           </div>
         </div>
-      </div>
     </>
   );
 };

@@ -426,3 +426,10 @@
     width: 4px;
   }
 }
+
+button.theme-btn.dark {
+    display: flex;
+    align-items: center;
+    column-gap: 5px;
+    padding-top: 0;
+}
