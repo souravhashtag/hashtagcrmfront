@@ -129,6 +129,7 @@ const WorkingHours: React.FC<any> = ({isClockedIn,TakeaBreak}) => {
 
   return (
     <>
+    <div className="col-span-8 bg-[#fff] from-teal-400 to-teal-500 rounded-xl p-4 text-black h-40 mb-4 border border-[#65e3d7]">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-lg font-bold">Working Hours</h3>
           <p className="text-sm font-medium">Update: {getCurrentDate()}</p>
@@ -152,6 +153,7 @@ const WorkingHours: React.FC<any> = ({isClockedIn,TakeaBreak}) => {
             <p className="text-sm font-semibold	mb-1 bg-[#DEE3FA] p-2">Over Time</p>
             <p className="text-xl font-bold">{formatTime(overTime)}</p>
           </div>
+        </div>
         </div>
     </>
   );

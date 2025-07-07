@@ -104,12 +104,12 @@ const Header = () => {
                         onClick={toggleDropdown}
                         className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg transition-colors"
                     >
-                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center">
                             {(user?.profilePicture)?                           
                                 <img 
                                     src={user?.profilePicture} 
                                     alt="Profile" 
-                                    className={`w-24 h-24 rounded-full object-cover transition-all duration-300`}
+                                    className={`w-24 h-8 rounded-full object-cover transition-all duration-300`}
                                 />
                                 :
                                 <span className="text-white text-sm font-medium">

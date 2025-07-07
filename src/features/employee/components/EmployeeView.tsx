@@ -146,7 +146,8 @@ const EmployeeView: React.FC = () => {
               {user?.profilePicture ? (
                 <img 
                   className="h-20 w-20 rounded-full object-cover border-4 border-white shadow-lg" 
-                  src={user.profilePicture} 
+                  // src={user?.profilePicture}
+                  src="http://localhost:5000/uploads\profilepicture\1750829812403-man.png" 
                   alt={`${user.firstName} ${user.lastName}`}
                 />
               ) : (

@@ -55,7 +55,7 @@ const Sidebar = (): React.ReactElement => {
 
   useEffect(() => {
     if (user?.role?.menulist && Array.isArray(user.role.menulist)) {
-      console.log("Loading menu items:", user.role.menulist);
+      // console.log("Loading menu items:", user.role.menulist);
       setMenuItems(user.role.menulist);
       
       // Auto-expand menus that have active submenus
@@ -82,8 +82,9 @@ const Sidebar = (): React.ReactElement => {
     const hasSubmenu = item.submenu && Array.isArray(item.submenu) && item.submenu.length > 0;
     const isExpanded = expandedMenus.has(item.name);
     const isParentActiveMenu = isParentActive(item);
-
+    // {console.log("item===",item)}
     return (
+      
       <li key={`${item.name}-${item.slug}`} className="menu-item">
         {hasSubmenu ? (
           <>

@@ -286,7 +286,7 @@ const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBr
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <div className="w-12 h-12 bg-white rounded-full mr-4 overflow-hidden ml-5 font-poppins">
-              <div className="w-full h-full bg-orange-400"></div>
+              <div className="w-full h-full bg-orange-400"><img src={`${user?.profilePicture}`}></img> </div>
             </div>
             <div>
               <h3 className="text-xl font-bold text-[#000] mb-2">
@@ -348,34 +348,35 @@ const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBr
         </div>
 </div>
         {/* Total Working Hours Display */}
-           <div className="col-span-8 bg-[#fff] from-teal-400 to-teal-500 rounded-xl p-4 text-black h-40 mb-4 border border-[#65e3d7]">
         {getWorkingHour && (
+           <div className="col-span-8 bg-[#E1F7EF] from-teal-400 to-teal-500 rounded-xl p-4 text-black h-40 mb-4 border border-[#65e3d7]">
+        
           <div className="mt-6 pt-4 border-t border-teal-300/30 ">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-10 h-10 bg-black/20 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm text-teal-200 font-medium">Total Working Hours</p>
-                  <p className="text-xl font-bold tracking-wider">{getWorkingHour}</p>
+                  <p className="text-sm font-medium text-[#000]">Total Working Hours</p>
+                  <p className="text-xl font-bold tracking-wider text-[#000]">{getWorkingHour}</p>
                 </div>
               </div>
               <div className="text-right">
                 <div className="inline-flex items-center px-3 py-1 bg-green-500/20 rounded-full">
                   <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
-                  <span className="text-sm font-medium text-green-100">Session Complete</span>
+                  <span className="text-sm font-medium text-[#000]">Session Complete</span>
                 </div>
               </div>
             </div>
-          </div>
-        )}
-        {getTimerReady && (
-        <WorkingHours isClockedIn={isClockedIn} TakeaBreak={TakeaBreak} />
-      )}
+          </div>       
       </div>
+      )}
+      {getTimerReady && (
+          <WorkingHours isClockedIn={isClockedIn} TakeaBreak={TakeaBreak} />
+        )}
       </div>
       
     </>
