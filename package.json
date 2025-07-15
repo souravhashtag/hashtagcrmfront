@@ -1,0 +1,91 @@
+{
+  "name": "hashtagcrmfront",
+  "description": "CRM Screenshot App",
+  "author": "HashtagCRM",
+  "version": "0.1.0",
+  "main": "main.js",
+  "private": true,
+  "homepage": "./",
+  "build": {
+    "appId": "com.hashtag.crm",
+    "productName": "Hashtag CRM Screenshot App",
+    "directories": {
+      "output": "dist"
+    },
+    "asarUnpack": [
+      "**/node_modules/screenshot-desktop/**"
+    ],
+    "files": [
+      "build/**/*",
+      "main.js",
+      "package.json"
+    ],
+    "win": {
+      "target": "portable"
+    }
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "react-build": "react-scripts build",
+    "build": "react-scripts build",
+    "copy-build": "copyfiles -u 1 \"build/**/*\" electron-app/build",
+    "prepack-electron": "npm run react-build && npm run copy-build",
+    "electron": "cross-env ELECTRON_START_URL=http://localhost:3000 electron .",
+    "electron-pack": "npm run react-build && electron-builder --win --x64"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.8.2",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^13.5.0",
+    "@types/jest": "^27.5.2",
+    "@types/node": "^16.18.126",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "axios": "^1.5.1",
+    "cors": "^2.8.5",
+    "electron-store": "^8.2.0",
+    "html2canvas": "^1.4.1",
+    "jsdom": "^26.1.0",
+    "lucide-react": "^0.511.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-redux": "^9.2.0",
+    "react-router-dom": "^7.5.3",
+    "react-scripts": "^5.0.1",
+    "screenshot-desktop": "^1.15.1",
+    "web-vitals": "^2.1.4"
+  },
+  "devDependencies": {
+    "@types/axios": "^0.9.36",
+    "autoprefixer": "^10.4.21",
+    "cross-env": "^7.0.3",
+    "electron": "^36.2.0",
+    "electron-builder": "^24.6.0",
+    "postcss": "^8.5.4",
+    "postcss-loader": "^8.1.1",
+    "tailwindcss": "^4.1.8",
+    "typescript": "^4.4.4",
+    "webpack": "^5.99.8",
+    "webpack-cli": "^6.0.1"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
