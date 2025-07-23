@@ -70,11 +70,10 @@ const WorkingHours: React.FC<any> = ({isClockedIn,TakeaBreak}) => {
             currentBreakStartTime = start;
           }
         });
-        console.log("Total break time in milliseconds:", totalBreakMilliseconds);
+        // console.log("Total break time in milliseconds:", totalBreakMilliseconds);
         setTotalBreakTime(totalBreakMilliseconds);
-        setCurrentBreakStart(currentBreakStartTime);
-
-        if (response.data.clockOut !== null && response.data.clockOut !== undefined) {
+        setCurrentBreakStart(currentBreakStartTime);        
+        if (response.data.clockOut !== null && response.data.clockOut !== undefined) {          
           // User has clocked out - calculate final working hours
           const clockOutTime = new Date(response.data.clockOut);
           const totalWorked = clockOutTime.getTime() - clockInTime.getTime() - totalBreakMilliseconds;
@@ -83,19 +82,18 @@ const WorkingHours: React.FC<any> = ({isClockedIn,TakeaBreak}) => {
           setWorkingHour(formatTime(totalWorkingTimeSeconds));
           setDisplayTime(totalWorkingTimeSeconds);
           setOverTime(calculateOvertime(totalWorkingTimeSeconds));
-        } else {
-          // User is still clocked in - calculate current working time
-          const totalMillisecondsWorked = now.getTime() - clockInTime.getTime() - totalBreakMilliseconds;
-          let currentBreakDuration = 0;
-          
-          if (ongoingBreak && currentBreakStartTime !== null) {
-            currentBreakDuration = now.getTime() - (currentBreakStartTime as Date).getTime();
-          }
-          
-          const totalSecondsWorked = Math.floor((totalMillisecondsWorked - currentBreakDuration) / 1000);
-          setDisplayTime(Math.max(0, totalSecondsWorked));
-          setWorkingHour('');
-          setOverTime(calculateOvertime(Math.max(0, totalSecondsWorked)));
+        } else {          
+            const totalMillisecondsWorked = now.getTime() - clockInTime.getTime() - totalBreakMilliseconds;
+            let currentBreakDuration = 0;
+            
+            if (ongoingBreak && currentBreakStartTime !== null) {
+              currentBreakDuration = now.getTime() - (currentBreakStartTime as Date).getTime();
+            }
+            
+            const totalSecondsWorked = Math.floor((totalMillisecondsWorked - currentBreakDuration) / 1000);
+            setDisplayTime(Math.max(0, totalSecondsWorked));
+            setWorkingHour('');
+            setOverTime(calculateOvertime(Math.max(0, totalSecondsWorked)));            
         }
       } else {
           console.error('No attendance data available');
@@ -114,7 +112,8 @@ const WorkingHours: React.FC<any> = ({isClockedIn,TakeaBreak}) => {
     }
   }, []);
   useEffect(() => {
-    if (attendanceResponse && isClockedIn && !TakeaBreak) {
+    if (attendanceResponse && (isClockedIn || TakeaBreak)) {    
+    // if (attendanceResponse) {
       const interval = setInterval(() => {
         getIndividualClockInData(attendanceResponse);
       }, 1000);      
