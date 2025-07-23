@@ -243,7 +243,7 @@ const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBr
             currentBreakStartTime = start;
           }
         });
-
+        // console.log("Total break time in milliseconds:", totalBreakMilliseconds);
         setTotalBreakTime(totalBreakMilliseconds);
         setCurrentBreakStart(currentBreakStartTime);
 

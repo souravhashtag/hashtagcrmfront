@@ -70,7 +70,7 @@ const WorkingHours: React.FC<any> = ({isClockedIn,TakeaBreak}) => {
             currentBreakStartTime = start;
           }
         });
-
+        console.log("Total break time in milliseconds:", totalBreakMilliseconds);
         setTotalBreakTime(totalBreakMilliseconds);
         setCurrentBreakStart(currentBreakStartTime);
 
@@ -117,12 +117,13 @@ const WorkingHours: React.FC<any> = ({isClockedIn,TakeaBreak}) => {
     if (attendanceResponse && isClockedIn && !TakeaBreak) {
       const interval = setInterval(() => {
         getIndividualClockInData(attendanceResponse);
-      }, 1000);
-      
+      }, 1000);      
       return () => clearInterval(interval);
     }
   }, [attendanceResponse, isClockedIn, TakeaBreak]);
-
+  useEffect(() => {
+    getAttendanceDt();
+  },[TakeaBreak])
 
   const getCurrentDate = () => {
     const now = new Date();
