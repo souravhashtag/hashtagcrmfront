@@ -314,7 +314,7 @@ const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBr
           <div className="flex items-center space-x-6">
             {isClockedIn && !TakeaBreak ? (
               <button
-                className="bg-yellow-400 text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-yellow-300 transition-colors flex items-center justify-center disabled:opacity-70 w-[130px]"
+                className="bg-yellow-400 text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-yellow-300 transition-colors flex items-center justify-center disabled:opacity-70 w-[150px]"
                 onClick={handleTakeBreak}
                 disabled={loading}
               >
@@ -382,7 +382,7 @@ const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBr
                 </div>
                 <div>
                   <p className="text-sm font-medium text-[#000]">Total Working Hours</p>
-                  <p className="text-xl font-bold tracking-wider text-[#000]">{getWorkingHour}</p>
+                  <p className="text-xl font-medium tracking-wider text-[#000]">{getWorkingHour}</p>
                 </div>
               </div>
               <div className="text-right">
