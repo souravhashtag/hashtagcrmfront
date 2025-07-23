@@ -114,7 +114,8 @@ const WorkingHours: React.FC<any> = ({isClockedIn,TakeaBreak}) => {
     }
   }, []);
   useEffect(() => {
-    if (attendanceResponse && isClockedIn && !TakeaBreak) {
+    // if (attendanceResponse && isClockedIn && !TakeaBreak) {
+    if (attendanceResponse) {
       const interval = setInterval(() => {
         getIndividualClockInData(attendanceResponse);
       }, 1000);      
