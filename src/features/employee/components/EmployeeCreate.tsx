@@ -177,20 +177,20 @@ const EmployeeCreate: React.FC = () => {
   }, [employeeData, isEditMode]);
 
   // Generate employee ID for create mode
-  useEffect(() => {
-    if (!isEditMode) {
-      const generateEmployeeId = () => {
-        const prefix = 'HBEC';
-        const timestamp = Date.now().toString().slice(-6);
-        return `${prefix}`;
-      };
+  // useEffect(() => {
+  //   if (!isEditMode) {
+  //     const generateEmployeeId = () => {
+  //       const prefix = 'HBEC';
+  //       const timestamp = Date.now().toString().slice(-6);
+  //       return `${prefix}`;
+  //     };
       
-      setFormData(prev => ({
-        ...prev,
-        employeeId: generateEmployeeId()
-      }));
-    }
-  }, [isEditMode]);
+  //     setFormData(prev => ({
+  //       ...prev,
+  //       employeeId: generateEmployeeId()
+  //     }));
+  //   }
+  // }, [isEditMode]);
 
   // Check for changes (only in edit mode)
   useEffect(() => {
@@ -202,6 +202,7 @@ const EmployeeCreate: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    // console.log(`Input changed: ${name} = ${value}`);
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -234,6 +235,7 @@ const EmployeeCreate: React.FC = () => {
     if (file) {
       updateDocument(index, 'name', file.name);
     }
+    setHasChanges(true);
   };
 
   const validateForm = (): boolean => {
@@ -252,8 +254,17 @@ const EmployeeCreate: React.FC = () => {
         newErrors.password = 'Password must be at least 6 characters long';
       }
     }
-    
-    if (!formData.employeeId.trim()) newErrors.employeeId = 'Employee ID is required';
+    if (isEditMode) {
+      if (!formData.employeeId || !formData.employeeId.trim()) {
+        newErrors.employeeId = 'Employee ID is required';
+      } else {
+        // Only validate format if Employee ID is provided
+        const employeeIdRegex = /^[A-Z]{3}\d{3}$/;
+        if (!employeeIdRegex.test(formData.employeeId.trim())) {
+          newErrors.employeeId = 'Employee ID must be in format HBS123 (3 letters followed by 3 numbers)';
+        }
+      }
+    }
     if (!formData.joiningDate) newErrors.joiningDate = 'Joining date is required';
     if (!formData.dob) newErrors.dob = 'Date of birth is required';
     if (!formData.roleId) newErrors.roleId = 'Role is required';
@@ -322,6 +333,7 @@ const EmployeeCreate: React.FC = () => {
     }
 
     try {
+      // console.log("formData.employeeId", formData.employeeId);
       const employeeData: any = {
         employeeId: formData.employeeId,
         joiningDate: formData.joiningDate,
@@ -372,20 +384,27 @@ const EmployeeCreate: React.FC = () => {
       if (formData.password) {
         userData.password = formData.password;
       }
-
+      // console.log("employeeData", userData);return
+      const formDataToSend = new FormData();      
+      formDataToSend.append('employeeDatast', JSON.stringify(employeeData));
+      formDataToSend.append('userDatast', JSON.stringify(userData));
+      
+      documents.forEach((doc, index) => {
+        if (doc.file) {
+          formDataToSend.append('documents[]', doc.file);
+        }
+      });
       if (isEditMode) {
-        employeeData.userData = userData;
-        employeeData.userId = formData.userId;
-        
-        const update = await updateEmployee({ id: id!, data: employeeData }).unwrap();
-        console.log("update",update);
+        const update = await updateEmployee({ 
+          id: id!, 
+          data: formDataToSend 
+        }).unwrap();
+        // console.log("update", update);
         navigate('/employee', { 
           state: { message: 'Employee updated successfully!' }
         });
       } else {
-        employeeData.userData = userData;
-        
-        await createEmployee(employeeData).unwrap();
+        await createEmployee(formDataToSend).unwrap();
         navigate('/employee', { 
           state: { message: 'Employee created successfully!' }
         });
@@ -738,23 +757,24 @@ const EmployeeCreate: React.FC = () => {
         return (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Employee ID *
-                </label>
-                <input
-                  type="text"
-                  name="employeeId"
-                  value={formData.employeeId}
-                  onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.employeeId ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="Enter employee ID"
-                  readOnly={isEditMode}
-                />
-                {errors.employeeId && <p className="text-red-500 text-xs mt-1">{errors.employeeId}</p>}
-              </div>
+              {isEditMode && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Employee ID *
+                  </label>
+                  <input
+                    type="text"
+                    name="employeeId"
+                    value={formData.employeeId}
+                    onChange={handleInputChange}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      errors.employeeId ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter employee ID"
+                  />
+                  {errors.employeeId && <p className="text-red-500 text-xs mt-1">{errors.employeeId}</p>}
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">

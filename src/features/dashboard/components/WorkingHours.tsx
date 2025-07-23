@@ -27,7 +27,7 @@ const WorkingHours: React.FC<any> = ({isClockedIn,TakeaBreak}) => {
   const [totalBreakTime, setTotalBreakTime] = useState(0); 
   const [currentBreakStart, setCurrentBreakStart] = useState<Date | null>(null);
   const [overTime, setOverTime] = useState(0);
-  
+  const [attendanceResponse, setAttendanceResponse] = useState<any>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const formatTime = (totalSeconds: number) => {
@@ -42,11 +42,14 @@ const WorkingHours: React.FC<any> = ({isClockedIn,TakeaBreak}) => {
     const standardWorkHours = 8 * 3600; 
     return Math.max(0, totalWorkingSeconds - standardWorkHours);
   };
-
-  const getIndividualClockInData = async () => {
+  const getAttendanceDt = async() => {
+      const response = await getIndividualAttendanceData();
+      setAttendanceResponse(response);
+      // console.log("response==>",attendanceResponse);
+  }
+  const getIndividualClockInData = async (response:any) => {
     try {
       //const response = attendanceData;
-      const response = await getIndividualAttendanceData();
       if (response?.data) {
         const clockInTime = new Date(response.data.clockIn);
         const now = new Date();
@@ -105,15 +108,20 @@ const WorkingHours: React.FC<any> = ({isClockedIn,TakeaBreak}) => {
       setLoading(false);
     }
   };
-
   useEffect(() => {
-      setInterval(()=>{
-        //console.log("isClockedIn TakeaBreak",isClockedIn+" "+TakeaBreak)
-        if(isClockedIn==true && TakeaBreak==false){
-            getIndividualClockInData();
-        }
-      },1000)       
+    if (attendanceResponse === null) {
+      getAttendanceDt();
+    }
   }, []);
+  useEffect(() => {
+    if (attendanceResponse && isClockedIn && !TakeaBreak) {
+      const interval = setInterval(() => {
+        getIndividualClockInData(attendanceResponse);
+      }, 1000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [attendanceResponse, isClockedIn, TakeaBreak]);
 
 
   const getCurrentDate = () => {

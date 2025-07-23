@@ -358,10 +358,15 @@ const EmployeeView: React.FC = () => {
                         </div>
                       </div>
                       {doc.url && (
-                        <button className="flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm">
+                        <a 
+                          target='_blank'
+                          href={`${process.env.REACT_APP_DOCUMENT_URL || 'http://localhost:5000'}${doc.url}`}
+                          download={doc.name}
+                          className="flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm"
+                        >
                           <Download size={14} />
                           Download
-                        </button>
+                        </a>
                       )}
                     </div>
                   ))}
