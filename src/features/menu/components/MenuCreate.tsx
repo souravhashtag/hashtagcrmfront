@@ -10,7 +10,7 @@ import {
   User, Users, Mail, Phone, MessageCircle, Calendar, CheckSquare, Clipboard,
   DollarSign, BarChart2, Activity, Briefcase, Tag, ShoppingCart, Settings,
   Globe, Bell, FileText, MapPin, CreditCard, Star, Truck, Plus, Save,
-  ArrowLeft, Building, Home, Folder, X
+  ArrowLeft, Building, Home, Folder, X,LayoutDashboard ,Layers 
 } from 'lucide-react';
 
 const ICON_OPTIONS = [
@@ -39,6 +39,8 @@ const ICON_OPTIONS = [
   { name: 'CreditCard', Icon: CreditCard },
   { name: 'Star', Icon: Star },
   { name: 'Truck', Icon: Truck },
+  { name: 'LayoutDashboard', Icon: LayoutDashboard  },
+  { name: 'Layers', Icon: Layers  },
 ];
 
 const STATUS_OPTIONS = [
