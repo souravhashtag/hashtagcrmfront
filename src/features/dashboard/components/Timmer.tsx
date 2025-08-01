@@ -3,7 +3,7 @@ import {
   getScreenshots,
   ScreenShotResponse,
 } from "../../../services/authService";
-import { Loader2 } from "lucide-react";
+import { Calendar, Loader2 } from "lucide-react";
 import {
   ClockIn,
   ClockOut,
@@ -12,6 +12,8 @@ import {
 } from "../../../services/AttendanceService";
 import { useUser } from "../context/DashboardContext";
 import WorkingHours from './WorkingHours';
+import Calender from './Calender';
+
 
 const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBreak,setIsTimmerReady}) => {
   const [getAttendanceData, setAttendanceData] = useState<any>();
@@ -298,7 +300,7 @@ const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBr
   return (
     <>
       <div className="col-span-8 from-teal-400 to-teal-500 rounded-xl text-white">
-              <div className="col-span-8 bg-[#E1F7EF] from-teal-400 to-teal-500 rounded-xl text-white h-32 mb-4 border border-[#0BB8A7]">
+              <div className="col-span-8 bg-[#E1F7EF] from-teal-400 to-teal-500 rounded-xl text-white h-32 mb-4 border border-[#0BB8A7] mb-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <div className="w-12 h-12 bg-white rounded-full mr-4 overflow-hidden ml-5 font-poppins">
@@ -370,7 +372,7 @@ const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBr
 </div>
         {/* Total Working Hours Display */}
         {getWorkingHour && (
-           <div className="col-span-8 bg-[#E1F7EF] from-teal-400 to-teal-500 rounded-xl p-4 text-black h-40 mb-4 border border-[#65e3d7]">
+           <div className="col-span-8 bg-[#E1F7EF] from-teal-400 to-teal-500 rounded-xl p-4 text-black h-40 border border-[#65e3d7]">
         
           <div className="mt-6 pt-4 border-t border-teal-300/30 ">
             <div className="flex items-center justify-between">
@@ -398,7 +400,10 @@ const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBr
       {getTimerReady && (
           <WorkingHours isClockedIn={isClockedIn} TakeaBreak={TakeaBreak} />
         )}
+        <Calender />
       </div>
+      
+   
       
     </>
   );

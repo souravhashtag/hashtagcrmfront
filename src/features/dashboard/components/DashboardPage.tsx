@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 
 import Timmer from './Timmer';
 import BirthDay from './BirthDay';
+import './DashboardPage.css';
 
 import { getIndividualAttendanceData } from '../../../services/AttendanceService';
+
 
 const DashboardPage: React.FC = () => {
   const [isClockedIn, setIsClockedIn] = useState(false);
@@ -17,7 +19,7 @@ const DashboardPage: React.FC = () => {
 
       <Timmer setIsClockedIn={setIsClockedIn} isClockedIn={isClockedIn} TakeaBreak={TakeaBreak} setTakeaBreak={setTakeaBreak} setIsTimmerReady={setIsTimmerReady} />
       <BirthDay />
-      
+
 
     </div>
   );
