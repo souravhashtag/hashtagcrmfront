@@ -4,7 +4,7 @@ body{
 
 .sidebar {
   width: 250px;
-  background: #E1F7EF;
+  background: #111D32;
   padding: 20px;
 }
 .sidebar .nav li {
@@ -12,7 +12,7 @@ body{
     padding: 15px;
     cursor: pointer;
     font-weight: 500;
-    color: #042824;
+    color: #fff;
 }
 .sidebar .nav li.active {
   background-color: #a3e6dd;
@@ -67,14 +67,16 @@ a.menu-link.submenu-link {
     align-items: center;
 }
 .menu-item:hover {
-    background-color: #AFE8E2;
-    color: #000;
+    background-color: #4FD1C5;
+    color: #111d32 !important;
     font-weight: 600;
 }
 ul.submenu {
     margin-top: 10px;
 }
-
+ul.submenu li a:hover{
+    color: #111D32;
+}
 button.theme-btn.light {
     display: flex;
     align-items: center;

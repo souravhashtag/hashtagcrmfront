@@ -16,7 +16,12 @@ const Header = () => {
 
     const UserDataAPI = async () => {
         const res = await getUserData();
-        // console.log('User Data:', res);
+        // console.log('User Data:', res);        
+        if(!res.user) {
+            localStorage.removeItem("token");
+            localStorage.removeItem("refreshToken");
+            window.location.href = '/';
+        }
         setUser(res.user);
     }
 
@@ -74,7 +79,7 @@ const Header = () => {
     }, [])
 
     return (
-        <div className="flex items-center justify-between p-4 bg-white border-b border-gray-200">
+        <div className="flex items-center justify-between p-4 bg-white">
             <div className="flex flex-col">
                 <div className="flex items-center gap-2">
                     <h1 className="text-2xl font-semibold text-gray-800">
@@ -131,8 +136,8 @@ const Header = () => {
 
                     {/* Dropdown Menu */}
                     {isDropdownOpen && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-                            <div className="px-4 py-2 border-b border-gray-100">
+                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50">
+                            <div className="px-4 py-2">
                                 <p className="text-sm font-medium text-gray-900">
                                     {user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : 'Guest'}
                                 </p>
