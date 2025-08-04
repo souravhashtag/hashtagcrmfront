@@ -121,8 +121,9 @@ const WorkingHours: React.FC<any> = ({isClockedIn,TakeaBreak}) => {
     }
   }, [attendanceResponse, isClockedIn, TakeaBreak]);
   useEffect(() => {
+    console.log("TakeaBreak==>",isClockedIn);
     getAttendanceDt();
-  },[TakeaBreak])
+  },[isClockedIn])
 
   const getCurrentDate = () => {
     const now = new Date();
