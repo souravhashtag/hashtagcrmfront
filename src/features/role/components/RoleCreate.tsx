@@ -762,7 +762,9 @@ const RoleCreate: React.FC = () => {
       };
 
       if (isEdit && id) {
-        await updateRole({ id, data: roleData });
+        const response = await updateRole({ id, data: roleData }).unwrap();
+        // console.log('Update Response:', JSON.stringify(response, null, 2));
+        await refetch();
         navigate('/role');
       } else {
         // console.log('Creating role with data:', roleData);
