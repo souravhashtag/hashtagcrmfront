@@ -106,27 +106,27 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
     // Check if current user can approve/reject this leave
     const canApproveLeave = () => {
         if (!leave || leave.status !== 'pending') return false;
-        
+
         const employeeData = getEmployeeData();
         if (!employeeData) return false;
 
         // Get the leave applicant's role
         const applicantRole = employeeData.userId?.role?.name?.toLowerCase() || 'employee';
-        
+
         // Admin can approve anyone's leave
         if (isAdmin) return true;
-        
+
         // HR can approve employee leaves but not their own or other HR leaves
         if (isHR) {
             // Check if it's their own leave
             const isOwnLeave = employeeData.userId?._id === user?._id;
-            
+
             if (isOwnLeave) return false; // HR cannot approve their own leave
-            
+
             // HR can approve employee leaves (not HR or admin leaves)
             return applicantRole === 'employee';
         }
-        
+
         return false;
     };
 
@@ -177,7 +177,7 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
             }
             return;
         }
-        
+
         setActionType(action);
         setShowStatusModal(true);
     };
@@ -198,7 +198,7 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
 
     const getStatusColor = (status: string) => {
         if (!status) return 'bg-gray-100 text-gray-800 border-gray-300';
-        
+
         const colors = {
             pending: 'bg-yellow-100 text-yellow-800 border-yellow-300',
             approved: 'bg-green-100 text-green-800 border-green-300',
@@ -210,7 +210,7 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
 
     const getTypeColor = (type: string) => {
         if (!type) return 'bg-gray-100 text-gray-800';
-        
+
         const colors = {
             casual: 'bg-blue-100 text-blue-800',
             medical: 'bg-red-100 text-red-800',
@@ -236,24 +236,24 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
     // Get approval permission message
     const getApprovalMessage = () => {
         if (!leave || leave.status !== 'pending') return null;
-        
+
         const employeeData = getEmployeeData();
         const applicantRole = employeeData?.userId?.role?.name?.toLowerCase() || 'employee';
-        
+
         if (isOwnLeave() && isHR) {
             return {
                 type: 'warning',
                 message: 'You cannot approve your own leave request. Only admin can approve HR leave requests.'
             };
         }
-        
+
         if (isHR && applicantRole === 'hr') {
             return {
                 type: 'info',
                 message: 'Only admin can approve HR leave requests.'
             };
         }
-        
+
         return null;
     };
 
@@ -351,11 +351,10 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
 
                     {/* Approval Permission Message */}
                     {approvalMessage && (
-                        <div className={`mt-4 p-3 rounded-lg border flex items-start gap-2 ${
-                            approvalMessage.type === 'warning' 
-                                ? 'bg-amber-50 border-amber-200 text-amber-800' 
+                        <div className={`mt-4 p-3 rounded-lg border flex items-start gap-2 ${approvalMessage.type === 'warning'
+                                ? 'bg-amber-50 border-amber-200 text-amber-800'
                                 : 'bg-blue-50 border-blue-200 text-blue-800'
-                        }`}>
+                            }`}>
                             <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                             <p className="text-sm">{approvalMessage.message}</p>
                         </div>
@@ -451,7 +450,13 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
                                                 </div>
                                             </div>
                                             <button
-                                                onClick={() => attachment.url && window.open(attachment.url, '_blank')}
+                                                onClick={() => {
+                                                    if (attachment.url) {
+                                                        const fileUrl = `http://localhost:5000/${attachment.url.replace(/\\/g, '/')}`;
+                                                        window.open(fileUrl, '_blank');
+                                                    }
+                                                }}
+
                                                 className="text-blue-600 hover:text-blue-800 p-2 rounded-lg hover:bg-blue-50"
                                                 disabled={!attachment.url}
                                             >
@@ -517,8 +522,8 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
                                     <div>
                                         <label className="block text-sm font-medium text-gray-500">Approved/Rejected By</label>
                                         <p className="text-gray-900">
-                                            {typeof leave.approvedBy === 'string' 
-                                                ? leave.approvedBy 
+                                            {typeof leave.approvedBy === 'string'
+                                                ? leave.approvedBy
                                                 : `${getApproverData()?.firstName || ''} ${getApproverData()?.lastName || ''}`}
                                         </p>
                                     </div>
