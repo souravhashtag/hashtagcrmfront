@@ -55,22 +55,26 @@ const LeaveManagement: React.FC = () => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter, typeFilter]);
 
-  const filteredLeaves = (leavesData?.data ?? []).filter((leave: any) => {
-    // Exclude current user's own leaves
-    if (leave.employeeId?.userId?._id === user?._id) return false;
 
-    const term = searchTerm.toLowerCase();
+  const filteredLeaves = (leavesData?.data ?? []).filter((leave: any) => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return true; // No search, include all
+
+    const employeeName = `${leave.employeeId?.userId?.firstName || ''} ${leave.employeeId?.userId?.lastName || ''}`.toLowerCase();
+    const status = (leave.status || '').toLowerCase();
+
+    // Convert dates to string for comparison
+    const startDate = leave.startDate ? new Date(leave.startDate).toLocaleDateString('en-US') : '';
+    const endDate = leave.endDate ? new Date(leave.endDate).toLocaleDateString('en-US') : '';
+
     return (
-      (`${leave.employeeId?.userId?.firstName || ''} ${leave.employeeId?.userId?.lastName || ''}`.toLowerCase().includes(term)) ||
-      (leave.type || '').toLowerCase().includes(term) ||
-      (leave.status || '').toLowerCase().includes(term) ||
-      (leave.reason || '').toLowerCase().includes(term) ||
-      (leave.approvedBy ? `${leave.approvedBy.firstName || ''} ${leave.approvedBy.lastName || ''}` : '').toLowerCase().includes(term) ||
-      leave.startDate.toLowerCase().includes(term) ||
-      leave.endDate.toLowerCase().includes(term) ||
-      (leave.totalDays?.toString() || '').includes(term)
+      employeeName.includes(term) ||
+      status.includes(term) ||
+      startDate.includes(term) ||
+      endDate.includes(term)
     );
   });
+
 
   // Helper function to check if user can approve/reject a leave
   // const canApproveLeave = (leave: any) => leave.status === 'pending';
@@ -622,13 +626,13 @@ const LeaveManagement: React.FC = () => {
                   </button>
 
                   {/* Page Numbers */}
-                   {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(pageNum => (
+                  {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(pageNum => (
                     <button
                       key={pageNum}
                       onClick={() => setCurrentPage(pageNum)}
                       className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === pageNum
-                          ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                        ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
                         }`}
                     >
                       {pageNum}
