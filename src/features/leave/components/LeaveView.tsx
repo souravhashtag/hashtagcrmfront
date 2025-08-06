@@ -1,4 +1,3 @@
-// src/features/leave/components/LeaveView.tsx - Fixed Version with Approval Hierarchy
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {

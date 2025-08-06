@@ -1,4 +1,3 @@
-// src/features/leave/components/Leave.tsx - For Normal Staff
 import React, { useState, useEffect } from 'react';
 import {
   Search,
