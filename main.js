@@ -37,7 +37,7 @@ electronApp.whenReady().then(() => {
   });
   Menu.setApplicationMenu(null);
    //mainWindow.loadURL('https://quotehives.com/hashtagcrm/');
-  mainWindow.loadURL('http://localhost:3000/');
+  mainWindow.loadURL('http://51.20.198.23:5004/');
   ipcMain.on('set-user-data', (event, data) => {
     userData = data;
     store.set('userSession', {
@@ -69,7 +69,7 @@ async function takeAndUploadScreenshot(token) {
     const form = new FormData();
     form.append('image', fs.createReadStream(fileName));
 
-    const res = await axios.post('http://13.61.22.39:5004/api/V1/auth/screenshotupload', form, {
+    const res = await axios.post('http://51.20.198.23:5003/api/V1/auth/screenshotupload', form, {
       headers: {
         ...form.getHeaders(),
         Authorization: `Bearer ${token}`,

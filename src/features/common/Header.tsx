@@ -16,7 +16,12 @@ const Header = () => {
 
     const UserDataAPI = async () => {
         const res = await getUserData();
-        // console.log('User Data:', res);
+        // console.log('User Data:', res);        
+        if(!res.user) {
+            localStorage.removeItem("token");
+            localStorage.removeItem("refreshToken");
+            window.location.href = '/';
+        }
         setUser(res.user);
     }
 

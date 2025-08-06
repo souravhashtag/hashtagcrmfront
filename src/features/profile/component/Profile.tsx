@@ -37,8 +37,7 @@ const Profile: React.FC = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>,employee:any) => {
-    //console.log("employeeData",employeeData)
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>, employee: any) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -68,26 +67,44 @@ const Profile: React.FC = () => {
 
       // Create FormData for file upload
       const formData = new FormData();
+      
+      // Add the profile picture file
       formData.append('profilePicture', file);
-      const userData :any = {}
-      userData.profilePicture = file;
-      const employeeData :any = {}
-      employeeData.userData = userData;
-      console.log(employeeData)
+      
+      // Backend expects these fields, send empty objects for profile picture only upload
+      formData.append('userDatast', JSON.stringify({}));
+      formData.append('employeeDatast', JSON.stringify({}));
+
+      console.log('Uploading profile picture for employee:', employee?._id);
+
       const result = await updateEmployee({
         id: employee?._id!,
         data: formData 
       }).unwrap();
 
       console.log('Upload successful:', result);
+      
+      // Update the preview with the new image URL if provided
+      if (result.profilePictureUrl) {
+        setPreviewImage(result.profilePictureUrl);
+      }
+      
       refetch(); // Refresh profile data
-      //alert('Profile picture updated successfully!');
+      
+      // Update user data in state
       const res = await getUserData();
-      // console.log('User Data:', res);
       setUser(res.user);
-    } catch (error) {
+      
+      // Optional: Show success message
+      // alert('Profile picture updated successfully!');
+      
+    } catch (error: any) {
       console.error('Error uploading file:', error);
-      alert('Failed to upload image. Please try again.');
+      
+      const errorMessage = error?.data?.message || 'Failed to upload image. Please try again.';
+      alert(errorMessage);
+      
+      // Reset preview on error
       setPreviewImage(null);
     } finally {
       setIsUploading(false);
@@ -126,7 +143,7 @@ const Profile: React.FC = () => {
             <>
               {/* Actual Profile Picture */}
               <img 
-                src={profilePicture} 
+                src={user?.profilePicture} 
                 alt="Profile" 
                 className={`w-24 h-24 rounded-full object-cover transition-all duration-300 ${
                   isHovered ? 'blur-sm brightness-50' : ''

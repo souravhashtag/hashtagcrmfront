@@ -3,6 +3,7 @@ import {
   useCreateRoleMutation,
   useUpdateRoleMutation,
   useGetRoleByIdQuery,
+  useGetRolesQuery,
 } from '../../../services/roleServices';
 import {  
   useGetMenusQuery
@@ -19,6 +20,9 @@ import {
   FolderOpen,
   Check,
   Minus,
+  Users,
+  TreePine,
+  AlertCircle,
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -34,6 +38,7 @@ interface RoleForm {
   name: string;
   display_name: string;
   description: string;
+  parent_id: string;
   menulist: MenuListItem[];
 }
 
@@ -43,6 +48,217 @@ interface SimpleMenuSelectorProps {
   onMenuToggle: (menu: any, isSelected: boolean) => void;
   onParentPathChange: (menuId: string, parentPath: string) => void;
 }
+
+interface RoleHierarchySelectorProps {
+  roles: any[];
+  selectedParentId: string;
+  onParentChange: (parentId: string) => void;
+  currentRoleId?: string;
+  disabled?: boolean;
+}
+
+const RoleHierarchySelector: React.FC<RoleHierarchySelectorProps> = ({
+  roles,
+  selectedParentId,
+  onParentChange,
+  currentRoleId,
+  disabled = false
+}) => {
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+
+  // Build hierarchy tree from flat roles array
+  const buildRoleHierarchy = (rolesList: any[]) => {
+    const roleMap = new Map();
+    const rootRoles: any[] = [];
+
+    // Create role map
+    rolesList.forEach(role => {
+      roleMap.set(role._id, { ...role, children: [] });
+    });
+
+    // Build hierarchy
+    rolesList.forEach(role => {
+      if (role.parent_id && roleMap.has(role.parent_id)) {
+        const parent = roleMap.get(role.parent_id);
+        parent.children.push(roleMap.get(role._id));
+      } else {
+        rootRoles.push(roleMap.get(role._id));
+      }
+    });
+
+    return rootRoles.sort((a, b) => a.name.localeCompare(b.name));
+  };
+
+  // Filter out current role and its descendants to prevent circular references
+  const getValidParentRoles = (rolesList: any[]) => {
+    if (!currentRoleId) return rolesList;
+    
+    const findDescendants = (parentId: string, visited = new Set<string>()): Set<string> => {
+      if (visited.has(parentId)) return visited;
+      visited.add(parentId);
+      
+      rolesList.forEach(role => {
+        if (role.parent_id === parentId && !visited.has(role._id)) {
+          findDescendants(role._id, visited);
+        }
+      });
+      
+      return visited;
+    };
+
+    const invalidIds = findDescendants(currentRoleId);
+    return rolesList.filter(role => !invalidIds.has(role._id));
+  };
+
+  const toggleNode = (nodeId: string) => {
+    const newExpanded = new Set(expandedNodes);
+    if (newExpanded.has(nodeId)) {
+      newExpanded.delete(nodeId);
+    } else {
+      newExpanded.add(nodeId);
+    }
+    setExpandedNodes(newExpanded);
+  };
+
+  const renderRoleNode = (role: any, level: number = 0): React.ReactElement => {
+    const hasChildren = role.children && role.children.length > 0;
+    const isExpanded = expandedNodes.has(role._id);
+    const isSelected = selectedParentId === role._id;
+    const isCurrentRole = currentRoleId === role._id;
+    const indentation = level * 20;
+
+    return (
+      <div key={role._id}>
+        <div 
+          className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors ${
+            isSelected ? 'bg-blue-100 border-blue-300' : 'hover:bg-gray-50'
+          } ${isCurrentRole ? 'opacity-50 cursor-not-allowed' : ''}`}
+          style={{ paddingLeft: `${indentation + 8}px` }}
+          onClick={() => !isCurrentRole && !disabled && onParentChange(role._id)}
+        >
+          {hasChildren && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleNode(role._id);
+              }}
+              className="p-1 hover:bg-gray-200 rounded"
+              disabled={disabled}
+            >
+              {isExpanded ? (
+                <ChevronDown size={16} className="text-gray-600" />
+              ) : (
+                <ChevronRight size={16} className="text-gray-600" />
+              )}
+            </button>
+          )}
+          {!hasChildren && <div className="w-6" />}
+          
+          <input
+            type="radio"
+            name="parent_role"
+            value={role._id}
+            checked={isSelected}
+            onChange={() => !isCurrentRole && !disabled && onParentChange(role._id)}
+            disabled={isCurrentRole || disabled}
+            className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+          />
+          
+          <div className="flex items-center gap-2 flex-1">
+            <Users size={16} className={`${isCurrentRole ? 'text-gray-400' : 'text-gray-600'}`} />
+            <div>
+              <span className={`text-sm font-medium ${
+                isCurrentRole ? 'text-gray-400' : isSelected ? 'text-blue-700' : 'text-gray-700'
+              }`}>
+                {role.display_name || role.name}
+                {isCurrentRole && ' (Current Role)'}
+              </span>
+              <div className="text-xs text-gray-500">
+                Level {role.level || 0} • {role.name}
+              </div>
+            </div>
+          </div>
+          
+          {hasChildren && (
+            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+              {role.children.length} child{role.children.length !== 1 ? 'ren' : ''}
+            </span>
+          )}
+        </div>
+        
+        {hasChildren && isExpanded && (
+          <div className="ml-4">
+            {role.children.map((child: any) => renderRoleNode(child, level + 1))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const validRoles = getValidParentRoles(roles);
+  const hierarchy = buildRoleHierarchy(validRoles);
+
+  return (
+    <div className="border border-gray-200 rounded-lg p-4 bg-white">
+      <div className="mb-3">
+        <h4 className="text-sm font-medium text-gray-700 flex items-center gap-2">
+          <TreePine size={16} />
+          Select Parent Role
+        </h4>
+        <p className="text-xs text-gray-500 mt-1">
+          Choose a parent role to create a hierarchy. Leave unselected for root-level role.
+        </p>
+      </div>
+      
+      {/* No Parent Option */}
+      <div className="mb-3 p-2 border-b border-gray-100">
+        <div 
+          className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors ${
+            !selectedParentId ? 'bg-blue-100 border-blue-300' : 'hover:bg-gray-50'
+          }`}
+          onClick={() => !disabled && onParentChange('')}
+        >
+          <input
+            type="radio"
+            name="parent_role"
+            value=""
+            checked={!selectedParentId}
+            onChange={() => !disabled && onParentChange('')}
+            disabled={disabled}
+            className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+          />
+          <div className="flex items-center gap-2">
+            <Folder size={16} className="text-gray-600" />
+            <span className={`text-sm font-medium ${!selectedParentId ? 'text-blue-700' : 'text-gray-700'}`}>
+              Root Level (No Parent)
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      {/* Role Hierarchy */}
+      <div className="max-h-64 overflow-y-auto">
+        {hierarchy.length > 0 ? (
+          <div className="space-y-1">
+            {hierarchy.map(role => renderRoleNode(role))}
+          </div>
+        ) : (
+          <p className="text-center text-gray-500 text-sm py-4">
+            No roles available as parents
+          </p>
+        )}
+      </div>
+      
+      {currentRoleId && (
+        <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-700">
+          <AlertCircle size={14} className="inline mr-1" />
+          Current role and its descendants are excluded to prevent circular references.
+        </div>
+      )}
+    </div>
+  );
+};
 
 const SimpleMenuSelector: React.FC<SimpleMenuSelectorProps> = ({
   menus,
@@ -126,7 +342,6 @@ const SimpleMenuSelector: React.FC<SimpleMenuSelectorProps> = ({
   };
 
   const isDirectlySelected = (menu: any) => {
-    //console.log("selectedMenus==>",selectedMenus);
     const menuId = menu.originalId || menu._id;
     const currentParentId = menu.currentParentId;
     
@@ -141,23 +356,16 @@ const SimpleMenuSelector: React.FC<SimpleMenuSelectorProps> = ({
     }
   };
 
-  // Check if any direct children are selected
   const areAnyChildrenSelected = (menu: any) => {
     if (!menu.children || menu.children.length === 0) return false;
-    
     return menu.children.some((child: any) => isDirectlySelected(child));
   };
 
-  // Main function to determine if menu should show as checked
   const isMenuSelected = (menu: any) => {
-    // First check if directly selected
     if (isDirectlySelected(menu)) return true;
-    
-    // If has children, check if ANY children are selected
     if (menu.children && menu.children.length > 0) {
       return areAnyChildrenSelected(menu);
     }
-    
     return false;
   };
 
@@ -166,7 +374,6 @@ const SimpleMenuSelector: React.FC<SimpleMenuSelectorProps> = ({
   };
 
   const onMenuChecked = (menu: any, isChecked: boolean) => {
-    //console.log("menu===>",menu)
     const applyToChildren = (currentMenu: any) => {
       const menuId = currentMenu.originalId || currentMenu._id;
       const currentParentId = currentMenu.currentParentId;
@@ -194,7 +401,6 @@ const SimpleMenuSelector: React.FC<SimpleMenuSelectorProps> = ({
     const hasChildren = menu.children && menu.children.length > 0;
     const menuId = menu.originalId || menu._id;
     
-    // Use the isMenuSelected function for consistent logic
     const isSelected = isMenuSelected(menu);
     const isIndeterminateState = isIndeterminate(menu);
 
@@ -256,7 +462,6 @@ const SimpleMenuSelector: React.FC<SimpleMenuSelectorProps> = ({
           </label>
         </div>
 
-        {/* Parent Path Selection for Multi-Parent Menus - Only show once per unique menu */}
         {isSelected && menu.isMultiParent && !menu.currentParentId && (
           <div className="ml-7 mt-2 mb-4 p-3 bg-blue-50 rounded border-l-4 border-blue-200">
             <div className="text-sm font-medium text-blue-900 mb-2">
@@ -306,7 +511,6 @@ const SimpleMenuSelector: React.FC<SimpleMenuSelectorProps> = ({
           </div>
         )}
 
-        {/* Children */}
         {hasChildren && (
           <div className="ml-4">
             {(menu.children || []).map((child: any) => renderMenuItem(child, level + 1))}
@@ -349,11 +553,22 @@ const RoleCreate: React.FC = () => {
     name: '', 
     display_name: '', 
     description: '',
+    parent_id: '',
     menulist: []
   });
 
-  const { data: roleData, isLoading, refetch } = useGetRoleByIdQuery(id ?? '', {
+  const { data: roleData, isLoading, refetch } = useGetRoleByIdQuery({ 
+    id: id ?? '',
+    include_children: false,
+    include_ancestors: false
+  }, {
     skip: !isEdit || !id,
+  });
+
+  const { data: rolesResponse } = useGetRolesQuery({
+    page: 1,
+    limit: 1000, // Get all roles for hierarchy
+    search: '',
   });
 
   const { data: menusResponse } = useGetMenusQuery({
@@ -365,9 +580,12 @@ const RoleCreate: React.FC = () => {
   const [createRole] = useCreateRoleMutation();
   const [updateRole] = useUpdateRoleMutation();
 
-  // Handle menu response structure
+  // Handle responses
   const menus = Array.isArray(menusResponse) ? menusResponse : (menusResponse?.data || []);
   const activeMenus = (menus || []).filter((menu: any) => menu.status === 'active');
+  
+  const roles = Array.isArray(rolesResponse) ? rolesResponse : (rolesResponse?.data || []);
+  const activeRoles = (roles || []).filter((role: any) => role.is_active !== false);
 
   const flattenMenuListForEdit = (hierarchicalMenuList: any[]): MenuListItem[] => {
     const flatList: MenuListItem[] = [];
@@ -380,7 +598,6 @@ const RoleCreate: React.FC = () => {
       );
       
       if (matchedMenu) {
-        // Add current menu to flat list
         const menuItem: MenuListItem = {
           name: menu.name,
           slug: menu.slug,
@@ -399,7 +616,6 @@ const RoleCreate: React.FC = () => {
       }
     };
     
-    // Process each root menu
     if (Array.isArray(hierarchicalMenuList)) {
       hierarchicalMenuList.forEach(menu => {
         if (menu && typeof menu === 'object') {
@@ -415,24 +631,16 @@ const RoleCreate: React.FC = () => {
     if (roleData && activeMenus.length > 0) {
       const existingMenuList = roleData?.data?.menulist || [];
       
-      // Check if menulist is hierarchical (has submenu property) or flat (has menuId property)
       let processedMenuList: MenuListItem[] = [];
       
       if (existingMenuList.length > 0) {
         const firstItem = existingMenuList[0];
         
         if (firstItem.submenu !== undefined || (!firstItem.menuId && firstItem.name && firstItem.slug)) {
-          // Hierarchical structure - flatten it
-          //console.log('Detected hierarchical structure, flattening...');
           processedMenuList = flattenMenuListForEdit(existingMenuList);
-          //console.log('Flattened menulist:', processedMenuList);
         } else if (firstItem.menuId) {
-          // Already flat structure with menuId
-          console.log('Detected flat structure with menuId');
           processedMenuList = existingMenuList;
         } else {
-          // Old structure without menuId - try to match by name/slug
-          //console.log('Detected old structure, matching by name/slug...');
           processedMenuList = existingMenuList.map((item: any) => {
             const matchedMenu = activeMenus.find((m: any) => 
               (m.slug === item.slug && m.name === item.name) ||
@@ -444,23 +652,21 @@ const RoleCreate: React.FC = () => {
               menuId: matchedMenu?._id || '',
               icon: item.icon || ''
             };
-          }).filter((item: MenuListItem) => item.menuId); // Remove items without valid menuId
+          }).filter((item: MenuListItem) => item.menuId);
         }
       }
-      
-      //console.log('Final processed menulist:', processedMenuList);
       
       setForm({
         name: roleData?.data?.name || '',
         display_name: roleData?.data?.display_name || '',
         description: roleData?.data?.description || '',
+        parent_id: roleData?.data?.parent_id || '',
         menulist: processedMenuList,
       });
     }
   }, [roleData, activeMenus.length]);
 
   const transformMenuListToHierarchy = (flatMenuList: MenuListItem[]) => {
-    //console.log("flatMenuList===>", flatMenuList)
     const allMenusMap = new Map();
     activeMenus.forEach((menu: any) => {
       allMenusMap.set(menu._id, menu);
@@ -481,24 +687,19 @@ const RoleCreate: React.FC = () => {
         submenu: []
       };
 
-      // Determine if this is a root menu or child menu
       const hasParent = menuData.parentIds && menuData.parentIds.length > 0;      
       if (!hasParent) {
-        // This is a root menu
         if (!hierarchyMap.has(menuData._id)) {
           hierarchyMap.set(menuData._id, menuItem);
           rootMenus.push(menuItem);
         }
       } else {
-        // This is a child menu, find its parents in the selected list
         menuData.parentIds.forEach((parentId: any) => {
           const actualParentId = typeof parentId === 'object' ? parentId._id : parentId;
           
-          // Check if parent is also selected
           const parentSelected = flatMenuList.find(item => item.menuId === actualParentId);
           
           if (parentSelected) {
-            // Parent is selected, add this as child
             if (!hierarchyMap.has(actualParentId)) {
               const parentMenuData = allMenusMap.get(actualParentId);
               
@@ -512,7 +713,6 @@ const RoleCreate: React.FC = () => {
                 };
                 hierarchyMap.set(actualParentId, parentItem);
                 
-                // Check if parent should be root
                 const parentHasParent = parentMenuData.parentIds && parentMenuData.parentIds.length > 0;
                 if (!parentHasParent) {
                   rootMenus.push(parentItem);
@@ -520,7 +720,6 @@ const RoleCreate: React.FC = () => {
               }
             }
             
-            // Add current menu as child to parent
             const parentMenu = hierarchyMap.get(actualParentId);
             if (parentMenu && !parentMenu.submenu.find((child: any) => child.menuId === menuData._id)) {
               parentMenu.submenu.push(menuItem);
@@ -530,7 +729,6 @@ const RoleCreate: React.FC = () => {
       }
     });
 
-    // Remove menuId from final structure and clean up empty submenus
     const cleanStructure = (menus: any[]): any[] => {
       return menus.map(menu => {
         const cleanMenu: any = {
@@ -553,21 +751,21 @@ const RoleCreate: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // Transform flat menu list to hierarchical structure
       const hierarchicalMenuList = transformMenuListToHierarchy(form.menulist);
       
       const roleData = {
         name: form.name,
-        display_name: form.display_name || null,
-        description: form.description || null,
+        display_name: form.display_name || undefined,
+        description: form.description || undefined,
+        parent_id: form.parent_id || undefined,
         menulist: hierarchicalMenuList
       };
 
       if (isEdit && id) {
-        //console.log("roleData==", roleData);
         await updateRole({ id, data: roleData });
         navigate('/role');
       } else {
+        // console.log('Creating role with data:', roleData);
         await createRole(roleData);
         navigate('/role');
       }      
@@ -579,6 +777,10 @@ const RoleCreate: React.FC = () => {
 
   const handleInputChange = (field: keyof RoleForm, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleParentRoleChange = (parentId: string) => {
+    setForm(prev => ({ ...prev, parent_id: parentId }));
   };
 
   const handleMenuToggle = (menu: any, isSelected: boolean) => {
@@ -657,11 +859,12 @@ const RoleCreate: React.FC = () => {
   return (
     <div className="mx-auto p-6 bg-white shadow-lg rounded-lg mb-8">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">
+        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+          <Users className="text-blue-600" />
           {isEdit ? 'Edit Role' : 'Create New Role'}
         </h2>
         <p className="text-sm text-gray-600 mt-1">
-          {isEdit ? 'Update role information and menu permissions' : 'Create a new role with specific menu permissions'}
+          {isEdit ? 'Update role information, hierarchy, and menu permissions' : 'Create a new role with hierarchy and menu permissions'}
         </p>
       </div>
     
@@ -675,7 +878,7 @@ const RoleCreate: React.FC = () => {
             <input
               id="name"
               type="text"
-              placeholder="Enter role name (e.g., admin, user)"
+              placeholder="Enter role name (e.g., admin, manager)"
               value={form.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
               required
@@ -712,6 +915,43 @@ const RoleCreate: React.FC = () => {
             className="w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-vertical"
           />
         </div>
+
+        {/* Parent Role Selection */}
+        <div className="mb-6">
+          <label className="block mb-3 font-semibold text-gray-700">
+            Role Hierarchy
+          </label>
+          <RoleHierarchySelector
+            roles={activeRoles}
+            selectedParentId={form.parent_id}
+            onParentChange={handleParentRoleChange}
+            currentRoleId={id}
+            disabled={false}
+          />
+        </div>
+
+        {/* Current Role Info Display */}
+        {form.parent_id && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <TreePine size={16} className="text-blue-600" />
+              <span className="text-sm font-medium text-blue-900">Role Hierarchy Preview</span>
+            </div>
+            <div className="text-sm text-blue-700">
+              {(() => {
+                const parentRole = activeRoles.find((r: any) => r._id === form.parent_id);
+                const parentLevel = parentRole?.level || 0;
+                const currentLevel = parentLevel + 1;
+                return (
+                  <div>
+                    <div>Parent: <strong>{parentRole?.display_name || parentRole?.name}</strong> (Level {parentLevel})</div>
+                    <div>Current Role: <strong>{form.display_name || form.name}</strong> (Level {currentLevel})</div>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        )}
 
         {/* Hierarchical Menu Assignment Section */}
         <div className="mb-6">
@@ -782,6 +1022,7 @@ const RoleCreate: React.FC = () => {
           </div>
         </div>
 
+        {/* Form Actions */}
         <div className="flex justify-end gap-4 pt-4 border-t">
           <button
             type="button"

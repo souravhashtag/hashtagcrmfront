@@ -333,7 +333,9 @@ const EmployeeCreate: React.FC = () => {
     }
 
     try {
-      // console.log("formData.employeeId", formData.employeeId);
+      // Filter documents that have files
+      const documentsWithFiles = documents.filter(doc => doc.file);
+      
       const employeeData: any = {
         employeeId: formData.employeeId,
         joiningDate: formData.joiningDate,
@@ -363,7 +365,8 @@ const EmployeeCreate: React.FC = () => {
           accountHolderName: formData.accountHolderName
         } : undefined,
         
-        documents: documents.filter(doc => doc.file).map(doc => ({
+        // Only include documents metadata if there are files to upload
+        documents: documentsWithFiles.map(doc => ({
           type: doc.type,
           name: doc.name
         }))
@@ -384,22 +387,22 @@ const EmployeeCreate: React.FC = () => {
       if (formData.password) {
         userData.password = formData.password;
       }
-      // console.log("employeeData", userData);return
+      
       const formDataToSend = new FormData();      
       formDataToSend.append('employeeDatast', JSON.stringify(employeeData));
       formDataToSend.append('userDatast', JSON.stringify(userData));
       
-      documents.forEach((doc, index) => {
-        if (doc.file) {
-          formDataToSend.append('documents[]', doc.file);
-        }
-      });
+      // Add document files in the same order as metadata
+      documentsWithFiles.forEach((doc:any, index) => {
+        formDataToSend.append('documents[]', doc.file);
+      });      
+      
       if (isEditMode) {
         const update = await updateEmployee({ 
           id: id!, 
           data: formDataToSend 
         }).unwrap();
-        // console.log("update", update);
+        
         navigate('/employee', { 
           state: { message: 'Employee updated successfully!' }
         });
