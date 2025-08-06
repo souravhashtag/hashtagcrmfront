@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { getIconComponent } from '../../utils/getIconComponent';
 import { Sun, Moon, ChevronDown, ChevronRight } from 'lucide-react';
 import { useUser } from "../dashboard/context/DashboardContext";
-import './sidebar.css';
+import './sidebar.css'; 
 
 const Sidebar = (): React.ReactElement => {
   const location = useLocation();
