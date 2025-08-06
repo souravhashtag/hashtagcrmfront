@@ -5,6 +5,7 @@ export const tagTypes = [
   'Menu',
   'Employee',
   'Permission',
+  'Leave',
   'Assignment'
 ] as const;
 
