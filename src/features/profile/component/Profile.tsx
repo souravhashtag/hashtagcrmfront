@@ -101,7 +101,6 @@ const Profile: React.FC = () => {
     } catch (error: any) {
       console.error('Error uploading file:', error);
       
-      // Show specific error message if available
       const errorMessage = error?.data?.message || 'Failed to upload image. Please try again.';
       alert(errorMessage);
       
