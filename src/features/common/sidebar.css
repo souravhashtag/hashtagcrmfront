@@ -421,7 +421,7 @@ background:#111D32;
     color: #ffffff;
   }
   
-  .menu-link.active::after {
+  .menu-link.active::after { 
     width: 4px;
   }
 }
