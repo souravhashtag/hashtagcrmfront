@@ -12,7 +12,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   useGetAllLeavesQuery,
 
-  useUpdateLeaveStatusMutation,
   useDeleteLeaveMutation,
   useUpdateLeaveStatusMutation
 } from '../../../services/leaveServices';
