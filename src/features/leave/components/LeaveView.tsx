@@ -331,13 +331,13 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
                             {/* Employee Actions - Edit/Cancel own pending leaves */}
                             {isOwnLeave() && leave.status === 'pending' && (
                                 <>
-                                    <button
+                                    {/* <button
                                         onClick={() => navigate(`/leave/edit/${leave._id}`)}
                                         className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors"
                                     >
                                         <Edit className="w-4 h-4" />
                                         Edit
-                                    </button>
+                                    </button> */}
                                     <button
                                         onClick={handleCancelLeave}
                                         className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
