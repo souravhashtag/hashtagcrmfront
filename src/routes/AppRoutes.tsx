@@ -20,10 +20,12 @@ import DesignationCreate from '../features/designation/components/DesignationCre
 import DesignationList from '../features/designation/components/DesignationList';
 import Profile from '../features/profile/component/Profile';
 import Attendance from '../features/attendance/component/Attendance';
+
 import Roster from '../features/roster/component/Roster';
 import Leave from '../features/leave/component/Leave';
 import LeaveView from '../features/leave/component/LeaveView';
 import LeaveManagement from '../features/leave/component/LeaveManagement';
+
 
 const ProtectedRoute = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
   return isAuthenticated ? <Outlet /> : <Navigate to="/" replace />;
@@ -48,7 +50,9 @@ const AppRoutes = () => {
           <Route element={<ProtectedLayout />}>
             <Route path={`${base}dashboard`} element={<Dashboard />} />
 
+
             <Route path="menu">
+
               <Route index element={<MenuList />} />
               <Route path="create" element={<MenuCreate />} />
               <Route path="edit/:id" element={<MenuCreate />} />
@@ -79,11 +83,14 @@ const AppRoutes = () => {
               <Route path="edit/:id" element={<DesignationCreate />} />
             </Route>
 
+
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<div>Settings Page</div>} />
             <Route path={`${base}screenshort`} element={<ScreenShort />} />
             <Route path="/attendance" element={<Attendance />} />
+
             <Route path="/roster" element={<Roster />} />
+
             <Route path="/leave" element={<Leave />} />
             <Route path="/leave/view/:id" element={<LeaveView />} />
             <Route path="/leave-management" element={<LeaveManagement />} />

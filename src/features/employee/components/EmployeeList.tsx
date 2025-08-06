@@ -6,7 +6,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { 
   Plus, Edit, Trash2, Search, X, User, Calendar, DollarSign, Phone, 
-  Mail, Building, Badge, FileText, Star, Eye
+  Mail, Building, Badge, FileText, Star, Eye, UserPlus
 } from 'lucide-react';
 
 interface User {
@@ -122,6 +122,15 @@ const EmployeeList: React.FC = () => {
         alert('Failed to delete employee');
       }
     }
+  };
+
+  const handleAssign = (employee: Employee) => {
+    // Add your assign logic here
+    // For example, navigate to an assignment page or open a modal
+    // console.log('Assign action for employee:', employee.employeeId);
+    // You can implement navigation to assignment page:
+    navigate(`/employee/assign/${employee._id}`);
+    // Or open a modal for assignment
   };
 
   const formatDate = (date: string | Date) => {
@@ -437,6 +446,13 @@ const EmployeeList: React.FC = () => {
                           title="View Details"
                         >
                           <Eye size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleAssign(employee)}
+                          className="p-2 text-purple-600 hover:text-purple-900 hover:bg-purple-50 rounded transition"
+                          title="Assign Task/Role"
+                        >
+                          <UserPlus size={16} />
                         </button>
                         <button
                           onClick={() => navigate(`/employee/edit/${employee._id}`)}
