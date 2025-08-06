@@ -21,6 +21,7 @@ import DesignationCreate from '../features/designation/components/DesignationCre
 import DesignationList from '../features/designation/components/DesignationList';
 import Profile from '../features/profile/component/Profile';
 import Attendance from '../features/attendance/component/Attendance';
+import Roster from '../features/roster/components/Roster';
 const ProtectedRoute = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
   return isAuthenticated ? <Outlet /> : <Navigate to="/" replace />;
 };
@@ -71,6 +72,7 @@ const ProtectedLayout = () => (
               <Route path="/settings" element={<div>Settings Page</div>} />
               <Route path={`${base}screenshort`} element={<ScreenShort />} />
               <Route path="/attendance" element={<Attendance />} />
+              <Route path="/roster" element={<Roster />} />
             </Route>
         </Route>
 

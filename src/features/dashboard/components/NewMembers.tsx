@@ -1,35 +1,23 @@
 import React, { useState, useEffect } from 'react';
 
+
 const NewMembers = () => {
   const members = [
     {
       id: 1,
       name: "Douglas Gruehl",
-      position: "Sr. UI Designer",
-      date: "06-05-2025",
-      avatar: "👤"
-    },
-    {
-      id: 2,
-      name: "Sarah Chen",
-      position: "Frontend Developer",
-      date: "06-04-2025",
-      avatar: "👩‍💻"
-    },
-    {
-      id: 3,
-      name: "Mike Johnson",
       position: "Product Manager",
-      date: "06-03-2025",
-      avatar: "👨‍💼"
+      date: "06-05-2025",
+      image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTTUKUnwROtLJpA7PDFyzDpX1racPPBXgxpkSbiaKZltSWMd2uqZCo2vAweErACu-EiR0&usqp=CAU"
     },
-    {
-      id: 4,
-      name: "Emily Rodriguez",
-      position: "UX Researcher",
-      date: "06-02-2025",
-      avatar: "👩‍🔬"
-    }
+     {
+      id: 2,
+      name: "ileana Doe",
+      position: "Sr. Software Developer",
+      date: "06-05-2025",
+      image: "https://images.squarespace-cdn.com/content/v1/5aee389b3c3a531e6245ae76/1531792846005-MYGZAOI0L93I3YJWHB6W/D75_5697-Edit.jpg"
+    },
+   
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -56,23 +44,24 @@ const NewMembers = () => {
 
   return (
     <div className="col-span-4 ">
-      <div className="max-w-lg bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="max-w-lg bg-white rounded-lg  border border-[#65e3d7] shadow-md overflow-hidden">
         {/* Header */}
-        <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+        <div className="bg-gray-50 px-4 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-800">New Members</h2>
         </div>
         
         {/* Member Card Content */}
-        <div className={`p-6 transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+        <div className={`p-4 transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
           <div className="flex items-left space-x-4">
             {/* Avatar */}
-            <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl">
-              {currentMember.avatar}
+            <div className="flex items-center justify-center text-white text-xl">
+              
+              <img src={currentMember.image} alt="" className='w-15 h-20 rounded-lg' />
             </div>
             
             {/* Member Info */}
             <div className="flex-1">
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-gray-900 mt-3">
                 {currentMember.name}
               </h3>
               <div className="flex justify-between items-center mt-1">
