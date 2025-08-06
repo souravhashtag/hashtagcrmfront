@@ -5,6 +5,7 @@ import BirthDay from './BirthDay';
 import './DashboardPage.css';
 
 import { getIndividualAttendanceData } from '../../../services/AttendanceService';
+import Graph from './Graph';
 
 
 const DashboardPage: React.FC = () => {
@@ -15,6 +16,7 @@ const DashboardPage: React.FC = () => {
    
 
   return (
+    <>
     <div className="p-6 grid grid-cols-12 gap-6">     
 
       <Timmer setIsClockedIn={setIsClockedIn} isClockedIn={isClockedIn} TakeaBreak={TakeaBreak} setTakeaBreak={setTakeaBreak} setIsTimmerReady={setIsTimmerReady} />
@@ -22,6 +24,8 @@ const DashboardPage: React.FC = () => {
 
 
     </div>
+          <Graph />
+          </>
   );
 };
 

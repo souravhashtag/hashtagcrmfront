@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Search,
@@ -10,6 +11,9 @@ import {
 import { useNavigate } from 'react-router-dom';
 import {
   useGetAllLeavesQuery,
+
+  useUpdateLeaveStatusMutation,
+  useDeleteLeaveMutation,
   useUpdateLeaveStatusMutation
 } from '../../../services/leaveServices';
 import * as XLSX from 'xlsx';
@@ -48,7 +52,9 @@ const LeaveManagement: React.FC = () => {
   } = useGetAllLeavesQuery(queryParams);
 
   const [updateLeaveStatus] = useUpdateLeaveStatusMutation();
-  // const [deleteLeave] = useDeleteLeaveMutation();
+
+  const [deleteLeave] = useDeleteLeaveMutation();
+
 
   // Reset page when filters change
   useEffect(() => {
@@ -72,8 +78,9 @@ const LeaveManagement: React.FC = () => {
     );
   });
 
-  // Helper function to check if user can approve/reject a leave
-  // const canApproveLeave = (leave: any) => leave.status === 'pending';
+
+  const canApproveLeave = (leave: any) => leave.status === 'pending';
+
 
   const handleStatusUpdate = async (leaveId: string, status: 'approved' | 'rejected') => {
     try {
@@ -92,16 +99,18 @@ const LeaveManagement: React.FC = () => {
     }
   };
 
-  // const handleDelete = async (leaveId: string) => {
-  //   if (window.confirm('Are you sure you want to delete this leave request?')) {
-  //     try {
-  //       await deleteLeave(leaveId).unwrap();
-  //       refetch();
-  //     } catch (error) {
-  //       console.error('Error deleting leave:', error);
-  //     }
-  //   }
-  // };
+
+  const handleDelete = async (leaveId: string) => {
+    if (window.confirm('Are you sure you want to delete this leave request?')) {
+      try {
+        await deleteLeave(leaveId).unwrap();
+        refetch();
+      } catch (error) {
+        console.error('Error deleting leave:', error);
+      }
+    }
+  };
+
 
   const openStatusModal = (leave: any, action: 'approved' | 'rejected') => {
     setSelectedLeave(leave._id);

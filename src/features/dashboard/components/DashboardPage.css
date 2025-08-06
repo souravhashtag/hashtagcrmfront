@@ -931,5 +931,7 @@ body {
 }
 .fontclass{
     font-family: "Cormorant Infant", serif;
+    color: #111827;
+    font-weight: 600;
 
 }

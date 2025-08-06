@@ -7,12 +7,11 @@ const NoticeBoard = () => {
     "Future plans for the organization.",
     "Birthday and wedding anniversary wishes.",
     "Names of the Safety and Quality Committee should be",
-    "Location of the First-Aid Box should be indicated.",
-    "Any other important news should be shared on a daily."
+    "Location of the First-Aid Box should be indicated."
   ];
 
   return (
-    <div className="max-w-lg bg-white bg-white rounded-lg shadow-lg border border-gray-200 p-6 font-sans mt-8">
+    <div className="max-w-lg bg-white bg-white rounded-lg border border-[#65e3d7] shadow-md p-6 font-sans mt-8">
       {/* Header */}
       <div className="flex items-center gap-2 mb-6">
         <h2 className="text-lg font-semibold text-gray-800">Notice Board</h2>

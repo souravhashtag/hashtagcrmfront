@@ -8,6 +8,7 @@ body{
   padding: 20px;
 }
 .sidebar .nav li {
+    
     align-items: center;
     padding: 15px;
     cursor: pointer;
@@ -15,7 +16,7 @@ body{
     color: #fff;
 }
 .sidebar .nav li.active {
-  background-color: #a3e6dd;
+background:#4FD1C5 !important;
   font-weight: bold;
   border-bottom-right-radius: 5px;
   border-top-right-radius: 5px;
@@ -67,7 +68,7 @@ a.menu-link.submenu-link {
     align-items: center;
 }
 .menu-item:hover {
-    background-color: #4FD1C5;
+    background-color: transparent;
     color: #111d32 !important;
     font-weight: 600;
 }
@@ -94,7 +95,7 @@ textarea{
             border: 1px solid #37c0be !important;
 }
 th{
-    background-color: #129990;
+    background-color: #34BCBB;
     color: #fff;
 }
 
@@ -108,4 +109,8 @@ th{
     background-color: #e5f7f9;
         font-family: "Poppins", sans-serif !important;
     color: #000000;
+  }
+
+  td{
+    border: 1px solid #81c2c1;
   }
