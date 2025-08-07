@@ -470,7 +470,7 @@ const LeaveManagement: React.FC = () => {
             <button
               onClick={handleExportCSV}
               disabled={filteredLeaves.length === 0}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-[#129990] text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#1dbfb4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Download className="w-4 h-4" />
               Export CSV

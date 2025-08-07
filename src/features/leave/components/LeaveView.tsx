@@ -502,7 +502,7 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-500">Email</label>
-                                        <p className="text-gray-900">{getEmployeeData()?.userId?.email || 'N/A'}</p>
+                                        <p className="text-gray-900 truncate">{getEmployeeData()?.userId?.email || 'N/A'}</p>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-500">Role</label>

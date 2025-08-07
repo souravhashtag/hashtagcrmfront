@@ -187,7 +187,7 @@ const Leave: React.FC = () => {
           </div>
           <button
             onClick={handleApplyLeave}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors"
+            className="bg-[#129990] text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#1dbfb4] transition-colors"
           >
             <Plus className="w-4 h-4" />
             Apply Leave

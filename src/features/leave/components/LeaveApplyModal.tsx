@@ -280,16 +280,16 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
         {/* Progress Steps */}
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center">
-            <div className={`flex items-center ${currentStep >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200'
+            <div className={`flex items-center ${currentStep >= 1 ? 'text-[#129990]' : 'text-gray-400'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep >= 1 ? 'bg-[#129990] text-white' : 'bg-gray-200'
                 }`}>
                 1
               </div>
               <span className="ml-2 text-sm font-medium">Leave Details</span>
             </div>
             <div className={`flex-1 h-1 mx-4 ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
-            <div className={`flex items-center ${currentStep >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200'
+            <div className={`flex items-center ${currentStep >= 2 ? 'text-[#129990]' : 'text-gray-400'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep >= 2 ? 'bg-[#129990] text-white' : 'bg-gray-200'
                 }`}>
                 2
               </div>
@@ -306,16 +306,26 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
               <h3 className="text-sm font-semibold text-gray-900 mb-4">Your Leave Balance</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Casual Leave Card */}
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 shadow-sm">
-                  <p className="text-sm font-semibold text-blue-700 mb-2">Casual Leave</p>
+                <div
+                  className="p-4 rounded-lg border shadow-sm"
+                  style={{
+                    backgroundColor: '#e0f7f6', // light version of #129990
+                    borderColor: '#a0dad4' // subtle border
+                  }}
+                >
+                  <p className="text-sm font-semibold mb-2" style={{ color: '#129990' }}>
+                    Casual Leave
+                  </p>
                   <div className="flex justify-between items-center mb-2">
                     <div>
                       <p className="text-xs text-gray-600">Total</p>
-                      <p className="text-base font-bold text-blue-900">{getLeaveBalanceSafe('casual').total}</p>
+                      <p className="text-base font-bold" style={{ color: '#0a5f5a' }}>
+                        {getLeaveBalanceSafe('casual').total}
+                      </p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-600">Used</p>
-                      <p className="text-base font-bold text-blue-600">
+                      <p className="text-base font-bold" style={{ color: '#129990' }}>
                         {getLeaveBalanceSafe('casual').used}
                       </p>
                     </div>
@@ -326,16 +336,17 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
                       </p>
                     </div>
                   </div>
-                  <div className="w-full h-2 bg-blue-100 rounded">
+                  <div className="w-full h-2 rounded" style={{ backgroundColor: '#c9efec' }}>
                     <div
-                      className="h-full bg-blue-500 rounded"
+                      className="h-full rounded"
                       style={{
-                        width: `${(getLeaveBalanceSafe('casual').used / getLeaveBalanceSafe('casual').total) * 100
-                          }%`,
+                        backgroundColor: '#129990',
+                        width: `${(getLeaveBalanceSafe('casual').used / getLeaveBalanceSafe('casual').total) * 100}%`
                       }}
                     ></div>
                   </div>
                 </div>
+
 
                 {/* Medical Leave Card */}
                 <div className="bg-red-50 p-4 rounded-lg border border-red-200 shadow-sm">
@@ -383,8 +394,8 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {[
-                    { value: 'casual', label: 'Casual', color: 'blue' },
-                    { value: 'medical', label: 'Medical', color: 'red' }
+                    { value: 'casual', label: 'Casual', color: '#129990' },
+                    { value: 'medical', label: 'Medical', color: '#ef4444' }
                   ].map((type) => {
                     const balance = getLeaveBalance(type.value);
                     const isSelected = formData.type === type.value;
@@ -392,10 +403,11 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
                     return (
                       <label
                         key={type.value}
-                        className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-colors ${isSelected
-                            ? `border-${type.color}-500 bg-${type.color}-50`
-                            : 'border-gray-200 hover:border-gray-300'
-                          }`}
+                        className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors border-2`}
+                        style={{
+                          borderColor: isSelected ? type.color : '#e5e7eb', // gray-200
+                          backgroundColor: isSelected ? `${type.color}20` : '#ffffff' // Light background with 12% opacity
+                        }}
                       >
                         <input
                           type="radio"
@@ -669,7 +681,7 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
               </button>
               <button
                 onClick={handleNext}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex-1 px-4 py-2 bg-[#129990] text-white rounded-lg hover:bg-[#129990] transition-colors"
               >
                 Next
               </button>
