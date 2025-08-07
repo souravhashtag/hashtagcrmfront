@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, useNavigationType } from 'react-router-dom';
 import {
     ArrowLeft,
     Calendar,
@@ -93,50 +93,23 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
     useEffect(() => {
         // Check if there's a previous page in the current session
         const hasHistory = window.history.length > 1;
-        
+
         // Also check if we came from within the app (has state or referrer)
         const hasState = location.state?.from || document.referrer.includes(window.location.origin);
-        
+
         setCanGoBack(hasHistory && hasState);
     }, [location]);
 
     // Enhanced back navigation function
-    const handleBackNavigation = () => {
-        // Option 1: If there's a specific 'from' path in location state
-        if (location.state?.from) {
-            navigate(location.state.from);
-            return;
-        }
-
-        // Option 2: If we can go back in browser history and came from within the app
-        if (canGoBack && window.history.length > 1) {
-            // Check if the previous page was from the same origin
-            if (document.referrer && document.referrer.includes(window.location.origin)) {
-                navigate(-1); // Go back in history
-                return;
-            }
-        }
-
-        // Option 3: Smart fallback based on user context
-        const userRole = user?.role?.name?.toLowerCase();
-        
-        if (userRole === 'admin') {
-            // Admin likely came from all leaves view
-            navigate('/leave');
-        } else if (userRole === 'hr') {
-            // HR might have come from pending leaves or all leaves
-            navigate('/leave');
-        } else {
-            // Regular employee likely came from their own leaves
-            navigate('/leave/my-leaves');
-        }
+    const HandleBackNavigation = () => {
+        navigate(-1);
     };
 
     // Alternative: More sophisticated back navigation with breadcrumb tracking
     const handleSmartBackNavigation = () => {
         // Check for breadcrumb in session storage
         const breadcrumb = sessionStorage.getItem('leaveBreadcrumb');
-        
+
         if (breadcrumb) {
             const parsedBreadcrumb = JSON.parse(breadcrumb);
             navigate(parsedBreadcrumb.path, { state: parsedBreadcrumb.state });
@@ -146,7 +119,7 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
         // Check URL parameters for context
         const urlParams = new URLSearchParams(window.location.search);
         const source = urlParams.get('source');
-        
+
         switch (source) {
             case 'my-leaves':
                 navigate('/leave/my-leaves');
@@ -356,7 +329,7 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
                     <div className="bg-red-50 border border-red-200 rounded-lg p-6">
                         <p className="text-red-600">Leave request not found or you don't have permission to view it.</p>
                         <button
-                            onClick={handleBackNavigation}
+                            onClick={HandleBackNavigation}
                             className="mt-4 text-blue-600 hover:text-blue-800"
                         >
                             ← Go Back
@@ -375,7 +348,7 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
                 {/* Header */}
                 <div className="mb-6">
                     <button
-                        onClick={handleBackNavigation}
+                        onClick={HandleBackNavigation}
                         className="flex items-center gap-2 text-blue-600 hover:text-blue-800 mb-4 transition-colors duration-200 hover:gap-3"
                     >
                         <ArrowLeft className="w-4 h-4" />
@@ -436,8 +409,8 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
                     {/* Approval Permission Message */}
                     {approvalMessage && (
                         <div className={`mt-4 p-3 rounded-lg border flex items-start gap-2 ${approvalMessage.type === 'warning'
-                                ? 'bg-amber-50 border-amber-200 text-amber-800'
-                                : 'bg-blue-50 border-blue-200 text-blue-800'
+                            ? 'bg-amber-50 border-amber-200 text-amber-800'
+                            : 'bg-blue-50 border-blue-200 text-blue-800'
                             }`}>
                             <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                             <p className="text-sm">{approvalMessage.message}</p>
