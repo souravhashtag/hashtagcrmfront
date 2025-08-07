@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Upload, X, Clock } from 'lucide-react';
-import { 
-  useCreateLeaveMutation, 
-  useGetLeaveByIdQuery, 
+import {
+  useCreateLeaveMutation,
+  useGetLeaveByIdQuery,
   useUpdateLeaveMutation,
-  useGetLeaveBalanceQuery 
+  useGetLeaveBalanceQuery
 } from '../../../services/leaveServices';
 
 interface LeaveFormData {
@@ -23,11 +23,11 @@ interface LeaveApplyModalProps {
   onSuccess?: () => void;
 }
 
-const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  editLeaveId, 
-  onSuccess 
+const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
+  isOpen,
+  onClose,
+  editLeaveId,
+  onSuccess
 }) => {
   const isEdit = Boolean(editLeaveId);
 
@@ -85,7 +85,7 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
 
   const handleInputChange = (field: keyof LeaveFormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    
+
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
@@ -111,16 +111,16 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
 
   const calculateDays = () => {
     if (!formData.startDate) return 0;
-    
+
     if (formData.isHalfDay) return 0.5;
-    
+
     if (!formData.endDate) return 0;
-    
+
     const start = new Date(formData.startDate);
     const end = new Date(formData.endDate);
     const diffTime = Math.abs(end.getTime() - start.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-    
+
     return diffDays;
   };
 
@@ -130,7 +130,7 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
     if (step === 1) {
       if (!formData.type) newErrors.type = 'Leave type is required';
       if (!formData.startDate) newErrors.startDate = 'Start date is required';
-      
+
       // End date is only required if NOT half day
       if (!formData.isHalfDay && !formData.endDate) {
         newErrors.endDate = 'End date is required';
@@ -145,7 +145,7 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
         if (start < today) {
           newErrors.startDate = 'Start date cannot be in the past';
         }
-        
+
         // Only validate end date if it's provided (for non-half-day leaves)
         if (!formData.isHalfDay && formData.endDate) {
           const end = new Date(formData.endDate);
@@ -221,9 +221,9 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
       casual: 'casualLeaves',
       medical: 'medicalLeaves'
     };
-    
+
     const balanceData = leaveBalance?.data?.[typeMap[type] as keyof typeof leaveBalance.data];
-    
+
     return {
       total: balanceData?.total ?? 0,
       used: balanceData?.used ?? 0,
@@ -233,13 +233,13 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
 
   const getLeaveBalance = (type: string) => {
     if (!leaveBalance?.data) return null;
-    
+
     const balanceMap: Record<string, any> = {
       casual: leaveBalance.data.casualLeaves,
       medical: leaveBalance.data.medicalLeaves,
       annual: leaveBalance.data.annualLeaves
     };
-    
+
     return balanceMap[type];
   };
 
@@ -263,8 +263,8 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
               {isEdit ? 'Edit Leave Request' : 'Apply for Leave'}
             </h2>
             <p className="text-gray-600 mt-1">
-              {isEdit 
-                ? 'Update your leave request details' 
+              {isEdit
+                ? 'Update your leave request details'
                 : 'Submit a new leave request for approval'
               }
             </p>
@@ -280,19 +280,17 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
         {/* Progress Steps */}
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center">
-            <div className={`flex items-center ${currentStep >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                currentStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200'
-              }`}>
+            <div className={`flex items-center ${currentStep >= 1 ? 'text-[#129990]' : 'text-gray-400'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep >= 1 ? 'bg-[#129990] text-white' : 'bg-gray-200'
+                }`}>
                 1
               </div>
               <span className="ml-2 text-sm font-medium">Leave Details</span>
             </div>
-            <div className={`flex-1 h-1 mx-4 ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
-            <div className={`flex items-center ${currentStep >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                currentStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200'
-              }`}>
+            <div className={`flex-1 h-1 mx-4 ${currentStep >= 2 ? 'bg-[#129990]' : 'bg-gray-200'}`}></div>
+            <div className={`flex items-center ${currentStep >= 2 ? 'text-[#129990]' : 'text-gray-400'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep >= 2 ? 'bg-[#129990] text-white' : 'bg-gray-200'
+                }`}>
                 2
               </div>
               <span className="ml-2 text-sm font-medium">Reason & Attachments</span>
@@ -305,22 +303,86 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
           {/* Leave Balance Card */}
           {leaveBalance?.data && currentStep === 1 && (
             <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <h3 className="text-sm font-semibold text-gray-900 mb-3">Your Leave Balance</h3>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="bg-blue-50 p-3 rounded text-center">
-                  <p className="text-xs font-medium text-blue-600">Casual</p>
-                  <p className="text-lg font-bold text-blue-900">{getLeaveBalanceSafe('casual').remaining}</p>
-                  <p className="text-xs text-blue-600">remaining</p>
+              <h3 className="text-sm font-semibold text-gray-900 mb-4">Your Leave Balance</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Casual Leave Card */}
+                <div
+                  className="p-4 rounded-lg border shadow-sm"
+                  style={{
+                    backgroundColor: '#e0f7f6', // light version of #129990
+                    borderColor: '#a0dad4' // subtle border
+                  }}
+                >
+                  <p className="text-sm font-semibold mb-2" style={{ color: '#129990' }}>
+                    Casual Leave
+                  </p>
+                  <div className="flex justify-between items-center mb-2">
+                    <div>
+                      <p className="text-xs text-gray-600">Total</p>
+                      <p className="text-base font-bold" style={{ color: '#0a5f5a' }}>
+                        {getLeaveBalanceSafe('casual').total}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-600">Used</p>
+                      <p className="text-base font-bold" style={{ color: '#129990' }}>
+                        {getLeaveBalanceSafe('casual').used}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-600">Remaining</p>
+                      <p className="text-base font-bold text-green-700">
+                        {getLeaveBalanceSafe('casual').remaining}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="w-full h-2 rounded" style={{ backgroundColor: '#c9efec' }}>
+                    <div
+                      className="h-full rounded"
+                      style={{
+                        backgroundColor: '#129990',
+                        width: `${(getLeaveBalanceSafe('casual').used / getLeaveBalanceSafe('casual').total) * 100}%`
+                      }}
+                    ></div>
+                  </div>
                 </div>
-                
-                <div className="bg-red-50 p-3 rounded text-center">
-                  <p className="text-xs font-medium text-red-600">Medical</p>
-                  <p className="text-lg font-bold text-red-900">{getLeaveBalanceSafe('medical').remaining}</p>
-                  <p className="text-xs text-red-600">remaining</p>
+
+
+                {/* Medical Leave Card */}
+                <div className="bg-red-50 p-4 rounded-lg border border-red-200 shadow-sm">
+                  <p className="text-sm font-semibold text-red-700 mb-2">Medical Leave</p>
+                  <div className="flex justify-between items-center mb-2">
+                    <div>
+                      <p className="text-xs text-gray-600">Total</p>
+                      <p className="text-base font-bold text-red-900">{getLeaveBalanceSafe('medical').total}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-600">Used</p>
+                      <p className="text-base font-bold text-red-600">
+                        {getLeaveBalanceSafe('medical').used}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-600">Remaining</p>
+                      <p className="text-base font-bold text-green-700">
+                        {getLeaveBalanceSafe('medical').remaining}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="w-full h-2 bg-red-100 rounded">
+                    <div
+                      className="h-full bg-red-500 rounded"
+                      style={{
+                        width: `${(getLeaveBalanceSafe('medical').used / getLeaveBalanceSafe('medical').total) * 100
+                          }%`,
+                      }}
+                    ></div>
+                  </div>
                 </div>
               </div>
             </div>
           )}
+
 
           {/* Step 1: Leave Details */}
           {currentStep === 1 && (
@@ -332,20 +394,20 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {[
-                    { value: 'casual', label: 'Casual', color: 'blue' },
-                    { value: 'medical', label: 'Medical', color: 'red' }
+                    { value: 'casual', label: 'Casual', color: '#129990' },
+                    { value: 'medical', label: 'Medical', color: '#ef4444' }
                   ].map((type) => {
                     const balance = getLeaveBalance(type.value);
                     const isSelected = formData.type === type.value;
-                    
+
                     return (
                       <label
                         key={type.value}
-                        className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-colors ${
-                          isSelected
-                            ? `border-${type.color}-500 bg-${type.color}-50`
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
+                        className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors border-2`}
+                        style={{
+                          borderColor: isSelected ? type.color : '#e5e7eb', // gray-200
+                          backgroundColor: isSelected ? `${type.color}20` : '#ffffff' // Light background with 12% opacity
+                        }}
                       >
                         <input
                           type="radio"
@@ -381,7 +443,7 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
                     onChange={(e) => {
                       const isHalfDay = e.target.checked;
                       handleInputChange('isHalfDay', isHalfDay);
-                      
+
                       // If half day is selected, set end date to start date
                       if (isHalfDay && formData.startDate) {
                         handleInputChange('endDate', formData.startDate);
@@ -436,9 +498,8 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
                       onChange={(e) => handleInputChange('endDate', e.target.value)}
                       min={formData.startDate || new Date().toISOString().split('T')[0]}
                       disabled={formData.isHalfDay}
-                      className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        formData.isHalfDay ? 'bg-gray-100 cursor-not-allowed' : ''
-                      }`}
+                      className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formData.isHalfDay ? 'bg-gray-100 cursor-not-allowed' : ''
+                        }`}
                     />
                     <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
                   </div>
@@ -489,7 +550,7 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
                   <div>
                     <span className="text-gray-500">To:</span>
                     <span className="ml-2 font-medium">
-                      {formData.isHalfDay 
+                      {formData.isHalfDay
                         ? (formData.startDate ? new Date(formData.startDate).toLocaleDateString() + ' (Half Day)' : 'Not selected')
                         : (formData.endDate ? new Date(formData.endDate).toLocaleDateString() : 'Not selected')
                       }
@@ -529,7 +590,7 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
                 <p className="text-xs text-gray-500 mb-3">
                   Attach medical certificates, documents, etc. (Max 5MB per file)
                 </p>
-                
+
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
                   <input
                     type="file"
@@ -620,7 +681,7 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
               </button>
               <button
                 onClick={handleNext}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex-1 px-4 py-2 bg-[#129990] text-white rounded-lg hover:bg-[#129990] transition-colors"
               >
                 Next
               </button>
@@ -636,7 +697,7 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2 bg-[#129990] text-white rounded-lg hover:bg-[#129990] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <div className="flex items-center justify-center gap-2">

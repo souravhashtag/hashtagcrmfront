@@ -3,7 +3,7 @@ import { api } from './api';
 export interface LeaveRequest {
   _id?: string;
   employeeId: string;
-  type: 'casual' | 'medical' | 'annual' | 'maternity' | 'paternity' | 'unpaid' | 'other' ;
+  type: 'casual' | 'medical' | 'annual' | 'maternity' | 'paternity' | 'unpaid' | 'other';
   startDate: string;
   endDate: string;
   totalDays: number;
@@ -65,9 +65,9 @@ export interface LeaveDetailResponse {
 export const leaveServices = api.injectEndpoints({
   endpoints: (builder) => ({
     // Get all leaves (HR view)
-    getAllLeaves: builder.query<LeaveResponse, { 
-      page?: number; 
-      limit?: number; 
+    getAllLeaves: builder.query<LeaveResponse, {
+      page?: number;
+      limit?: number;
       search?: string;
       status?: string;
       type?: string;
@@ -88,9 +88,9 @@ export const leaveServices = api.injectEndpoints({
     }),
 
     // Get employee's own leaves
-    getMyLeaves: builder.query<LeaveResponse, { 
-      page?: number; 
-      limit?: number; 
+    getMyLeaves: builder.query<LeaveResponse, {
+      page?: number;
+      limit?: number;
       status?: string;
     }>({
       query: ({ page = 1, limit = 10, status = '' }) => {
@@ -115,10 +115,11 @@ export const leaveServices = api.injectEndpoints({
       query: (formData) => ({
         url: '/leave',
         method: 'POST',
-        body: formData,
+        body: formData, // FormData handles multipart automatically
       }),
       invalidatesTags: ['Leave'],
     }),
+
 
     // Update leave request
     updateLeave: builder.mutation<LeaveDetailResponse, { id: string; data: FormData }>({
@@ -131,15 +132,15 @@ export const leaveServices = api.injectEndpoints({
     }),
 
     // Approve/Reject leave
-    updateLeaveStatus: builder.mutation<LeaveDetailResponse, { 
-      id: string; 
-      status: 'approved' | 'rejected'; 
-      rejectionReason?: string 
+    updateLeaveStatus: builder.mutation<LeaveDetailResponse, {
+      id: string;
+      status: 'approved' | 'rejected';
+      rejectionReason?: string
     }>({
       query: ({ id, status, rejectionReason }) => ({
         url: `/leave/${id}/status`,
         method: 'PATCH',
-        body: { 
+        body: {
           status,
           ...(rejectionReason && { rejectionReason })
         },
