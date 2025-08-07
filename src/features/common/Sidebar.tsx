@@ -9,7 +9,7 @@ import './sidebar.css';
 const Sidebar = (): React.ReactElement => {
   const location = useLocation();
   const [menuItems, setMenuItems] = useState<any[]>([]);
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set());
   const { user } = useUser();
 
