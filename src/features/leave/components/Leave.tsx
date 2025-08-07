@@ -45,6 +45,9 @@ const Leave: React.FC = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter, refetch]);
+  useEffect(() => {
+    refetch()
+  }, []);
 
   const filteredLeaves = (leavesData?.data ?? []).filter((leave: any) => {
     const term = searchTerm.toLowerCase();
