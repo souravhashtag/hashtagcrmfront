@@ -148,12 +148,12 @@ const Calendar = () => {
   };
 
   return (
-    <div className="mx-auto bg-white rounded-xl shadow-lg overflow-hidden border border-[#65e3d7] p-5">
+    <div className="mx-auto bg-white rounded-lg shadow-lg overflow-hidden border border-[#65e3d7] p-5 pb-10">
       {/* Header */}
-      <div className="bg-white border-b px-6 py-4">
+      <div className="bg-white border-b px-6 py-5 pb-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Cal className="w-5 h-5 text-gray-600" />
+            <Cal className="w-5 h-5 text-gray-600 border" />
             <h1 className="text-lg font-semibold text-gray-900">Attendance Schedule</h1>
           </div>
           <div className="flex items-center gap-2">
@@ -181,7 +181,7 @@ const Calendar = () => {
       {/* Weekday Headers */}
       <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
         {weekdays.map((day) => (
-          <div key={day} className="px-4 py-3 text-sm font-medium text-gray-700 text-center">
+          <div key={day} className="px-4 py-3 text-sm font-medium text-gray-700 text-center border">
             {day}
           </div>
         ))}

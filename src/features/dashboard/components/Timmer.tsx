@@ -15,6 +15,7 @@ import WorkingHours from './WorkingHours';
 import Calender from './Calender';
 
 
+
 const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBreak,setIsTimmerReady}) => {
   const [getAttendanceData, setAttendanceData] = useState<any>();
   const [loading, setLoading] = useState<boolean>(true);
@@ -300,11 +301,11 @@ const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBr
   return (
     <>
       <div className="col-span-8 from-teal-400 to-teal-500 rounded-xl text-white">
-              <div className="col-span-8 bg-[#E1F7EF] from-teal-400 to-teal-500 rounded-xl text-white h-32 mb-4 border border-[#0BB8A7] mb-8">
+              <div className="shadow-md col-span-8 bg-[#E1F7EF] from-teal-400 to-teal-500 rounded-xl text-white h-32 mb-4 border border-[#0BB8A7] mb-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <div className="w-12 h-12 bg-white rounded-full mr-4 overflow-hidden ml-5 font-poppins">
-              <div className="w-full h-full bg-orange-400"><img src={`${user?.profilePicture}`}></img> </div>
+            <div className="bg-white rounded-full mr-4 overflow-hidden ml-5 font-poppins">
+              <div className="bg-orange-400"><img src={`${user?.profilePicture}`} className="w-20 h-20"></img> </div>
             </div>
             <div>
               <h3 className="text-xl font-bold text-[#000] mb-2">
@@ -401,8 +402,9 @@ const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBr
           <WorkingHours isClockedIn={isClockedIn} TakeaBreak={TakeaBreak} />
         )}
         <Calender />
+
       </div>
-      
+       
    
       
     </>
