@@ -539,10 +539,7 @@ const LeaveManagement: React.FC = () => {
                       <div className="flex items-center">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            {leave.employeeId?.userId?._id === user?._id
-                              ? 'You'
-                              : `${leave.employeeId?.userId?.firstName || ''} ${leave.employeeId?.userId?.lastName || ''}`
-                            }
+                            {leave.employeeId?.userId?.firstName || ''} {leave.employeeId?.userId?.lastName || ''}
                           </div>
                           <div className="text-sm text-gray-500">
                             {leave.employeeId?.employeeId || 'N/A'}
