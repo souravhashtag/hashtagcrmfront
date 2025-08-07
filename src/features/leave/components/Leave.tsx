@@ -8,7 +8,7 @@ import {
   Trash2,
   Calendar
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate,useLocation } from 'react-router-dom';
 import {
   useGetMyLeavesQuery,
   useDeleteLeaveMutation
@@ -24,7 +24,7 @@ const Leave: React.FC = () => {
   const [editLeaveId, setEditLeaveId] = useState<string | undefined>(undefined);
 
   const itemsPerPage = 10;
-
+  const location = useLocation();
   // Query parameters
   const myLeavesParams = {
     page: currentPage,
@@ -45,6 +45,9 @@ const Leave: React.FC = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter, refetch]);
+  useEffect(() => {
+    refetch()
+  }, [location]);
 
   const filteredLeaves = (leavesData?.data ?? []).filter((leave: any) => {
     const term = searchTerm.toLowerCase();

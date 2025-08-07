@@ -10,7 +10,7 @@ import {
   User, Users, Mail, Phone, MessageCircle, Calendar, CheckSquare, Clipboard,
   DollarSign, BarChart2, Activity, Briefcase, Tag, ShoppingCart, Settings,
   Globe, Bell, FileText, MapPin, CreditCard, Star, Truck, Plus, Save,
-  ArrowLeft, Building, Home, Folder, X,LayoutDashboard ,Layers 
+  ArrowLeft, Building, Home, Folder, X,LayoutDashboard ,Layers,CalendarDays,PlaneTakeoff 
 } from 'lucide-react';
 
 const ICON_OPTIONS = [
@@ -41,6 +41,8 @@ const ICON_OPTIONS = [
   { name: 'Truck', Icon: Truck },
   { name: 'LayoutDashboard', Icon: LayoutDashboard  },
   { name: 'Layers', Icon: Layers  },
+  { name: 'CalendarDays', Icon: CalendarDays  },
+  { name: 'PlaneTakeoff', Icon: PlaneTakeoff  },
 ];
 
 const STATUS_OPTIONS = [
