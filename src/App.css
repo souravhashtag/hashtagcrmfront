@@ -109,3 +109,7 @@ th{
         font-family: "Poppins", sans-serif !important;
     color: #000000;
   }
+
+  td{
+    border: 1px solid #81c2c1;
+  }

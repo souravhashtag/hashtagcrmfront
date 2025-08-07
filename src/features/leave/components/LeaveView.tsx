@@ -286,8 +286,8 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
     const approvalMessage = getApprovalMessage();
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
-            <div className="max-w-4xl mx-auto">
+        <div className="p-6 bg-gray-50 min-h-screen rounded-lg">
+            <div className="mx-auto">
                 {/* Header */}
                 <div className="mb-6">
                     <button
@@ -352,8 +352,8 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
                     {/* Approval Permission Message */}
                     {approvalMessage && (
                         <div className={`mt-4 p-3 rounded-lg border flex items-start gap-2 ${approvalMessage.type === 'warning'
-                            ? 'bg-amber-50 border-amber-200 text-amber-800'
-                            : 'bg-blue-50 border-blue-200 text-blue-800'
+                                ? 'bg-amber-50 border-amber-200 text-amber-800'
+                                : 'bg-blue-50 border-blue-200 text-blue-800'
                             }`}>
                             <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                             <p className="text-sm">{approvalMessage.message}</p>
@@ -366,7 +366,7 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
                     {/* Left Column - Main Details */}
                     <div className="lg:col-span-2 space-y-6">
                         {/* Basic Information */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div className="bg-white rounded-lg shadow-sm border border-[#14b8a6] p-6">
                             <h2 className="text-xl font-semibold text-gray-900 mb-4">Leave Information</h2>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -424,7 +424,7 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
                         </div>
 
                         {/* Reason */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div className="bg-white rounded-lg shadow-sm border border-[#14b8a6] p-6">
                             <h2 className="text-xl font-semibold text-gray-900 mb-4">Reason for Leave</h2>
                             <div className="bg-gray-50 rounded-lg p-4">
                                 <p className="text-gray-700 leading-relaxed">{leave.reason || 'No reason provided'}</p>
@@ -433,31 +433,22 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
 
                         {/* Attachments */}
                         {leave.attachments && leave.attachments.length > 0 && (
-                            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                            <div className="bg-white rounded-lg shadow-sm border border-[#14b8a6] p-6">
                                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Attachments</h2>
                                 <div className="space-y-3">
                                     {leave.attachments.map((attachment: any, index: number) => (
-                                        <div
-                                            key={index}
-                                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                                        >
-                                            <div className="flex items-center gap-3 min-w-0">
-                                                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                                                     <FileText className="w-5 h-5 text-blue-600" />
                                                 </div>
-                                                <div className="min-w-0">
-                                                    <p className="font-medium text-gray-900 truncate max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg">
-                                                        {attachment.name || 'Unnamed file'}
-                                                    </p>
-                                                    <p className="text-sm text-gray-500 truncate">
-                                                        Uploaded on{' '}
-                                                        {attachment.uploadedAt
-                                                            ? new Date(attachment.uploadedAt).toLocaleDateString()
-                                                            : 'Unknown date'}
+                                                <div>
+                                                    <p className="font-medium text-gray-900">{attachment.name || 'Unnamed file'}</p>
+                                                    <p className="text-sm text-gray-500">
+                                                        Uploaded on {attachment.uploadedAt ? new Date(attachment.uploadedAt).toLocaleDateString() : 'Unknown date'}
                                                     </p>
                                                 </div>
                                             </div>
-
                                             <button
                                                 onClick={() => {
                                                     if (attachment.url) {
@@ -475,7 +466,6 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
                                 </div>
                             </div>
                         )}
-
 
                         {/* Rejection Reason */}
                         {leave.status === 'rejected' && leave.rejectionReason && (
@@ -511,7 +501,7 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-500">Email</label>
-                                        <p className="text-gray-900 truncate">{getEmployeeData()?.userId?.email || 'N/A'}</p>
+                                        <p className="text-gray-900">{getEmployeeData()?.userId?.email || 'N/A'}</p>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-500">Role</label>
