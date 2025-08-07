@@ -371,7 +371,7 @@ const LeaveManagement: React.FC = () => {
       >
         <Eye className="w-4 h-4" />
       </button>
-      {leave.status === 'pending' && (
+      {leave.status === 'pending' && leave.employeeId?.userId?._id !== user?._id && (
         <>
           <button
             onClick={() => openStatusModal(leave, 'approved')}
