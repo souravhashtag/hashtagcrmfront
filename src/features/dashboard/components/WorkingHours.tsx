@@ -138,29 +138,29 @@ const WorkingHours: React.FC<any> = ({isClockedIn,TakeaBreak}) => {
 
   return (
     <>
-    <div className="col-span-8 bg-[#fff] from-teal-400 to-teal-500 rounded-xl p-4 text-black h-50 mb-8 border border-[#65e3d7]">
+    <div className="col-span-8 bg-[#fff] from-teal-400 to-teal-500 rounded-xl p-4 text-black h-50 mb-8 border border-[#65e3d7] shadow-md ">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-lg font-semibold text-gray-900">Working Hours</h3>
           <p className="text-sm font-medium">Update: {getCurrentDate()}</p>
         </div>
         <div className="grid grid-cols-4 gap-4">
           <div>
-            <p className="text-sm font-semibold	mb-4 bg-[#FFF6D0] p-4 rounded-md text-center">Total Working Hours</p>
+            <p className="text-sm font-semibold	mb-8 bg-[#FFF6D0] p-4 rounded-md text-center">Total Working Hours</p>
             <p className="text-xl font-bold text-center">
               {formatTime(displayTime + (totalBreakTime / 1000))}
             </p>
           </div>
           <div>
-          <p className="text-sm font-semibold	mb-4 bg-[#CEFFFB] p-4 rounded-md text-center">Productive Hours</p>
-            <p className="text-xl font-bold text-center">{formatTime(displayTime)}</p>
+          <p className="text-sm font-semibold	mb-8 bg-[#CEFFFB] p-4 rounded-md text-center">Productive Hours</p>
+            <p className="text-xl font-bold text-center mb-4">{formatTime(displayTime)}</p>
           </div>
           <div>
-           <p className="text-sm font-semibold	mb-4 bg-[#FEE0E0] p-4 rounded-md text-center">Break Hours</p>
-            <p className="text-xl font-bold text-center">{formatTime(totalBreakTime / 1000)}</p>
+           <p className="text-sm font-semibold	mb-8 bg-[#FEE0E0] p-4 rounded-md text-center">Break Hours</p>
+            <p className="text-xl font-bold text-center  mb-4">{formatTime(totalBreakTime / 1000)}</p>
           </div>
           <div>
-            <p className="text-sm font-semibold	mb-4 bg-[#DEE3FA] p-4 rounded-md text-center">Over Time</p>
-            <p className="text-xl font-bold text-center">{formatTime(overTime)}</p>
+            <p className="text-sm font-semibold	mb-8 bg-[#DEE3FA] p-4 rounded-md text-center">Over Time</p>
+            <p className="text-xl font-bold text-center mb-4">{formatTime(overTime)}</p>
           </div>
         </div>
         </div>

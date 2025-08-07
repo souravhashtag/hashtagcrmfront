@@ -34,14 +34,14 @@ const BirthDay: React.FC = () => {
 
   return (
     <>
-      <div className="col-span-4 from-teal-400 to-teal-500 rounded-xl text-white">
-        <div className="col-span-4 mb-8 bg-gradient-to-r from-[#0E4980] to-[#000000] rounded-xl p-6 text-white text-center h-[250px]">
+      <div className="col-span-4 from-teal-400 to-teal-500 rounded-xl text-white ">
+        <div className="col-span-4 mb-8 bg-gradient-to-r from-[#0E4980] to-[#000000] rounded-xl p-6 text-white text-center h-[250px]  border border-[#65e3d7] shadow-md">
           <div className="col-span-4">
             <h3 className="font-normal mb-4 tracking-wide">{birthdays[currentIndex]?.header}</h3>
 
             <div className="relative">
               <div className="text-center">
-                <div className={`w-16 h-16  rounded-full mx-auto mb-2`}><img src={birthdays[currentIndex]?.image} /></div>
+                <div className={`rounded-full mb-2`}><img src={birthdays[currentIndex]?.image} className="w-20 h-20 mx-auto" /></div>
                 <p className="font-medium">{birthdays[currentIndex]?.name}</p>
                 <p className="font-medium">{birthdays[currentIndex]?.date}</p>
               </div>

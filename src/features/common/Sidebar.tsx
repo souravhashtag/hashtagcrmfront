@@ -4,7 +4,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { getIconComponent } from '../../utils/getIconComponent';
 import { Sun, Moon, ChevronDown, ChevronRight } from 'lucide-react';
 import { useUser } from "../dashboard/context/DashboardContext";
-// import './sidebar.css';
+import './sidebar.css'; 
+
 const Sidebar = (): React.ReactElement => {
   const location = useLocation();
   const [menuItems, setMenuItems] = useState<any[]>([]);
@@ -181,7 +182,7 @@ const Sidebar = (): React.ReactElement => {
         </ul>
       </nav>
 
-      <div className="theme-toggle" role="group" aria-label="Theme selection">
+      {/* <div className="theme-toggle" role="group" aria-label="Theme selection">
         <button
           type="button"
           className={`theme-btn light ${theme === 'light' ? 'active' : ''}`}
@@ -202,7 +203,7 @@ const Sidebar = (): React.ReactElement => {
           <Moon className="w-4 h-4" aria-hidden="true" />
           <span>Dark</span>
         </button>
-      </div>
+      </div> */}
     </div>
   );
 };

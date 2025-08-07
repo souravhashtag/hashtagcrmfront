@@ -4,7 +4,7 @@ const CeoTalk = () => {
   return (
     <div className="max-w-lg mt-8">
       {/* Main card container with turquoise background and blue border */}
-      <div className="bg-teal-400 border-1 border-blue-500 relative rounded-lg">
+      <div className="bg-teal-400 relative rounded-lg">
         {/* Content container */}
         <div className="p-6">
           {/* Header */}
