@@ -352,8 +352,8 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
                     {/* Approval Permission Message */}
                     {approvalMessage && (
                         <div className={`mt-4 p-3 rounded-lg border flex items-start gap-2 ${approvalMessage.type === 'warning'
-                                ? 'bg-amber-50 border-amber-200 text-amber-800'
-                                : 'bg-blue-50 border-blue-200 text-blue-800'
+                            ? 'bg-amber-50 border-amber-200 text-amber-800'
+                            : 'bg-blue-50 border-blue-200 text-blue-800'
                             }`}>
                             <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                             <p className="text-sm">{approvalMessage.message}</p>
@@ -437,18 +437,27 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
                                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Attachments</h2>
                                 <div className="space-y-3">
                                     {leave.attachments.map((attachment: any, index: number) => (
-                                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                        <div
+                                            key={index}
+                                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                                        >
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
                                                     <FileText className="w-5 h-5 text-blue-600" />
                                                 </div>
-                                                <div>
-                                                    <p className="font-medium text-gray-900">{attachment.name || 'Unnamed file'}</p>
-                                                    <p className="text-sm text-gray-500">
-                                                        Uploaded on {attachment.uploadedAt ? new Date(attachment.uploadedAt).toLocaleDateString() : 'Unknown date'}
+                                                <div className="min-w-0">
+                                                    <p className="font-medium text-gray-900 truncate max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg">
+                                                        {attachment.name || 'Unnamed file'}
+                                                    </p>
+                                                    <p className="text-sm text-gray-500 truncate">
+                                                        Uploaded on{' '}
+                                                        {attachment.uploadedAt
+                                                            ? new Date(attachment.uploadedAt).toLocaleDateString()
+                                                            : 'Unknown date'}
                                                     </p>
                                                 </div>
                                             </div>
+
                                             <button
                                                 onClick={() => {
                                                     if (attachment.url) {
@@ -456,7 +465,6 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
                                                         window.open(fileUrl, '_blank');
                                                     }
                                                 }}
-
                                                 className="text-blue-600 hover:text-blue-800 p-2 rounded-lg hover:bg-blue-50"
                                                 disabled={!attachment.url}
                                             >
@@ -467,6 +475,7 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
                                 </div>
                             </div>
                         )}
+
 
                         {/* Rejection Reason */}
                         {leave.status === 'rejected' && leave.rejectionReason && (

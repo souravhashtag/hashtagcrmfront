@@ -287,7 +287,7 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
               </div>
               <span className="ml-2 text-sm font-medium">Leave Details</span>
             </div>
-            <div className={`flex-1 h-1 mx-4 ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
+            <div className={`flex-1 h-1 mx-4 ${currentStep >= 2 ? 'bg-[#129990]' : 'bg-gray-200'}`}></div>
             <div className={`flex items-center ${currentStep >= 2 ? 'text-[#129990]' : 'text-gray-400'}`}>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep >= 2 ? 'bg-[#129990] text-white' : 'bg-gray-200'
                 }`}>
@@ -697,7 +697,7 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2 bg-[#129990] text-white rounded-lg hover:bg-[#129990] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <div className="flex items-center justify-center gap-2">
