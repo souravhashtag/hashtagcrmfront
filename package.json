@@ -59,7 +59,7 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.5.3",
     "react-scripts": "^5.0.1",
-    "recharts": "^3.1.0",
+    "recharts": "^3.1.2",
     "screenshot-desktop": "^1.15.1",
     "web-vitals": "^2.1.4",
     "xlsx": "^0.18.5"

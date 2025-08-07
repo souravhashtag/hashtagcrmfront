@@ -20,11 +20,13 @@ import DesignationCreate from '../features/designation/components/DesignationCre
 import DesignationList from '../features/designation/components/DesignationList';
 import Profile from '../features/profile/component/Profile';
 import Attendance from '../features/attendance/component/Attendance';
+import Roster from '../features/roster/components/Roster';
+import Leave from '../features/leave/components/Leave';
+import LeaveView from '../features/leave/components/LeaveView';
+import LeaveManagement from '../features/leave/components/LeaveManagementView';
+import EmployeeAssign from '../features/employee/components/EmployeeAssign';
 
-import Roster from '../features/roster/component/Roster';
-import Leave from '../features/leave/component/Leave';
-import LeaveView from '../features/leave/component/LeaveView';
-import LeaveManagement from '../features/leave/component/LeaveManagement';
+
 
 
 const ProtectedRoute = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
@@ -69,6 +71,7 @@ const AppRoutes = () => {
               <Route path="create" element={<EmployeeCreate />} />
               <Route path="edit/:id" element={<EmployeeCreate />} />
               <Route path=":id" element={<EmployeeView />} />
+              <Route path="assign/:id" element={<EmployeeAssign />} />
             </Route>
 
             <Route path="department">
@@ -90,6 +93,7 @@ const AppRoutes = () => {
             <Route path="/attendance" element={<Attendance />} />
 
             <Route path="/roster" element={<Roster />} />
+           
 
             <Route path="/leave" element={<Leave />} />
             <Route path="/leave/view/:id" element={<LeaveView />} />

@@ -4,12 +4,12 @@ import { Link, useLocation } from 'react-router-dom';
 import { getIconComponent } from '../../utils/getIconComponent';
 import { Sun, Moon, ChevronDown, ChevronRight } from 'lucide-react';
 import { useUser } from "../dashboard/context/DashboardContext";
-import './sidebar.css';
+import './sidebar.css'; 
 
 const Sidebar = (): React.ReactElement => {
   const location = useLocation();
   const [menuItems, setMenuItems] = useState<any[]>([]);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set());
   const { user } = useUser();
 
@@ -43,6 +43,7 @@ const Sidebar = (): React.ReactElement => {
   const handleThemeToggle = (newTheme: 'light' | 'dark') => {
     setTheme(newTheme);
     document.documentElement.setAttribute('data-theme', newTheme);
+    // localStorage.setItem('theme', newTheme);
     localStorage.setItem('theme', newTheme);
   };
 

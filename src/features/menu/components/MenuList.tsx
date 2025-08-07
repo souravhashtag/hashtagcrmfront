@@ -9,7 +9,7 @@ import {
   User, Mail, Phone, MessageCircle, CheckSquare, Clipboard,
   DollarSign, BarChart2, Activity, Briefcase, Tag, ShoppingCart,
   Settings, Globe, Bell, FileText, MapPin, CreditCard, Star,
-  Truck, Home, Folder, ChevronRight, ChevronDown, Link2
+  Truck, Home, Folder, ChevronRight, ChevronDown, Link2,PlaneTakeoff, CalendarDays
 } from 'lucide-react';
 
 // Icon mapping for display
@@ -39,6 +39,8 @@ const ICON_MAP: Record<string, any> = {
   CreditCard,
   Star,
   Truck,
+  PlaneTakeoff,
+  CalendarDays
 };
 
 interface MenuItemProps {
