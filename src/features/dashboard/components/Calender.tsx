@@ -12,7 +12,10 @@ interface EventsMap {
 }
 
 const Calendar = () => {
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 3, 1)); // April 2025 (month is 0-indexed)
+  const [currentDate, setCurrentDate] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
 
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -44,37 +47,37 @@ const Calendar = () => {
     return firstDay === 0 ? 6 : firstDay - 1; // Convert Sunday (0) to 6, Monday (1) to 0, etc.
   };
   const events: EventsMap = {
-    1: { type: 'holiday', label: 'Add your holiday', emoji: '😊' },
-    2: { type: 'holiday', label: 'Orthodox Easter', emoji: '😊' },
-    3: { emoji: '😊' },
-    4: { emoji: '😊' },
-    5: { type: 'holiday', label: 'Cinco de Mayo', emoji: '😊' },
-    6: { emoji: '😊' },
-    7: { emoji: '😊' },
-    8: { emoji: '😊' },
-    9: { type: 'holiday', label: "Mother's Day", emoji: '😊' },
-    10: { emoji: '😊' },
-    11: { emoji: '😊' },
-    12: { type: 'holiday', label: 'Eid al-Fitr', emoji: '😊' },
-    13: { emoji: '😊' },
-    14: { emoji: '😊' },
-    15: { emoji: '😊' },
-    16: { emoji: '😊' },
-    17: { type: 'tax', label: 'Tax Day', emoji: '😊' },
-    18: { emoji: '😊' },
-    19: { emoji: '😊' },
-    20: { emoji: '😊' },
-    21: { emoji: '😊' },
-    22: { emoji: '😊' },
-    23: { emoji: '😊' },
-    24: { emoji: '😊' },
-    25: { emoji: '😊' },
-    26: { emoji: '😊' },
-    27: { type: 'beach', label: 'Beach day 🏖️🏄', emoji: '😊' },
-    28: { type: 'beach', label: 'Beach day 🏖️🏄', emoji: '😊' },
-    29: { type: 'beach', label: 'Beach day 🏖️🏄', emoji: '😊' },
-    30: { type: 'beach', label: 'Beach day 🏖️🏄', emoji: '😊' },
-    31: { type: 'memorial', label: 'Memorial Day', emoji: '😊' }
+    1: { type: '', label: '', emoji: '' },
+    2: { type: '', label: '', emoji: '' },
+    3: { emoji: '' },
+    4: { emoji: '' },
+    5: { type: '', label: '', emoji: '' },
+    6: { emoji: '' },
+    7: { emoji: '' },
+    8: { emoji: '' },
+    9: { type: '', label: "", emoji: '' },
+    10: { emoji: '' },
+    11: { emoji: '' },
+    12: { type: '', label: '', emoji: '' },
+    13: { emoji: '' },
+    14: { emoji: '' },
+    15: { emoji: '' },
+    16: { emoji: '' },
+    17: { type: '', label: '', emoji: '' },
+    18: { emoji: '' },
+    19: { emoji: '' },
+    20: { emoji: '' },
+    21: { emoji: '' },
+    22: { emoji: '' },
+    23: { emoji: '' },
+    24: { emoji: '' },
+    25: { emoji: '' },
+    26: { emoji: '' },
+    27: { type: '', label: '', emoji: '' },
+    28: { type: '', label: '', emoji: '' },
+    29: { type: '', label: '', emoji: '' },
+    30: { type: '', label: '', emoji: '' },
+    31: { type: '', label: '', emoji: '' }
   };
 
   const getDayClass = (day: number): string => {
