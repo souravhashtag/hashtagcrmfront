@@ -1,22 +1,138 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Calendar, Download } from 'lucide-react';
-import RosterList from './RosterList';
+import { ChevronLeft, ChevronRight, Calendar, Download, Edit } from 'lucide-react';
 
+interface Schedule {
+  monday: string;
+  tuesday: string;
+  wednesday: string;
+  thursday: string;
+  friday: string;
+  saturday: string;
+  sunday: string;
+}
+
+interface Employee {
+  id: number;
+  name: string;
+  department: string;
+  schedule: Schedule;
+}
 
 const Roster = () => {
   // Dropdown state
   const [isOpen, setIsOpen] = useState(false);
-  const [selected, setSelected] = useState("Select an option");
-  const options = ["DM Team", "HR", "CSR"];
+  const [selected, setSelected] = useState("All Departments");
+  const options = ["All Departments", "DM Team", "HR", "CSR"];
 
-  // Date picker state - these were missing in your original code
+  // Search state
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Date picker state
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   
-  // Ref for date picker - this was missing
+  // Table state
+  const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  
   const datePickerRef = useRef<HTMLDivElement>(null);
+
+  // Sample employee data with departments
+  const allEmployees: Employee[] = [
+    {
+      id: 1,
+      name: 'Darlene Robertson',
+      department: 'DM Team',
+      schedule: {
+        monday: '10am-7pm',
+        tuesday: '10am-7pm',
+        wednesday: '10am-7pm',
+        thursday: '10am-7pm',
+        friday: '10am-7pm',
+        saturday: 'OFF',
+        sunday: 'OFF'
+      }
+    },
+    {
+      id: 2,
+      name: 'Jenny Wilson',
+      department: 'HR',
+      schedule: {
+        monday: '10am-7pm',
+        tuesday: 'OFF',
+        wednesday: 'OFF',
+        thursday: '10am-7pm',
+        friday: '10am-7pm',
+        saturday: '10am-7pm',
+        sunday: '10am-7pm'
+      }
+    },
+    {
+      id: 3,
+      name: 'Robert Johnson',
+      department: 'CSR',
+      schedule: {
+        monday: '9am-6pm',
+        tuesday: '9am-6pm',
+        wednesday: '9am-6pm',
+        thursday: '9am-6pm',
+        friday: '9am-6pm',
+        saturday: 'OFF',
+        sunday: 'OFF'
+      }
+    },
+    {
+      id: 4,
+      name: 'Sarah Davis',
+      department: 'DM Team',
+      schedule: {
+        monday: '8am-5pm',
+        tuesday: 'OFF',
+        wednesday: '8am-5pm',
+        thursday: '8am-5pm',
+        friday: '8am-5pm',
+        saturday: '8am-5pm',
+        sunday: 'OFF'
+      }
+    },
+    {
+      id: 5,
+      name: 'Michael Brown',
+      department: 'HR',
+      schedule: {
+        monday: '10am-7pm',
+        tuesday: '10am-7pm',
+        wednesday: 'OFF',
+        thursday: '10am-7pm',
+        friday: '10am-7pm',
+        saturday: 'OFF',
+        sunday: 'OFF'
+      }
+    },
+    {
+      id: 6,
+      name: 'Lisa Anderson',
+      department: 'CSR',
+      schedule: {
+        monday: '9am-6pm',
+        tuesday: '9am-6pm',
+        wednesday: '9am-6pm',
+        thursday: 'OFF',
+        friday: '9am-6pm',
+        saturday: '9am-6pm',
+        sunday: 'OFF'
+      }
+    }
+  ];
+
+  // Filter employees based on search term and selected department
+  const filteredEmployees = allEmployees.filter(employee => {
+    const matchesSearch = employee.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesDepartment = selected === "All Departments" || employee.department === selected;
+    return matchesSearch && matchesDepartment;
+  });
 
   const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -24,6 +140,44 @@ const Roster = () => {
   ];
 
   const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  // Function to get week dates based on selected Sunday
+  const getWeekDates = (sundayDate: Date | null) => {
+    if (!sundayDate) {
+      // Default to current week if no date selected
+      const today = new Date();
+      const currentSunday = new Date(today);
+      currentSunday.setDate(today.getDate() - today.getDay());
+      sundayDate = currentSunday;
+    }
+
+    const weekDates = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(sundayDate);
+      date.setDate(sundayDate.getDate() + i);
+      weekDates.push(date);
+    }
+    return weekDates;
+  };
+
+  // Format date for header display
+  const formatHeaderDate = (date: Date) => {
+    const day = date.getDate();
+    const month = date.toLocaleDateString('en-US', { month: 'short' });
+    
+    // Add ordinal suffix
+    const getOrdinal = (n: number) => {
+      const s = ['th', 'st', 'nd', 'rd'];
+      const v = n % 100;
+      return n + (s[(v - 20) % 10] || s[v] || s[0]);
+    };
+    
+    return `${getOrdinal(day)} ${month}`;
+  };
+
+  // Get the current week dates (starting with Sunday)
+  const weekDates = getWeekDates(selectedDate);
+  const [sunday, monday, tuesday, wednesday, thursday, friday, saturday] = weekDates;
 
   // Close date picker when clicking outside
   useEffect(() => {
@@ -37,28 +191,31 @@ const Roster = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Get days in month
+  // Calendar functions
   const getDaysInMonth = (month: number, year: number): number => {
     return new Date(year, month + 1, 0).getDate();
   };
 
-  // Get first day of month (0 = Sunday, 1 = Monday, etc.)
   const getFirstDayOfMonth = (month: number, year: number): number => {
     return new Date(year, month, 1).getDay();
   };
 
-  // Generate calendar days
+  // Check if a date is a Sunday
+  const isSunday = (day: number | null): boolean => {
+    if (!day) return false;
+    const date = new Date(currentYear, currentMonth, day);
+    return date.getDay() === 0; // Sunday is 0
+  };
+
   const generateCalendarDays = (): (number | null)[] => {
     const daysInMonth = getDaysInMonth(currentMonth, currentYear);
     const firstDay = getFirstDayOfMonth(currentMonth, currentYear);
     const days: (number | null)[] = [];
 
-    // Add empty cells for days before the first day of the month
     for (let i = 0; i < firstDay; i++) {
       days.push(null);
     }
 
-    // Add days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       days.push(day);
     }
@@ -66,16 +223,14 @@ const Roster = () => {
     return days;
   };
 
-  // Handle date selection
   const handleDateSelect = (day: number | null): void => {
-    if (day) {
+    if (day && isSunday(day)) {
       const newDate = new Date(currentYear, currentMonth, day);
       setSelectedDate(newDate);
       setIsDatePickerOpen(false);
     }
   };
 
-  // Navigate months
   const navigateMonth = (direction: 'prev' | 'next'): void => {
     if (direction === 'prev') {
       if (currentMonth === 0) {
@@ -94,7 +249,6 @@ const Roster = () => {
     }
   };
 
-  // Format date for display
   const formatDate = (date: Date | null): string => {
     if (!date) return '';
     return date.toLocaleDateString('en-US', {
@@ -104,7 +258,6 @@ const Roster = () => {
     });
   };
 
-  // Check if date is today
   const isToday = (day: number | null): boolean => {
     if (!day) return false;
     const today = new Date();
@@ -115,7 +268,6 @@ const Roster = () => {
     );
   };
 
-  // Check if date is selected
   const isSelected = (day: number | null): boolean => {
     if (!selectedDate || !day) return false;
     return (
@@ -125,7 +277,36 @@ const Roster = () => {
     );
   };
 
+  // Find next Sunday for "Today" button
+  const getNextSunday = (): Date => {
+    const today = new Date();
+    const daysUntilSunday = (7 - today.getDay()) % 7;
+    const nextSunday = new Date(today);
+    nextSunday.setDate(today.getDate() + daysUntilSunday);
+    return nextSunday;
+  };
+
+  // Table functions
+  const toggleRowSelection = (id: number) => {
+    const newSelected = new Set(selectedRows);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedRows(newSelected);
+  };
+
+  const toggleAllRows = () => {
+    if (selectedRows.size === filteredEmployees.length) {
+      setSelectedRows(new Set());
+    } else {
+      setSelectedRows(new Set(filteredEmployees.map(item => item.id)));
+    }
+  };
+
   const calendarDays = generateCalendarDays();
+  const pageNumbers: number[] = [1, 2, 3, 4];
 
   return (
     <div className="p-4 w-full">
@@ -135,7 +316,7 @@ const Roster = () => {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-4 mb-6 justify-end">
-        {/* Dropdown */}
+        {/* Department Filter Dropdown */}
         <div className="relative w-64 border border-[#14b8a6] rounded-lg">
           <div
             onClick={() => setIsOpen(!isOpen)}
@@ -163,6 +344,7 @@ const Roster = () => {
                   onClick={() => {
                     setSelected(option);
                     setIsOpen(false);
+                    setCurrentPage(1); // Reset to first page when filtering
                   }}
                   className="p-2 hover:bg-gray-100 cursor-pointer"
                 >
@@ -173,11 +355,16 @@ const Roster = () => {
           )}
         </div>
 
-        {/* Search Input */}
+        {/* Name Search Input */}
         <div className="relative w-64">
           <input
             type="text"
-            placeholder="Name..."
+            placeholder="Search by name..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1); // Reset to first page when searching
+            }}
             className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg border border-[#14b8a6]"
           />
           <svg
@@ -195,18 +382,17 @@ const Roster = () => {
         <div className="w-64">
           <div className="relative" ref={datePickerRef}>
             <div
-              className="flex items-center justify-between w-full px-4 py-3 rounded-lg bg-white border border-[#14b8a6]"
+              className="flex items-center justify-between w-full px-4 py-3 rounded-lg bg-white border border-[#14b8a6] cursor-pointer"
               onClick={() => setIsDatePickerOpen(!isDatePickerOpen)}
             >
               <span className={`${selectedDate ? 'text-gray-900' : 'text-gray-500'}`}>
-                {selectedDate ? formatDate(selectedDate) : 'Select a date'}
+                {selectedDate ? formatDate(selectedDate) : 'Select a Sunday'}
               </span>
               <Calendar className="w-5 h-5 text-gray-400" />
             </div>
 
             {isDatePickerOpen && (
               <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-20">
-                {/* Header */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
                   <button
                     onClick={() => navigateMonth('prev')}
@@ -227,7 +413,6 @@ const Roster = () => {
                   </button>
                 </div>
 
-                {/* Days of Week */}
                 <div className="grid grid-cols-7 gap-0 border-b border-gray-200">
                   {daysOfWeek.map((day) => (
                     <div
@@ -239,22 +424,27 @@ const Roster = () => {
                   ))}
                 </div>
 
-                {/* Calendar Grid */}
                 <div className="grid grid-cols-7 gap-0 p-2">
                   {calendarDays.map((day, index) => (
                     <button
                       key={index}
                       onClick={() => handleDateSelect(day)}
-                      disabled={!day}
+                      disabled={!day || !isSunday(day)}
                       className={`
                         h-10 w-10 text-sm rounded-full transition-all duration-200
-                        ${!day ? 'cursor-default' : 'cursor-pointer hover:bg-blue-50'}
-                        ${isSelected(day) 
+                        ${!day ? 'cursor-default' : 
+                          isSunday(day) 
+                            ? 'cursor-pointer hover:bg-blue-50' 
+                            : 'cursor-not-allowed opacity-30'
+                        }
+                        ${isSelected(day) && isSunday(day)
                           ? 'bg-blue-500 text-white hover:bg-blue-600' 
-                          : isToday(day)
+                          : isToday(day) && isSunday(day)
                           ? 'bg-blue-100 text-blue-600 font-semibold'
-                          : day
+                          : day && isSunday(day)
                           ? 'text-gray-700 hover:text-blue-600'
+                          : day && !isSunday(day)
+                          ? 'text-gray-300 bg-gray-50'
                           : ''
                         }
                       `}
@@ -264,19 +454,18 @@ const Roster = () => {
                   ))}
                 </div>
 
-                {/* Footer */}
                 <div className="px-4 py-3 border-t border-gray-200 flex justify-between items-center">
                   <button
                     onClick={() => {
-                      const today = new Date();
-                      setSelectedDate(today);
-                      setCurrentMonth(today.getMonth());
-                      setCurrentYear(today.getFullYear());
+                      const nextSunday = getNextSunday();
+                      setSelectedDate(nextSunday);
+                      setCurrentMonth(nextSunday.getMonth());
+                      setCurrentYear(nextSunday.getFullYear());
                       setIsDatePickerOpen(false);
                     }}
                     className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
                   >
-                    Today
+                    Next Sunday
                   </button>
                   
                   <button
@@ -289,17 +478,200 @@ const Roster = () => {
               </div>
             )}
           </div>
-
-        
         </div>
-      <button className="flex items-center gap-2 w-36 justify-center px-4 py-3 rounded-lg bg-[#0BB8A7] border border-[#14b8a6] text-white hover:bg-[#0aa596] transition cursor-pointer">
-     <Download />
-      Export
-    </button>
+
+        {/* Export Button */}
+        <button className="flex items-center gap-2 w-36 justify-center px-4 py-3 rounded-lg bg-[#0BB8A7] border border-[#14b8a6] text-white hover:bg-[#0aa596] transition cursor-pointer">
+          <Download />
+          Export
+        </button>
       </div>
 
-        <RosterList />
-      
+      {/* Results Summary */}
+      <div className="mb-4 text-sm text-gray-600">
+        Showing {filteredEmployees.length} employee{filteredEmployees.length !== 1 ? 's' : ''} 
+        {searchTerm && ` matching "${searchTerm}"`}
+        {selected !== "All Departments" && ` in ${selected}`}
+        {selectedDate && (
+          <span className="ml-2 font-medium">
+            • Week of {formatDate(selectedDate)}
+          </span>
+        )}
+      </div>
+
+      {/* Employee Schedule Table */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-50">
+                <th className="w-12 px-4 py-3 text-left">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                    checked={selectedRows.size === filteredEmployees.length && filteredEmployees.length > 0}
+                    onChange={toggleAllRows}
+                  />
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-[#fff]g min-w-[180px]">
+                  Employee Name
+                </th>
+                <th className="px-4 py-3 text-center text-sm font-medium text-[#fff] min-w-[120px]">
+                  <div className="flex flex-col items-center">
+                    <span>Sunday</span>
+                    <span className="text-xs font-normal text-[#fff]">{formatHeaderDate(sunday)}</span>
+                  </div>
+                </th>
+                <th className="px-4 py-3 text-center text-sm font-medium min-w-[120px] text-[#fff]">
+                  <div className="flex flex-col items-center">
+                    <span>Monday</span>
+                    <span className="text-xs font-normal text-[#fff]">{formatHeaderDate(monday)}</span>
+                  </div>
+                </th>
+                <th className="px-4 py-3 text-center text-sm font-medium text-[#fff] min-w-[120px]">
+                  <div className="flex flex-col items-center">
+                    <span>Tuesday</span>
+                    <span className="text-xs font-normal text-[#fff]">{formatHeaderDate(tuesday)}</span>
+                  </div>
+                </th>
+                <th className="px-4 py-3 text-center text-sm font-medium text-[#fff] min-w-[120px]">
+                  <div className="flex flex-col items-center">
+                    <span>Wednesday</span>
+                    <span className="text-xs font-normal text-[#fff]">{formatHeaderDate(wednesday)}</span>
+                  </div>
+                </th>
+                <th className="px-4 py-3 text-center text-sm font-medium text-[#fff] min-w-[120px]">
+                  <div className="flex flex-col items-center">
+                    <span>Thursday</span>
+                    <span className="text-xs font-normal text-[#fff]">{formatHeaderDate(thursday)}</span>
+                  </div>
+                </th>
+                <th className="px-4 py-3 text-center text-sm font-medium text-[#fff] min-w-[120px]">
+                  <div className="flex flex-col items-center">
+                    <span>Friday</span>
+                    <span className="text-xs font-normal text-[#fff]">{formatHeaderDate(friday)}</span>
+                  </div>
+                </th>
+                <th className="px-4 py-3 text-center text-sm font-medium text-[#fff] min-w-[120px]">
+                  <div className="flex flex-col items-center">
+                    <span>Saturday</span>
+                    <span className="text-xs font-normal text-[#fff]">{formatHeaderDate(saturday)}</span>
+                  </div>
+                </th>
+                <th className="px-4 py-3 text-center text-sm font-medium w-20 text-[#fff]">
+                  Action
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {filteredEmployees.length === 0 ? (
+                <tr>
+                  <td colSpan={10} className="px-4 py-8 text-center text-gray-500">
+                    No employees found matching your search criteria.
+                  </td>
+                </tr>
+              ) : (
+                filteredEmployees.map((employee: Employee) => (
+                  <tr key={employee.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3">
+                      <input
+                        type="checkbox"
+                        className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                        checked={selectedRows.has(employee.id)}
+                        onChange={() => toggleRowSelection(employee.id)}
+                      />
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900 font-medium">
+                      <div>
+                        <div>{employee.name}</div>
+                        <div className="text-xs text-gray-500">{employee.department}</div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-center text-sm text-gray-700">
+                      {employee.schedule.sunday}
+                    </td>
+                    <td className="px-4 py-3 text-center text-sm text-gray-700">
+                      {employee.schedule.monday}
+                    </td>
+                    <td className="px-4 py-3 text-center text-sm text-gray-700">
+                      {employee.schedule.tuesday}
+                    </td>
+                    <td className="px-4 py-3 text-center text-sm text-gray-700">
+                      {employee.schedule.wednesday}
+                    </td>
+                    <td className="px-4 py-3 text-center text-sm text-gray-700">
+                      {employee.schedule.thursday}
+                    </td>
+                    <td className="px-4 py-3 text-center text-sm text-gray-700">
+                      {employee.schedule.friday}
+                    </td>
+                    <td className="px-4 py-3 text-center text-sm text-gray-700">
+                      {employee.schedule.saturday}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <button className="text-gray-400 hover:text-gray-600">
+                        <Edit className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+        
+        <div className="px-4 py-3 bg-white border-t border-gray-200 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white text-sm font-medium rounded-md transition-colors">
+              Multiple Edit
+            </button>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <span>Showing</span>
+              <select className="border border-gray-300 rounded px-2 py-1 text-sm h-[30px]">
+                <option>10</option>
+                <option>25</option>
+                <option>50</option>
+              </select>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-600">
+              Showing 1 to {Math.min(10, filteredEmployees.length)} out of {filteredEmployees.length} records
+            </span>
+            
+            <div className="flex items-center gap-1">
+              <button 
+                className="p-1 text-gray-400 hover:text-gray-600"
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              
+              {pageNumbers.map((page: number) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-8 h-8 text-sm font-medium rounded ${
+                    currentPage === page
+                      ? 'text-black border border-[#14b8a6]'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+              
+              <button 
+                className="p-1 text-gray-400 hover:text-gray-600"
+                onClick={() => setCurrentPage(Math.min(4, currentPage + 1))}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
