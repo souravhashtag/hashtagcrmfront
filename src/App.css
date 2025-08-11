@@ -37,7 +37,10 @@ nav.nav {
 
 
 
-
+.text-gray-300 {
+    --tw-text-opacity: 1;
+    color: rgb(88 94 104);
+}
 span.menu-content {
     width: 100%;
     display: flex;
