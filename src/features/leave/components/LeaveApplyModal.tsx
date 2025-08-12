@@ -5,7 +5,8 @@ import {
   useGetLeaveByIdQuery,
   useUpdateLeaveMutation,
   useGetLeaveTypesQuery,
-  useGetLeaveBalanceQuery
+  useGetLeaveBalanceQuery,
+  useGetMyLeavesQuery
 } from '../../../services/leaveServices';
 
 interface LeaveFormData {
@@ -22,6 +23,7 @@ interface LeaveApplyModalProps {
   onClose: () => void;
   editLeaveId?: string;
   onSuccess?: () => void;
+  leavesData?: any;
 }
 
 interface LeaveImpact {
@@ -36,6 +38,7 @@ interface LeaveImpact {
 const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
   isOpen,
   onClose,
+  leavesData,
   editLeaveId,
   onSuccess
 }) => {
@@ -361,6 +364,44 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
     return balanceMap[type];
   };
 
+  // Add this helper function after your existing helper functions
+  const formatLocalYMD = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+
+  const getDisabledDates = () => {
+    if (!leavesData?.data) return [];
+
+    const disabledDates: string[] = [];
+
+    leavesData.data.forEach((leave: any) => {
+      if (leave.status === 'approved') {
+        // Parse and normalize to local midnight
+        const start = new Date(leave.startDate);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(leave.endDate);
+        end.setHours(0, 0, 0, 0);
+
+        // Loop inclusive of end date
+        const current = new Date(start);
+        while (current.getTime() <= end.getTime()) {
+          const key = formatLocalYMD(current); // local YYYY-MM-DD
+          if (!disabledDates.includes(key)) disabledDates.push(key);
+          current.setDate(current.getDate() + 1);
+        }
+      }
+    });
+
+    return disabledDates;
+  };
+
+  const disabledDates = getDisabledDates();
+
+
   if (!isOpen) return null;
 
   if (isEdit && isLoadingLeave) {
@@ -518,10 +559,18 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
                       type="date"
                       value={formData.startDate}
                       onChange={(e) => {
-                        handleInputChange('startDate', e.target.value);
-                        // Auto-set end date if half day
+                        const selectedDate = e.target.value;
+
+                        // Block selection if date is in the disabled list
+                        if (disabledDates.includes(selectedDate)) {
+                          alert("This date is unavailable for leave.");
+                          return; // Do not update state
+                        }
+
+                        handleInputChange("startDate", selectedDate);
+
                         if (formData.isHalfDay) {
-                          handleInputChange('endDate', e.target.value);
+                          handleInputChange("endDate", selectedDate);
                         }
                       }}
                       min={getMinDate()}
@@ -547,7 +596,21 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
                     <input
                       type="date"
                       value={formData.endDate}
-                      onChange={(e) => handleInputChange('endDate', e.target.value)}
+                      onChange={(e) => {
+                        const selectedDate = e.target.value;
+
+                        // Block selection if date is in the disabled list
+                        if (disabledDates.includes(selectedDate)) {
+                          alert("This date is unavailable for leave.");
+                          return; 
+                        }
+
+                        handleInputChange("endDate", selectedDate);
+
+                        if (formData.isHalfDay) {
+                          handleInputChange("endDate", selectedDate);
+                        }
+                      }}
                       min={formData.startDate || getMinDate()}
                       disabled={formData.isHalfDay}
                       className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formData.isHalfDay ? 'bg-gray-100 cursor-not-allowed' : ''
