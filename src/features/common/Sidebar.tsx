@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import logo from '../../images/logo.png';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getIconComponent } from '../../utils/getIconComponent';
 import { Sun, Moon, ChevronDown, ChevronRight } from 'lucide-react';
 import { useUser } from "../dashboard/context/DashboardContext";
@@ -8,6 +8,7 @@ import './sidebar.css';
 
 const Sidebar = (): React.ReactElement => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [menuItems, setMenuItems] = useState<any[]>([]);
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set());
@@ -28,6 +29,15 @@ const Sidebar = (): React.ReactElement => {
     return false;
   };
 
+  // Check if menu item is settings related
+  const isSettingsMenu = (item: any): boolean => {
+    const settingsKeywords = ['settings', 'setting', 'config', 'configuration', 'preferences'];
+    return settingsKeywords.some(keyword => 
+      item.name?.toLowerCase().includes(keyword) || 
+      item.slug?.toLowerCase().includes(keyword)
+    );
+  };
+
   const toggleMenu = (menuName: string) => {
     setExpandedMenus(prev => {
       const newSet = new Set(prev);
@@ -40,10 +50,19 @@ const Sidebar = (): React.ReactElement => {
     });
   };
 
+  const handleMenuClick = (item: any) => {
+    // If it's a settings menu and has a slug, navigate directly
+    if (isSettingsMenu(item) && item.slug) {
+      navigate(item.slug);
+    } else {
+      // For non-settings menus with submenus, toggle the menu
+      toggleMenu(item.name);
+    }
+  };
+
   const handleThemeToggle = (newTheme: 'light' | 'dark') => {
     setTheme(newTheme);
     document.documentElement.setAttribute('data-theme', newTheme);
-    // localStorage.setItem('theme', newTheme);
     localStorage.setItem('theme', newTheme);
   };
 
@@ -57,13 +76,12 @@ const Sidebar = (): React.ReactElement => {
 
   useEffect(() => {
     if (user?.role?.menulist && Array.isArray(user.role.menulist)) {
-      // console.log("Loading menu items:", user.role.menulist);
       setMenuItems(user.role.menulist);
       
-      // Auto-expand menus that have active submenus
+      // Auto-expand menus that have active submenus (except settings menus)
       const menusToExpand = new Set<string>();
       user.role.menulist.forEach((item: any) => {
-        if (item.submenu && Array.isArray(item.submenu)) {
+        if (item.submenu && Array.isArray(item.submenu) && !isSettingsMenu(item)) {
           const hasActiveSubmenu = item.submenu.some((subItem: any) => 
             getActiveMenuItem(subItem.slug)
           );
@@ -72,9 +90,8 @@ const Sidebar = (): React.ReactElement => {
           }
         }
       });
-      //setExpandedMenus(menusToExpand);
+      
       setExpandedMenus(prev => {
-        //console.log("prev===",prev);
         return new Set(prev);        
       })
     } else {
@@ -88,22 +105,22 @@ const Sidebar = (): React.ReactElement => {
     const hasSubmenu = item.submenu && Array.isArray(item.submenu) && item.submenu.length > 0;
     const isExpanded = expandedMenus.has(item.name);
     const isParentActiveMenu = isParentActive(item);
-    // {console.log("item===",item)}
+    const isSettings = isSettingsMenu(item);
+    
     return (
-      
       <li key={`${item.name}-${item.slug}`} className="menu-item">
-        {hasSubmenu ? (
+        {hasSubmenu && !isSettings ? (
           <>
-            {/* Parent menu with submenu */}
+            {/* Parent menu with submenu (non-settings) */}
             <div 
               className={`menu-link parent-menu ${isParentActiveMenu ? 'active' : ''}`}
-              onClick={() => toggleMenu(item.name)}
+              onClick={() => handleMenuClick(item)}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  toggleMenu(item.name);
+                  handleMenuClick(item);
                 }
               }}
             >
@@ -148,7 +165,7 @@ const Sidebar = (): React.ReactElement => {
             )}
           </>
         ) : (
-        
+          /* Single menu item or settings menu (always navigate directly) */
           <Link
             to={item.slug}
             className={`menu-link ${isActive ? 'active' : ''}`}
