@@ -1,22 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import {
-    User,
     Shield,
-    Bell,
-    Globe,
-    Palette,
-    Database,
+    Save,
+    Plus,
+    Edit3,
+    Trash2,
+    Check,
+    X,
+    Calendar,
+    Clock,
     Users,
-    Mail,
-    Lock,
+    Settings,
     Eye,
     EyeOff,
-    Save,
-    RefreshCw,
-    Download,
-    Upload,
-    Trash2,
-    AlertTriangle,
     CheckCircle
 } from 'lucide-react';
 
@@ -27,6 +23,18 @@ interface SettingsSection {
     description: string;
 }
 
+interface LeaveType {
+    id: string;
+    name: string;
+    code: string;
+    description: string;
+    maxDaysPerYear: number;
+    requiresApproval: boolean;
+    isCarryForward: boolean;
+    color: string;
+    isActive: boolean;
+}
+
 const settingsSections: SettingsSection[] = [
     {
         id: 'security',
@@ -34,67 +42,84 @@ const settingsSections: SettingsSection[] = [
         icon: Shield,
         description: 'Password, two-factor authentication, and privacy settings'
     },
-    // {
-    //     id: 'notifications',
-    //     name: 'Notifications',
-    //     icon: Bell,
-    //     description: 'Configure email and push notification preferences'
-    // },
-    // {
-    //     id: 'appearance',
-    //     name: 'Appearance',
-    //     icon: Palette,
-    //     description: 'Customize theme, layout, and display preferences'
-    // },
-    // {
-    //     id: 'system',
-    //     name: 'System Settings',
-    //     icon: Database,
-    //     description: 'Application configuration and system preferences'
-    // },
     {
-        id: 'users',
-        name: 'User Management',
-        icon: Users,
-        description: 'Manage users, roles, and permissions'
+        id: 'leave-types',
+        name: 'Leave Management',
+        icon: Calendar,
+        description: 'Manage leave types, policies, and configurations'
     }
 ];
 
-const Settings: React.FC = () => {
-    const [activeSection, setActiveSection] = useState('profile');
+const LeaveManagementSettings: React.FC = () => {
+    const [activeSection, setActiveSection] = useState('security');
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
-        // Profile Settings
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john.doe@company.com',
-        phone: '+1 234 567 8900',
-        jobTitle: 'Software Engineer',
-        department: 'Engineering',
-
         // Security Settings
         currentPassword: '',
         newPassword: '',
         confirmPassword: '',
         twoFactorEnabled: false,
+    });
 
-        // Notification Settings
-        emailNotifications: true,
-        pushNotifications: true,
-        weeklyReports: true,
-        systemAlerts: true,
+    // Leave Types Management State
+    const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([
+        {
+            id: '1',
+            name: 'Annual Leave',
+            code: 'AL',
+            description: 'Annual vacation leave for personal time off',
+            maxDaysPerYear: 25,
+            requiresApproval: true,
+            isCarryForward: true,
+            color: '#3B82F6',
+            isActive: true
+        },
+        {
+            id: '2',
+            name: 'Sick Leave',
+            code: 'SL',
+            description: 'Medical leave for illness or medical appointments',
+            maxDaysPerYear: 10,
+            requiresApproval: false,
+            isCarryForward: false,
+            color: '#EF4444',
+            isActive: true
+        },
+        {
+            id: '3',
+            name: 'Personal Leave',
+            code: 'PL',
+            description: 'Personal time off for family or personal matters',
+            maxDaysPerYear: 5,
+            requiresApproval: true,
+            isCarryForward: false,
+            color: '#10B981',
+            isActive: true
+        },
+        {
+            id: '4',
+            name: 'Maternity Leave',
+            code: 'ML',
+            description: 'Maternity leave for new mothers',
+            maxDaysPerYear: 120,
+            requiresApproval: true,
+            isCarryForward: false,
+            color: '#8B5CF6',
+            isActive: true
+        }
+    ]);
 
-        // Appearance Settings
-        theme: 'dark',
-        language: 'en',
-        dateFormat: 'MM/dd/yyyy',
-        timeFormat: '12h',
-
-        // System Settings
-        autoBackup: true,
-        backupFrequency: 'daily',
-        sessionTimeout: '30',
-        allowMultipleSessions: false
+    const [showLeaveTypeModal, setShowLeaveTypeModal] = useState(false);
+    const [editingLeaveType, setEditingLeaveType] = useState<LeaveType | null>(null);
+    const [leaveTypeForm, setLeaveTypeForm] = useState({
+        name: '',
+        code: '',
+        description: '',
+        maxDaysPerYear: 0,
+        requiresApproval: true,
+        isCarryForward: false,
+        color: '#3B82F6',
+        isActive: true
     });
 
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -106,9 +131,15 @@ const Settings: React.FC = () => {
         }));
     };
 
+    const handleLeaveTypeFormChange = (field: string, value: any) => {
+        setLeaveTypeForm(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
+
     const handleSave = async (section: string) => {
         setSaveStatus('saving');
-
         // Simulate API call
         setTimeout(() => {
             setSaveStatus('saved');
@@ -116,7 +147,68 @@ const Settings: React.FC = () => {
         }, 1000);
     };
 
-    // Toggle Switch Component
+    const openLeaveTypeModal = (leaveType?: LeaveType) => {
+        if (leaveType) {
+            setEditingLeaveType(leaveType);
+            setLeaveTypeForm({
+                name: leaveType.name,
+                code: leaveType.code,
+                description: leaveType.description,
+                maxDaysPerYear: leaveType.maxDaysPerYear,
+                requiresApproval: leaveType.requiresApproval,
+                isCarryForward: leaveType.isCarryForward,
+                color: leaveType.color,
+                isActive: leaveType.isActive
+            });
+        } else {
+            setEditingLeaveType(null);
+            setLeaveTypeForm({
+                name: '',
+                code: '',
+                description: '',
+                maxDaysPerYear: 0,
+                requiresApproval: true,
+                isCarryForward: false,
+                color: '#3B82F6',
+                isActive: true
+            });
+        }
+        setShowLeaveTypeModal(true);
+    };
+
+    const handleSaveLeaveType = () => {
+        if (editingLeaveType) {
+            // Update existing leave type
+            setLeaveTypes(prev => prev.map(lt => 
+                lt.id === editingLeaveType.id 
+                    ? { ...lt, ...leaveTypeForm }
+                    : lt
+            ));
+        } else {
+            // Add new leave type
+            const newLeaveType: LeaveType = {
+                id: Date.now().toString(),
+                ...leaveTypeForm
+            };
+            setLeaveTypes(prev => [...prev, newLeaveType]);
+        }
+        setShowLeaveTypeModal(false);
+        setEditingLeaveType(null);
+    };
+
+    const handleDeleteLeaveType = (id: string) => {
+        if (window.confirm('Are you sure you want to delete this leave type?')) {
+            setLeaveTypes(prev => prev.filter(lt => lt.id !== id));
+        }
+    };
+
+    const toggleLeaveTypeStatus = (id: string) => {
+        setLeaveTypes(prev => prev.map(lt => 
+            lt.id === id ? { ...lt, isActive: !lt.isActive } : lt
+        ));
+    };
+
+    // Toggle Switch Component (matching original design)
     const ToggleSwitch: React.FC<{
         checked: boolean;
         onChange: (checked: boolean) => void;
@@ -137,114 +229,6 @@ const Settings: React.FC = () => {
                 />
                 <div className="w-12 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-6 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#129990]"></div>
             </label>
-        </div>
-    );
-
-    const renderProfileSettings = () => (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 bg-[#129990]">
-                <h2 className="text-xl font-bold text-white mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>Profile Settings</h2>
-                <p className="text-sm text-teal-100">Manage your personal information and account details</p>
-            </div>
-
-            <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label htmlFor="firstName" className="block text-sm font-semibold text-gray-700 mb-2">
-                            First Name
-                        </label>
-                        <input
-                            type="text"
-                            id="firstName"
-                            value={formData.firstName}
-                            onChange={(e) => handleInputChange('firstName', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="lastName" className="block text-sm font-semibold text-gray-700 mb-2">
-                            Last Name
-                        </label>
-                        <input
-                            type="text"
-                            id="lastName"
-                            value={formData.lastName}
-                            onChange={(e) => handleInputChange('lastName', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                        />
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
-                            Email Address
-                        </label>
-                        <input
-                            type="email"
-                            id="email"
-                            value={formData.email}
-                            onChange={(e) => handleInputChange('email', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
-                            Phone Number
-                        </label>
-                        <input
-                            type="tel"
-                            id="phone"
-                            value={formData.phone}
-                            onChange={(e) => handleInputChange('phone', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                        />
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div>
-                        <label htmlFor="jobTitle" className="block text-sm font-semibold text-gray-700 mb-2">
-                            Job Title
-                        </label>
-                        <input
-                            type="text"
-                            id="jobTitle"
-                            value={formData.jobTitle}
-                            onChange={(e) => handleInputChange('jobTitle', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="department" className="block text-sm font-semibold text-gray-700 mb-2">
-                            Department
-                        </label>
-                        <select
-                            id="department"
-                            value={formData.department}
-                            onChange={(e) => handleInputChange('department', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm cursor-pointer"
-                        >
-                            <option value="Engineering">Engineering</option>
-                            <option value="Marketing">Marketing</option>
-                            <option value="Sales">Sales</option>
-                            <option value="HR">Human Resources</option>
-                            <option value="Finance">Finance</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div className="pt-6 border-t border-gray-200">
-                    <button
-                        onClick={() => handleSave('profile')}
-                        disabled={saveStatus === 'saving'}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-[#129990] text-white text-sm font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                    >
-                        <Save className="w-4 h-4" />
-                        {saveStatus === 'saving' ? 'Saving...' : 'Save Changes'}
-                    </button>
-                </div>
-            </div>
         </div>
     );
 
@@ -333,283 +317,124 @@ const Settings: React.FC = () => {
         </div>
     );
 
-    const renderNotificationSettings = () => (
+    const renderLeaveTypesManagement = () => (
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200 bg-[#129990]">
-                <h2 className="text-xl font-bold text-white mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>Notifications</h2>
-                <p className="text-sm text-teal-100">Configure your email and push notification preferences</p>
+                <h2 className="text-xl font-bold text-white mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>Leave Types Management</h2>
+                <p className="text-sm text-teal-100">Configure and manage leave types for your organization</p>
             </div>
 
             <div className="p-6">
-                <div className="space-y-0">
-                    <ToggleSwitch
-                        checked={formData.emailNotifications}
-                        onChange={(checked) => handleInputChange('emailNotifications', checked)}
-                        label="Email Notifications"
-                        description="Receive important updates via email"
-                    />
-                    <ToggleSwitch
-                        checked={formData.pushNotifications}
-                        onChange={(checked) => handleInputChange('pushNotifications', checked)}
-                        label="Push Notifications"
-                        description="Get real-time notifications in your browser"
-                    />
-                    <ToggleSwitch
-                        checked={formData.weeklyReports}
-                        onChange={(checked) => handleInputChange('weeklyReports', checked)}
-                        label="Weekly Reports"
-                        description="Receive weekly activity summaries"
-                    />
-                    <ToggleSwitch
-                        checked={formData.systemAlerts}
-                        onChange={(checked) => handleInputChange('systemAlerts', checked)}
-                        label="System Alerts"
-                        description="Get notified about system maintenance and updates"
-                    />
-                </div>
-
-                <div className="pt-6 border-t border-gray-200 mt-6">
-                    <button
-                        onClick={() => handleSave('notifications')}
-                        disabled={saveStatus === 'saving'}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-[#129990] text-white text-sm font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                    >
-                        <Save className="w-4 h-4" />
-                        {saveStatus === 'saving' ? 'Saving...' : 'Save Notification Settings'}
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-
-    const renderAppearanceSettings = () => (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 bg-[#129990]">
-                <h2 className="text-xl font-bold text-white mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>Appearance</h2>
-                <p className="text-sm text-teal-100">Customize theme, layout, and display preferences</p>
-            </div>
-
-            <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label htmlFor="theme" className="block text-sm font-semibold text-gray-700 mb-2">
-                            Theme
-                        </label>
-                        <select
-                            id="theme"
-                            value={formData.theme}
-                            onChange={(e) => handleInputChange('theme', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm cursor-pointer"
-                        >
-                            <option value="light">Light</option>
-                            <option value="dark">Dark</option>
-                            <option value="auto">Auto (System)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label htmlFor="language" className="block text-sm font-semibold text-gray-700 mb-2">
-                            Language
-                        </label>
-                        <select
-                            id="language"
-                            value={formData.language}
-                            onChange={(e) => handleInputChange('language', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm cursor-pointer"
-                        >
-                            <option value="en">English</option>
-                            <option value="fr">French</option>
-                            <option value="de">German</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div>
-                        <label htmlFor="dateFormat" className="block text-sm font-semibold text-gray-700 mb-2">
-                            Date Format
-                        </label>
-                        <select
-                            id="dateFormat"
-                            value={formData.dateFormat}
-                            onChange={(e) => handleInputChange('dateFormat', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm cursor-pointer"
-                        >
-                            <option value="MM/dd/yyyy">MM/dd/yyyy</option>
-                            <option value="dd/MM/yyyy">dd/MM/yyyy</option>
-                            <option value="yyyy-MM-dd">yyyy-MM-dd</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label htmlFor="timeFormat" className="block text-sm font-semibold text-gray-700 mb-2">
-                            Time Format
-                        </label>
-                        <select
-                            id="timeFormat"
-                            value={formData.timeFormat}
-                            onChange={(e) => handleInputChange('timeFormat', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm cursor-pointer"
-                        >
-                            <option value="12h">12 Hour</option>
-                            <option value="24h">24 Hour</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div className="pt-6 border-t border-gray-200">
-                    <button
-                        onClick={() => handleSave('appearance')}
-                        disabled={saveStatus === 'saving'}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-[#129990] text-white text-sm font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                    >
-                        <Save className="w-4 h-4" />
-                        {saveStatus === 'saving' ? 'Saving...' : 'Save Appearance Settings'}
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-
-    const renderSystemSettings = () => (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 bg-[#129990]">
-                <h2 className="text-xl font-bold text-white mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>System Settings</h2>
-                <p className="text-sm text-teal-100">Application configuration and system preferences</p>
-            </div>
-
-            <div className="p-6">
-                <div className="mb-8 pb-6 border-b border-gray-200">
-                    <h3 className="text-base font-semibold text-gray-900 mb-4">Backup & Data</h3>
-
-                    <ToggleSwitch
-                        checked={formData.autoBackup}
-                        onChange={(checked) => handleInputChange('autoBackup', checked)}
-                        label="Automatic Backup"
-                        description="Automatically backup your data"
-                    />
-
-                    <div className="mt-4">
-                        <label htmlFor="backupFrequency" className="block text-sm font-semibold text-gray-700 mb-2">
-                            Backup Frequency
-                        </label>
-                        <select
-                            id="backupFrequency"
-                            value={formData.backupFrequency}
-                            onChange={(e) => handleInputChange('backupFrequency', e.target.value)}
-                            disabled={!formData.autoBackup}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm cursor-pointer disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
-                        >
-                            <option value="daily">Daily</option>
-                            <option value="weekly">Weekly</option>
-                            <option value="monthly">Monthly</option>
-                        </select>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row gap-3 mt-4">
-                        <button className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 text-white text-sm font-semibold rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors">
-                            <Download className="w-4 h-4" />
-                            Download Backup
-                        </button>
-                        <button className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 text-white text-sm font-semibold rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors">
-                            <Upload className="w-4 h-4" />
-                            Restore from Backup
-                        </button>
-                    </div>
-                </div>
-
-                <div className="mb-6">
-                    <h3 className="text-base font-semibold text-gray-900 mb-4">Session Management</h3>
-
-                    <div className="mb-4">
-                        <label htmlFor="sessionTimeout" className="block text-sm font-semibold text-gray-700 mb-2">
-                            Session Timeout (minutes)
-                        </label>
-                        <input
-                            type="number"
-                            id="sessionTimeout"
-                            value={formData.sessionTimeout}
-                            onChange={(e) => handleInputChange('sessionTimeout', e.target.value)}
-                            min="5"
-                            max="480"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                        />
-                    </div>
-
-                    <ToggleSwitch
-                        checked={formData.allowMultipleSessions}
-                        onChange={(checked) => handleInputChange('allowMultipleSessions', checked)}
-                        label="Allow Multiple Sessions"
-                        description="Allow the same user to login from multiple devices"
-                    />
-                </div>
-
-                <div className="pt-6 border-t border-gray-200">
-                    <button
-                        onClick={() => handleSave('system')}
-                        disabled={saveStatus === 'saving'}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-[#129990] text-white text-sm font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                    >
-                        <Save className="w-4 h-4" />
-                        {saveStatus === 'saving' ? 'Saving...' : 'Save System Settings'}
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-
-    const renderLeaveManagement = () => (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 bg-[#129990]">
-                <h2 className="text-xl font-bold text-white mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>User Management</h2>
-                <p className="text-sm text-teal-100">Manage users, roles, and permissions</p>
-            </div>
-
-            <div className="p-6">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                {/* Stats Cards - matching original design */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
                     <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 text-center">
-                        <div className="text-2xl font-bold text-[#129990] mb-2">24</div>
-                        <div className="text-sm text-gray-600 font-medium">Total Users</div>
+                        <div className="text-2xl font-bold text-[#129990] mb-2">{leaveTypes.length}</div>
+                        <div className="text-sm text-gray-600 font-medium">Total Leave Types</div>
                     </div>
                     <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 text-center">
-                        <div className="text-2xl font-bold text-[#129990] mb-2">18</div>
-                        <div className="text-sm text-gray-600 font-medium">Active Users</div>
-                    </div>
-                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 text-center">
-                        <div className="text-2xl font-bold text-[#129990] mb-2">6</div>
-                        <div className="text-sm text-gray-600 font-medium">Roles</div>
+                        <div className="text-2xl font-bold text-[#129990] mb-2">{leaveTypes.filter(lt => lt.isActive).length}</div>
+                        <div className="text-sm text-gray-600 font-medium">Active Types</div>
                     </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-3 mb-8">
-                    <button className="inline-flex items-center gap-2 px-4 py-2 bg-[#129990] text-white text-sm font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 transition-colors">
-                        <Users className="w-4 h-4" />
-                        Manage Users
-                    </button>
-                    <button className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 text-white text-sm font-semibold rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors">
-                        <Shield className="w-4 h-4" />
-                        Manage Roles
-                    </button>
-                    <button className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 text-white text-sm font-semibold rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors">
-                        <Lock className="w-4 h-4" />
-                        Permissions
+                {/* Add New Leave Type Button - matching original style */}
+                <div className="mb-8">
+                    <button
+                        onClick={() => openLeaveTypeModal()}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-[#129990] text-white text-sm font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 transition-colors"
+                    >
+                        <Plus className="w-4 h-4" />
+                        Add New Leave Type
                     </button>
                 </div>
 
-                <div className="border-2 border-red-200 rounded-lg p-6 bg-red-50">
-                    <h3 className="text-base font-semibold text-red-700 mb-4 flex items-center gap-2">
-                        <AlertTriangle className="w-5 h-5" />
-                        Danger Zone
-                    </h3>
-                    <div className="flex flex-col sm:flex-row gap-3">
-                        <button className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors">
-                            <Trash2 className="w-4 h-4" />
-                            Clear All User Sessions
-                        </button>
-                        <button className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors">
-                            <AlertTriangle className="w-4 h-4" />
-                            Reset All Passwords
+                {/* Leave Types List */}
+                <div className="space-y-4">
+                    {leaveTypes.map((leaveType) => (
+                        <div key={leaveType.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-sm transition-shadow bg-white">
+                            <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <div 
+                                            className="w-5 h-5 rounded-full border-2 border-white shadow-sm"
+                                            style={{ backgroundColor: leaveType.color }}
+                                        ></div>
+                                        <h3 className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                                            {leaveType.name}
+                                        </h3>
+                                        <span className="px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-800 rounded-full">
+                                            {leaveType.code}
+                                        </span>
+                                        <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                                            leaveType.isActive 
+                                                ? 'bg-green-100 text-green-800' 
+                                                : 'bg-red-100 text-red-800'
+                                        }`}>
+                                            {leaveType.isActive ? 'Active' : 'Inactive'}
+                                        </span>
+                                    </div>
+                                    <p className="text-gray-600 mb-4 text-sm">{leaveType.description}</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                        <div className="bg-gray-50 p-3 rounded-md">
+                                            <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Max Days/Year</span>
+                                            <span className="text-lg font-bold text-[#129990]">{leaveType.maxDaysPerYear}</span>
+                                        </div>
+                                        <div className="bg-gray-50 p-3 rounded-md">
+                                            <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Requires Approval</span>
+                                            <span className="text-lg font-bold text-[#129990]">{leaveType.requiresApproval ? 'Yes' : 'No'}</span>
+                                        </div>
+                                        <div className="bg-gray-50 p-3 rounded-md">
+                                            <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Carry Forward</span>
+                                            <span className="text-lg font-bold text-[#129990]">{leaveType.isCarryForward ? 'Yes' : 'No'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2 ml-6">
+                                    <button
+                                        onClick={() => toggleLeaveTypeStatus(leaveType.id)}
+                                        className={`p-2 rounded-md transition-colors ${
+                                            leaveType.isActive 
+                                                ? 'text-orange-600 hover:text-orange-800 hover:bg-orange-50' 
+                                                : 'text-green-600 hover:text-green-800 hover:bg-green-50'
+                                        }`}
+                                        title={leaveType.isActive ? 'Deactivate' : 'Activate'}
+                                    >
+                                        {leaveType.isActive ? <X className="w-4 h-4" /> : <Check className="w-4 h-4" />}
+                                    </button>
+                                    <button
+                                        onClick={() => openLeaveTypeModal(leaveType)}
+                                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded-md transition-colors"
+                                        title="Edit"
+                                    >
+                                        <Edit3 className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeleteLeaveType(leaveType.id)}
+                                        className="text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded-md transition-colors"
+                                        title="Delete"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {leaveTypes.length === 0 && (
+                    <div className="text-center py-12">
+                        <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold text-gray-600 mb-2">No leave types configured yet</h3>
+                        <p className="text-gray-500 mb-6">Add your first leave type to get started with leave management.</p>
+                        <button
+                            onClick={() => openLeaveTypeModal()}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-[#129990] text-white text-sm font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 transition-colors"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Add First Leave Type
                         </button>
                     </div>
-                </div>
+                )}
             </div>
         </div>
     );
@@ -618,14 +443,8 @@ const Settings: React.FC = () => {
         switch (activeSection) {
             case 'security':
                 return renderSecuritySettings();
-            // case 'notifications':
-            //     return renderNotificationSettings();
-            // case 'appearance':
-            //     return renderAppearanceSettings();
-            // case 'system':
-            //     return renderSystemSettings();
-            case 'users':
-                return renderLeaveManagement();
+            case 'leave-types':
+                return renderLeaveTypesManagement();
             default:
                 return renderSecuritySettings();
         }
@@ -634,7 +453,7 @@ const Settings: React.FC = () => {
     return (
         <div className="bg-[#E8EDF2] min-h-screen">
             <div className="flex">
-                {/* Left Sidebar Navigation */}
+                {/* Left Sidebar Navigation - exact match to original */}
                 <div className="w-80 bg-white border-r border-gray-200 flex-shrink-0 min-h-screen">
                     <div className="p-6">
                         <div className="mb-8 pb-4 border-b border-gray-200">
@@ -649,20 +468,22 @@ const Settings: React.FC = () => {
                                     <button
                                         key={section.id}
                                         onClick={() => setActiveSection(section.id)}
-                                        className={`w-full flex items-start gap-3 p-4 rounded-lg text-left transition-all duration-200 ${activeSection === section.id
+                                        className={`w-full flex items-start gap-3 p-4 rounded-lg text-left transition-all duration-200 ${
+                                            activeSection === section.id
                                                 ? 'bg-[#129990] text-white shadow-md'
                                                 : 'text-gray-700 hover:bg-gray-50 hover:text-[#129990]'
-                                            }`}
+                                        }`}
                                     >
                                         <div className="flex items-center justify-center w-5 h-5 flex-shrink-0 mt-0.5">
                                             <IconComponent className="w-5 h-5" />
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <span className="block text-sm font-semibold mb-1">{section.name}</span>
-                                            <span className={`block text-xs leading-tight ${activeSection === section.id
+                                            <span className={`block text-xs leading-tight ${
+                                                activeSection === section.id
                                                     ? 'text-teal-100'
                                                     : 'text-gray-500'
-                                                }`}>
+                                            }`}>
                                                 {section.description}
                                             </span>
                                         </div>
@@ -671,7 +492,7 @@ const Settings: React.FC = () => {
                             })}
                         </nav>
 
-                        {/* Save Status Indicator */}
+                        {/* Save Status Indicator - exact match to original */}
                         {saveStatus === 'saved' && (
                             <div className="flex items-center gap-2 p-3 mt-4 bg-green-50 text-green-700 rounded-lg border border-green-200">
                                 <CheckCircle className="w-4 h-4" />
@@ -686,8 +507,140 @@ const Settings: React.FC = () => {
                     {renderContent()}
                 </div>
             </div>
+
+            {/* Leave Type Modal */}
+            {showLeaveTypeModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-lg">
+                        <div className="px-6 py-4 border-b border-gray-200 bg-[#129990]">
+                            <h3 className="text-lg font-bold text-white" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                                {editingLeaveType ? 'Edit Leave Type' : 'Add New Leave Type'}
+                            </h3>
+                            <p className="text-sm text-teal-100 mt-1">
+                                {editingLeaveType ? 'Update leave type details' : 'Create a new leave type for your organization'}
+                            </p>
+                        </div>
+
+                        <div className="p-6 space-y-4 max-h-96 overflow-y-auto">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Leave Type Name</label>
+                                    <input
+                                        type="text"
+                                        value={leaveTypeForm.name}
+                                        onChange={(e) => handleLeaveTypeFormChange('name', e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
+                                        placeholder="e.g., Annual Leave"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Code</label>
+                                    <input
+                                        type="text"
+                                        value={leaveTypeForm.code}
+                                        onChange={(e) => handleLeaveTypeFormChange('code', e.target.value.toUpperCase())}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
+                                        placeholder="e.g., AL"
+                                        maxLength={5}
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                                <textarea
+                                    value={leaveTypeForm.description}
+                                    onChange={(e) => handleLeaveTypeFormChange('description', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
+                                    rows={3}
+                                    placeholder="Brief description of this leave type"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Max Days Per Year</label>
+                                    <input
+                                        type="number"
+                                        value={leaveTypeForm.maxDaysPerYear}
+                                        onChange={(e) => handleLeaveTypeFormChange('maxDaysPerYear', parseInt(e.target.value) || 0)}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
+                                        min="0"
+                                        placeholder="25"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Color Theme</label>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="color"
+                                            value={leaveTypeForm.color}
+                                            onChange={(e) => handleLeaveTypeFormChange('color', e.target.value)}
+                                            className="w-12 h-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] cursor-pointer"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={leaveTypeForm.color}
+                                            onChange={(e) => handleLeaveTypeFormChange('color', e.target.value)}
+                                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
+                                            placeholder="#3B82F6"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-3 pt-4 border-t border-gray-200">
+                                <h4 className="text-sm font-semibold text-gray-700">Policy Settings</h4>
+                                
+                                <ToggleSwitch
+                                    checked={leaveTypeForm.requiresApproval}
+                                    onChange={(checked) => handleLeaveTypeFormChange('requiresApproval', checked)}
+                                    label="Requires Approval"
+                                    description="Employees need manager approval for this leave type"
+                                />
+
+                                <ToggleSwitch
+                                    checked={leaveTypeForm.isCarryForward}
+                                    onChange={(checked) => handleLeaveTypeFormChange('isCarryForward', checked)}
+                                    label="Allow Carry Forward"
+                                    description="Unused days can be carried to next year"
+                                />
+
+                                <ToggleSwitch
+                                    checked={leaveTypeForm.isActive}
+                                    onChange={(checked) => handleLeaveTypeFormChange('isActive', checked)}
+                                    label="Active Status"
+                                    description="This leave type is available for employees to use"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3 bg-gray-50">
+                            <button
+                                onClick={() => {
+                                    setShowLeaveTypeModal(false);
+                                    setEditingLeaveType(null);
+                                }}
+                                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 text-sm font-semibold transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSaveLeaveType}
+                                disabled={!leaveTypeForm.name || !leaveTypeForm.code}
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-[#129990] text-white text-sm font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                            >
+                                <Save className="w-4 h-4" />
+                                {editingLeaveType ? 'Update Leave Type' : 'Create Leave Type'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
 
-export default Settings;
+export default LeaveManagementSettings;

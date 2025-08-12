@@ -128,7 +128,6 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
     const colors: Record<string, string> = {
       'casual': '#129990',
       'medical': '#ef4444',
-      'annual': '#3b82f6',
       'sick': '#ef4444',
       'vacation': '#3b82f6',
       'emergency': '#f59e0b',
@@ -356,8 +355,7 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
 
     const balanceMap: Record<string, any> = {
       casual: leaveBalance.data.casualLeaves,
-      medical: leaveBalance.data.medicalLeaves,
-      annual: leaveBalance.data.annualLeaves
+      medical: leaveBalance.data.medicalLeaves
     };
 
     return balanceMap[type];
