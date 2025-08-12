@@ -25,6 +25,7 @@ import Leave from '../features/leave/components/Leave';
 import LeaveView from '../features/leave/components/LeaveView';
 import LeaveManagement from '../features/leave/components/LeaveManagementView';
 import EmployeeAssign from '../features/employee/components/EmployeeAssign';
+import Settings from '../features/settings';
 
 
 
@@ -88,7 +89,7 @@ const AppRoutes = () => {
 
 
             <Route path="/profile" element={<Profile />} />
-            <Route path="/settings" element={<div>Settings Page</div>} />
+            <Route path="/settings" element={<Settings/>} />
             <Route path={`${base}screenshort`} element={<ScreenShort />} />
             <Route path="/attendance" element={<Attendance />} />
 
