@@ -8,7 +8,7 @@ import {
   Trash2,
   Calendar
 } from 'lucide-react';
-import { useNavigate,useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   useGetMyLeavesQuery,
   useDeleteLeaveMutation
@@ -282,7 +282,7 @@ const Leave: React.FC = () => {
                     </p>
                     <button
                       onClick={handleApplyLeave}
-                      className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                      className="mt-4 bg-[#129990] text-white px-4 py-2 rounded-lg hover:bg-[#1dbfb4] transition-colors"
                     >
                       Apply for your first leave
                     </button>
@@ -409,8 +409,8 @@ const Leave: React.FC = () => {
                       key={pageNum}
                       onClick={() => setCurrentPage(pageNum)}
                       className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === pageNum
-                          ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                        ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
                         }`}
                     >
                       {pageNum}
@@ -452,6 +452,7 @@ const Leave: React.FC = () => {
 
       {/* Leave Apply Modal */}
       <LeaveApplyModal
+        leavesData={leavesData}
         isOpen={showApplyModal}
         onClose={handleCloseApplyModal}
         editLeaveId={editLeaveId}

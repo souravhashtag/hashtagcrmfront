@@ -3,7 +3,7 @@ import { api } from './api';
 export interface LeaveRequest {
   _id?: string;
   employeeId: string;
-  type: 'casual' | 'medical' | 'annual' | 'maternity' | 'paternity' | 'unpaid' | 'other';
+  type: 'casual' | 'medical' | 'annual' | 'maternity' | 'paternity' | 'paid' | 'normal' | 'other';
   startDate: string;
   endDate: string;
   totalDays: number;
@@ -61,6 +61,12 @@ export interface LeaveDetailResponse {
   data: LeaveRequest;
   message?: string;
 }
+type LeaveItem = { total: number; used: number; remaining: number };
+
+type LeaveBalanceResponse = {
+  success: boolean;
+  data: Record<string, LeaveItem>; // 👈 any leave type key, all same shape
+};
 
 export const leaveServices = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -104,6 +110,35 @@ export const leaveServices = api.injectEndpoints({
       providesTags: ['Leave'],
     }),
 
+    // get leave type
+    getLeaveTypes: builder.query({
+      query: (id) => `/leave/type`,
+      providesTags: ['Leave'],
+    }),
+    // Create leave type
+    createLeaveType: builder.mutation({
+      query: (formData) => ({
+        url: '/leave/type',
+        method: 'POST',
+        body: formData,
+      }),
+      invalidatesTags: ['Leave'],
+    }),
+    // get active leave type
+    getActiveLeaveTypes: builder.query({
+      query: () => `/leave/type`,
+      providesTags: ['Leave'],
+    }),
+
+
+
+
+
+
+
+
+
+
     // Get leave by ID
     getLeaveById: builder.query<LeaveDetailResponse, string>({
       query: (id) => `/leave/${id}`,
@@ -115,7 +150,7 @@ export const leaveServices = api.injectEndpoints({
       query: (formData) => ({
         url: '/leave',
         method: 'POST',
-        body: formData, // FormData handles multipart automatically
+        body: formData,
       }),
       invalidatesTags: ['Leave'],
     }),
@@ -173,17 +208,11 @@ export const leaveServices = api.injectEndpoints({
     }),
 
     // Get employee leave balance
-    getLeaveBalance: builder.query<{
-      success: boolean;
-      data: {
-        casualLeaves: { total: number; used: number; remaining: number };
-        medicalLeaves: { total: number; used: number; remaining: number };
-        annualLeaves: { total: number; used: number; remaining: number };
-      }
-    }, string | void>({
-      query: (employeeId) => employeeId ? `/leave/balance/${employeeId}` : '/leave/balance',
+    getLeaveBalance: builder.query<LeaveBalanceResponse, string | void>({
+      query: (employeeId) =>
+        employeeId ? `/leave/balance/${employeeId}` : '/leave/balance',
       providesTags: ['Leave'],
-    }),
+    })
   }),
 });
 
@@ -198,4 +227,7 @@ export const {
   useDeleteLeaveMutation,
   useGetLeaveStatsQuery,
   useGetLeaveBalanceQuery,
+  useGetLeaveTypesQuery,
+  useCreateLeaveTypeMutation,
+  useGetActiveLeaveTypesQuery
 } = leaveServices;

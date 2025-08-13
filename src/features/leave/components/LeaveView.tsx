@@ -494,23 +494,34 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
                                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Attachments</h2>
                                 <div className="space-y-3">
                                     {leave.attachments.map((attachment: any, index: number) => (
-                                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                            <div className="flex items-center gap-3">
+                                        <div
+                                            key={index}
+                                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                                        >
+                                            <div className="flex items-center gap-3 min-w-0">
                                                 <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                                                     <FileText className="w-5 h-5 text-blue-600" />
                                                 </div>
-                                                <div>
-                                                    <p className="font-medium text-gray-900">{attachment.name || 'Unnamed file'}</p>
+                                                <div className="min-w-0">
+                                                    <p className="font-medium text-gray-900 truncate max-w-x">
+                                                        {attachment.name || "Unnamed file"}
+                                                    </p>
                                                     <p className="text-sm text-gray-500">
-                                                        Uploaded on {attachment.uploadedAt ? new Date(attachment.uploadedAt).toLocaleDateString() : 'Unknown date'}
+                                                        Uploaded on{" "}
+                                                        {attachment.uploadedAt
+                                                            ? new Date(attachment.uploadedAt).toLocaleDateString()
+                                                            : "Unknown date"}
                                                     </p>
                                                 </div>
                                             </div>
                                             <button
                                                 onClick={() => {
                                                     if (attachment.url) {
-                                                        const fileUrl = `http://localhost:5000/${attachment.url.replace(/\\/g, '/')}`;
-                                                        window.open(fileUrl, '_blank');
+                                                        const fileUrl = `http://localhost:5000/${attachment.url.replace(
+                                                            /\\/g,
+                                                            "/"
+                                                        )}`;
+                                                        window.open(fileUrl, "_blank");
                                                     }
                                                 }}
                                                 className="text-blue-600 hover:text-blue-800 p-2 rounded-lg hover:bg-blue-50"
@@ -520,6 +531,7 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
                                             </button>
                                         </div>
                                     ))}
+
                                 </div>
                             </div>
                         )}
@@ -558,14 +570,14 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-500">Email</label>
-                                        <p className="text-gray-900">{getEmployeeData()?.userId?.email || 'N/A'}</p>
+                                        <p className="text-gray-900 truncate">{getEmployeeData()?.userId?.email || 'N/A'}</p>
                                     </div>
-                                    <div>
+                                    {/* <div>
                                         <label className="block text-sm font-medium text-gray-500">Role</label>
                                         <p className="text-gray-900 capitalize">
-                                            {getEmployeeData()?.userId?.role?.name || 'N/A'}
+                                            {user?.position ?? 'N/A'}
                                         </p>
-                                    </div>
+                                    </div> */}
                                 </div>
                             </div>
                         )}

@@ -1247,7 +1247,7 @@ const EmployeeCreate: React.FC = () => {
                 Next
               </button>
             )}
-            
+            {activeTab === 'documents' ? (
             <button
               type="submit"
               disabled={isLoading || (isEditMode && !hasChanges)}
@@ -1258,16 +1258,20 @@ const EmployeeCreate: React.FC = () => {
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                   {isEditMode ? 'Updating...' : 'Creating...'}
                 </>
-              ) : (
-                <>
-                  <Save size={16} />
-                  {isEditMode 
-                    ? (hasChanges ? 'Update Employee' : 'No Changes')
-                    : 'Create Employee'
-                  }
-                </>
+              ) : (                  
+                  <>
+                    <Save size={16} />{" "}
+                    {isEditMode
+                      ? hasChanges
+                        ? "Update Employee"
+                        : "No Changes"
+                      : "Create Employee"}
+                  </>                  
               )}
             </button>
+            ) : (
+                ""
+            )}
           </div>
         </div>
       </form>

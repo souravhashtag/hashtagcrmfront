@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Upload, X, Clock } from 'lucide-react';
+import { Calendar, Upload, X, Clock, AlertTriangle, Info } from 'lucide-react';
 import {
   useCreateLeaveMutation,
   useGetLeaveByIdQuery,
   useUpdateLeaveMutation,
-  useGetLeaveBalanceQuery
+  useGetLeaveTypesQuery,
+  useGetLeaveBalanceQuery,
+  useGetMyLeavesQuery
 } from '../../../services/leaveServices';
 
 interface LeaveFormData {
@@ -21,11 +23,22 @@ interface LeaveApplyModalProps {
   onClose: () => void;
   editLeaveId?: string;
   onSuccess?: () => void;
+  leavesData?: any;
+}
+
+interface LeaveImpact {
+  totalDays: number;
+  fromAllocation: number;
+  fromNormalLeave: number;
+  hasDeduction: boolean;
+  message: string;
+  warning?: string;
 }
 
 const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
   isOpen,
   onClose,
+  leavesData,
   editLeaveId,
   onSuccess
 }) => {
@@ -43,20 +56,148 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
+  const [leaveImpact, setLeaveImpact] = useState<LeaveImpact | null>(null);
 
   // Queries and mutations
   const { data: leaveData, isLoading: isLoadingLeave } = useGetLeaveByIdQuery(editLeaveId!, {
     skip: !isEdit || !editLeaveId
   });
   const { data: leaveBalance } = useGetLeaveBalanceQuery();
+  const { data: leaveTypesData, isLoading: isLoadingLeaveTypes } = useGetLeaveTypesQuery({
+    page: 1,
+    limit: 50, // Get enough leave types for selection
+    search: ''
+  });
   const [createLeave] = useCreateLeaveMutation();
   const [updateLeave] = useUpdateLeaveMutation();
+
+
+  const getMinDate = () => {
+    const today = new Date();
+
+    // For medical leave, allow up to 2 weeks in the past
+    if (formData.type === 'medical') {
+      const twoWeeksAgo = new Date();
+      twoWeeksAgo.setDate(today.getDate() - 14);
+      return twoWeeksAgo.toISOString().split('T')[0];
+    }
+
+    // For other leave types, only allow today onwards
+    return today.toISOString().split('T')[0];
+  };
+
+  // Helper function to get leave types with color mapping
+  const getAvailableLeaveTypes = () => {
+    if (isLoadingLeaveTypes || !leaveTypesData?.data) {
+      // Fallback to default types while loading
+      return [
+        {
+          _id: 'casual',
+          name: 'casual',
+          displayName: 'Casual Leave',
+          color: '#129990',
+          ispaidLeave: true,
+          leaveCount: 9
+        },
+        {
+          _id: 'medical',
+          name: 'medical',
+          displayName: 'Medical Leave',
+          color: '#ef4444',
+          ispaidLeave: true,
+          leaveCount: 9
+        }
+      ];
+    }
+
+    // Map API data to component format
+    return leaveTypesData.data.map((type: {
+      _id: string;
+      name: string;
+      ispaidLeave: boolean;
+      leaveCount: number;
+    }) => ({
+      _id: type._id,
+      name: type.name.toLowerCase(),
+      displayName: type.name,
+      color: getLeaveTypeColor(type.name),
+      ispaidLeave: type.ispaidLeave,
+      leaveCount: type.leaveCount
+    }));
+  };
+
+  // Helper function to assign colors to leave types
+  const getLeaveTypeColor = (name: string) => {
+    const colors: Record<string, string> = {
+      'casual': '#129990',
+      'medical': '#ef4444',
+      'sick': '#ef4444',
+      'vacation': '#3b82f6',
+      'emergency': '#f59e0b',
+      'maternity': '#ec4899',
+      'paternity': '#8b5cf6',
+      'bereavement': '#6b7280',
+      'study': '#10b981'
+    };
+
+    const normalizedName = name.toLowerCase();
+    return colors[normalizedName] || '#6b7280'; // Default gray color
+  };
+
+  // Calculate leave impact when dates or type change
+  useEffect(() => {
+    if (formData.type && formData.startDate && (formData.endDate || formData.isHalfDay)) {
+      calculateLeaveImpact();
+    } else {
+      setLeaveImpact(null);
+    }
+  }, [formData.type, formData.startDate, formData.endDate, formData.isHalfDay, leaveBalance]);
+
+  const calculateLeaveImpact = () => {
+    const typeBalance = getLeaveBalance(formData.type);
+    if (!typeBalance) return;
+
+    const requestedDays = calculateDays();
+    const available = typeBalance.remaining;
+
+    if (requestedDays <= available) {
+      setLeaveImpact({
+        totalDays: requestedDays,
+        fromAllocation: requestedDays,
+        fromNormalLeave: 0,
+        hasDeduction: false,
+        message: `${requestedDays} days will be deducted from your ${formData.type} allocation`,
+        warning: undefined
+      });
+    } else {
+      const normalLeaveRequired = requestedDays - available;
+      setLeaveImpact({
+        totalDays: requestedDays,
+        fromAllocation: available,
+        fromNormalLeave: normalLeaveRequired,
+        hasDeduction: true,
+        message: `${available} days from ${formData.type} allocation + ${normalLeaveRequired} normal leave days`,
+        warning: 'Normal leave days may result in salary deduction or unpaid leave'
+      });
+    }
+  };
 
   // Reset form when modal opens/closes
   useEffect(() => {
     if (isOpen && !isEdit) {
+      const availableTypes = getAvailableLeaveTypes();
+
+      // Filter types with remaining > 0
+      const firstAvailable = availableTypes.find((t: any) => {
+        const bal = getLeaveBalance(t.name);
+        return Number(bal?.remaining ?? 0) > 0;
+      });
+
+      // Fallback: if none available, set to 'normal' or your unpaid leave type
+      const defaultType = firstAvailable ? firstAvailable.name : 'normal';
+
       setFormData({
-        type: 'casual',
+        type: defaultType,
         startDate: '',
         endDate: '',
         reason: '',
@@ -65,8 +206,10 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
       });
       setErrors({});
       setCurrentStep(1);
+      setLeaveImpact(null);
     }
-  }, [isOpen, isEdit]);
+  }, [isOpen, isEdit, leaveTypesData, leaveBalance]);
+
 
   // Populate form for edit mode
   useEffect(() => {
@@ -143,8 +286,11 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
         today.setHours(0, 0, 0, 0);
 
         if (start < today) {
-          newErrors.startDate = 'Start date cannot be in the past';
+          if (formData.type !== 'medical') {
+            newErrors.startDate = 'Start date cannot be in the past';
+          }
         }
+
 
         // Only validate end date if it's provided (for non-half-day leaves)
         if (!formData.isHalfDay && formData.endDate) {
@@ -215,33 +361,84 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
     }
   };
 
-  // Safe getter for leave balance with fallbacks
-  const getLeaveBalanceSafe = (type: 'casual' | 'medical') => {
-    const typeMap = {
-      casual: 'casualLeaves',
-      medical: 'medicalLeaves'
-    };
-
-    const balanceData = leaveBalance?.data?.[typeMap[type] as keyof typeof leaveBalance.data];
-
-    return {
-      total: balanceData?.total ?? 0,
-      used: balanceData?.used ?? 0,
-      remaining: balanceData?.remaining ?? 0
-    };
-  };
 
   const getLeaveBalance = (type: string) => {
     if (!leaveBalance?.data) return null;
 
     const balanceMap: Record<string, any> = {
       casual: leaveBalance.data.casualLeaves,
-      medical: leaveBalance.data.medicalLeaves,
-      annual: leaveBalance.data.annualLeaves
+      medical: leaveBalance.data.medicalLeaves
     };
 
     return balanceMap[type];
   };
+
+  // Add this helper function after your existing helper functions
+  const formatLocalYMD = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+
+  const getDisabledDates = () => {
+    if (!leavesData?.data) return [];
+
+    const disabledDates: string[] = [];
+
+    leavesData.data.forEach((leave: any) => {
+      if (leave.status === 'approved') {
+        // Parse and normalize to local midnight
+        const start = new Date(leave.startDate);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(leave.endDate);
+        end.setHours(0, 0, 0, 0);
+
+        // Loop inclusive of end date
+        const current = new Date(start);
+        while (current.getTime() <= end.getTime()) {
+          const key = formatLocalYMD(current); // local YYYY-MM-DD
+          if (!disabledDates.includes(key)) disabledDates.push(key);
+          current.setDate(current.getDate() + 1);
+        }
+      }
+    });
+
+    return disabledDates;
+  };
+
+  const disabledDates = getDisabledDates();
+
+
+  // Reuse your formatLocalYMD helper
+  const getMaxEndDate = () => {
+    // No cap if no start date yet
+    if (!formData.startDate) return '';
+
+    // For half-day, end must equal start
+    if (formData.isHalfDay) return formData.startDate;
+
+    // "normal" leave (unpaid) usually has no cap
+    if (formData.type === 'normal') return '';
+
+    const bal = getLeaveBalance(formData.type);
+    // If we don't have balance yet, don't cap
+    if (!bal) return '';
+
+    const remaining = Number(bal.remaining) || 0;
+
+    // If no remaining, force end to be start (cannot extend)
+    if (remaining <= 0) return formData.startDate;
+
+    const start = new Date(formData.startDate);
+    const maxEnd = new Date(start);
+    // remaining N days means maxEnd = start + (N-1) days
+    maxEnd.setDate(start.getDate() + remaining - 1);
+    return formatLocalYMD(maxEnd);
+  };
+
+
 
   if (!isOpen) return null;
 
@@ -300,90 +497,6 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
 
         {/* Content */}
         <div className="p-6 max-h-[70vh] overflow-y-auto">
-          {/* Leave Balance Card */}
-          {leaveBalance?.data && currentStep === 1 && (
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <h3 className="text-sm font-semibold text-gray-900 mb-4">Your Leave Balance</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Casual Leave Card */}
-                <div
-                  className="p-4 rounded-lg border shadow-sm"
-                  style={{
-                    backgroundColor: '#e0f7f6', // light version of #129990
-                    borderColor: '#a0dad4' // subtle border
-                  }}
-                >
-                  <p className="text-sm font-semibold mb-2" style={{ color: '#129990' }}>
-                    Casual Leave
-                  </p>
-                  <div className="flex justify-between items-center mb-2">
-                    <div>
-                      <p className="text-xs text-gray-600">Total</p>
-                      <p className="text-base font-bold" style={{ color: '#0a5f5a' }}>
-                        {getLeaveBalanceSafe('casual').total}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-600">Used</p>
-                      <p className="text-base font-bold" style={{ color: '#129990' }}>
-                        {getLeaveBalanceSafe('casual').used}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-600">Remaining</p>
-                      <p className="text-base font-bold text-green-700">
-                        {getLeaveBalanceSafe('casual').remaining}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="w-full h-2 rounded" style={{ backgroundColor: '#c9efec' }}>
-                    <div
-                      className="h-full rounded"
-                      style={{
-                        backgroundColor: '#129990',
-                        width: `${(getLeaveBalanceSafe('casual').used / getLeaveBalanceSafe('casual').total) * 100}%`
-                      }}
-                    ></div>
-                  </div>
-                </div>
-
-
-                {/* Medical Leave Card */}
-                <div className="bg-red-50 p-4 rounded-lg border border-red-200 shadow-sm">
-                  <p className="text-sm font-semibold text-red-700 mb-2">Medical Leave</p>
-                  <div className="flex justify-between items-center mb-2">
-                    <div>
-                      <p className="text-xs text-gray-600">Total</p>
-                      <p className="text-base font-bold text-red-900">{getLeaveBalanceSafe('medical').total}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-600">Used</p>
-                      <p className="text-base font-bold text-red-600">
-                        {getLeaveBalanceSafe('medical').used}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-600">Remaining</p>
-                      <p className="text-base font-bold text-green-700">
-                        {getLeaveBalanceSafe('medical').remaining}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="w-full h-2 bg-red-100 rounded">
-                    <div
-                      className="h-full bg-red-500 rounded"
-                      style={{
-                        width: `${(getLeaveBalanceSafe('medical').used / getLeaveBalanceSafe('medical').total) * 100
-                          }%`,
-                      }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-
           {/* Step 1: Leave Details */}
           {currentStep === 1 && (
             <div className="space-y-6">
@@ -392,43 +505,62 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
                 <label className="block text-sm font-semibold text-gray-700 mb-3">
                   Leave Type *
                 </label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {[
-                    { value: 'casual', label: 'Casual', color: '#129990' },
-                    { value: 'medical', label: 'Medical', color: '#ef4444' }
-                  ].map((type) => {
-                    const balance = getLeaveBalance(type.value);
-                    const isSelected = formData.type === type.value;
+                {isLoadingLeaveTypes ? (
+                  <div className="flex items-center justify-center p-8">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#129990]"></div>
+                    <span className="ml-2 text-gray-500">Loading leave types...</span>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {getAvailableLeaveTypes().map((type: any) => {
+                      const balance = getLeaveBalance(type.name);
+                      const remaining = Number(balance?.remaining ?? 0);
+                      const isSelected = formData.type === type.name;
+                      const isDisabled = remaining === 0;
 
-                    return (
-                      <label
-                        key={type.value}
-                        className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors border-2`}
-                        style={{
-                          borderColor: isSelected ? type.color : '#e5e7eb', // gray-200
-                          backgroundColor: isSelected ? `${type.color}20` : '#ffffff' // Light background with 12% opacity
-                        }}
-                      >
-                        <input
-                          type="radio"
-                          name="leaveType"
-                          value={type.value}
-                          checked={isSelected}
-                          onChange={(e) => handleInputChange('type', e.target.value)}
-                          className="sr-only"
-                        />
-                        <div className="text-center w-full">
-                          <p className="font-medium text-gray-900">{type.label}</p>
-                          {balance?.remaining !== undefined && (
-                            <p className="text-xs text-gray-500 mt-1">
-                              {balance.remaining} left
-                            </p>
-                          )}
-                        </div>
-                      </label>
-                    );
-                  })}
-                </div>
+                      return (
+                        <label
+                          key={type.name}
+                          className={`flex items-center p-3 rounded-lg transition-colors border-2 
+                            ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                          `}
+                          style={{
+                            borderColor: isSelected ? type.color : '#e5e7eb',
+                            backgroundColor: isSelected ? `${type.color}20` : '#ffffff'
+                          }}
+                        >
+                          <input
+                            type="radio"
+                            name="leaveType"
+                            value={type.name}
+                            checked={isSelected}
+                            onChange={(e) => handleInputChange('type', e.target.value)}
+                            disabled={isDisabled}
+                            className="sr-only"
+                          />
+                          <div className="text-center w-full">
+                            <p className="font-medium text-gray-900">{type.displayName}</p>
+                            {balance && (
+                              <p className="text-xs text-gray-500 mt-1">
+                                {balance.remaining} left
+                              </p>
+                            )}
+                            <div className="flex items-center justify-center gap-2 mt-1">
+                              <p className="text-xs text-gray-400">
+                                {type.ispaidLeave ? 'Paid' : 'Unpaid'}
+                              </p>
+                              <span className="text-xs text-gray-300">•</span>
+                              <p className="text-xs text-gray-400">
+                                {type.leaveCount} days/year
+                              </p>
+                            </div>
+                          </div>
+                        </label>
+                      );
+                    })}
+
+                  </div>
+                )}
                 {errors.type && (
                   <p className="mt-2 text-sm text-red-600">{errors.type}</p>
                 )}
@@ -471,17 +603,30 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
                       type="date"
                       value={formData.startDate}
                       onChange={(e) => {
-                        handleInputChange('startDate', e.target.value);
-                        // Auto-set end date if half day
+                        const selectedDate = e.target.value;
+
+                        // Block selection if date is in the disabled list
+                        if (disabledDates.includes(selectedDate)) {
+                          alert("This date is unavailable for leave.");
+                          return; // Do not update state
+                        }
+
+                        handleInputChange("startDate", selectedDate);
+
                         if (formData.isHalfDay) {
-                          handleInputChange('endDate', e.target.value);
+                          handleInputChange("endDate", selectedDate);
                         }
                       }}
-                      min={new Date().toISOString().split('T')[0]}
+                      min={getMinDate()}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
                   </div>
+                  {formData.type === 'medical' && (
+                    <p className="mt-1 text-xs text-gray-500">
+                      Medical leave can be selected up to 2 weeks in the past
+                    </p>
+                  )}
                   {errors.startDate && (
                     <p className="mt-2 text-sm text-red-600">{errors.startDate}</p>
                   )}
@@ -495,12 +640,58 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
                     <input
                       type="date"
                       value={formData.endDate}
-                      onChange={(e) => handleInputChange('endDate', e.target.value)}
-                      min={formData.startDate || new Date().toISOString().split('T')[0]}
+                      onChange={(e) => {
+                        const selectedDate = e.target.value;
+
+                        // Block if disabled
+                        if (disabledDates.includes(selectedDate)) {
+                          alert("This date is unavailable for leave.");
+                          return;
+                        }
+
+                        // Half-day: must equal start date
+                        if (formData.isHalfDay) {
+                          if (selectedDate !== formData.startDate) {
+                            alert("Half day leave must start and end on the same date.");
+                            return;
+                          }
+                          handleInputChange("endDate", selectedDate);
+                          return;
+                        }
+
+                        // Enforce remaining-day cap for paid/allocated types
+                        if (formData.type !== 'normal' && formData.startDate) {
+                          const bal = getLeaveBalance(formData.type);
+                          const remaining = Number(bal?.remaining ?? 0);
+
+                          if (remaining > 0) {
+                            const start = new Date(formData.startDate);
+                            const end = new Date(selectedDate);
+                            // inclusive day count
+                            const diffDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+                            if (diffDays > remaining) {
+                              alert(`You can select up to ${remaining} day(s) from the start date based on your remaining balance.`);
+                              return;
+                            }
+                          } else {
+                            // no remaining: can't extend beyond start
+                            if (selectedDate !== formData.startDate) {
+                              alert("You have 0 days remaining for this leave type. Please select only the start date or choose Normal Leave.");
+                              return;
+                            }
+                          }
+                        }
+
+                        handleInputChange("endDate", selectedDate);
+                      }}
+                      min={formData.startDate || getMinDate()}
+                      // NEW: cap the range using max
+                      max={getMaxEndDate()}
                       disabled={formData.isHalfDay}
-                      className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formData.isHalfDay ? 'bg-gray-100 cursor-not-allowed' : ''
-                        }`}
+                      className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formData.isHalfDay ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                     />
+
                     <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
                   </div>
                   {formData.isHalfDay && (
