@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Calendar, Download, Edit } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Download, Edit, Check, X, Clock } from 'lucide-react';
 
 interface Schedule {
   monday: string;
@@ -17,6 +17,194 @@ interface Employee {
   department: string;
   schedule: Schedule;
 }
+
+interface TimePickerProps {
+  value: string;
+  onChange: (value: string) => void;
+  onClose: () => void;
+  isMultipleEdit?: boolean;
+  selectedCount?: number;
+  dayName?: string;
+}
+
+const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, onClose, isMultipleEdit = false, selectedCount = 0, dayName = "" }) => {
+  const [isOff, setIsOff] = useState(value === 'OFF');
+  const [startTime, setStartTime] = useState('09:00');
+  const [endTime, setEndTime] = useState('17:00');
+  const [startPeriod, setStartPeriod] = useState('AM');
+  const [endPeriod, setEndPeriod] = useState('PM');
+
+  useEffect(() => {
+    if (value && value !== 'OFF') {
+      // Parse existing time format like "10am-7pm" or "9am-6pm"
+      const timeMatch = value.match(/(\d{1,2})([ap]m)-(\d{1,2})([ap]m)/i);
+      if (timeMatch) {
+        const [, startHour, startPer, endHour, endPer] = timeMatch;
+        setStartTime(`${startHour.padStart(2, '0')}:00`);
+        setEndTime(`${endHour.padStart(2, '0')}:00`);
+        setStartPeriod(startPer.toUpperCase());
+        setEndPeriod(endPer.toUpperCase());
+        setIsOff(false);
+      }
+    }
+  }, [value]);
+
+  const formatTime = () => {
+    if (isOff) return 'OFF';
+    
+    const startHour = parseInt(startTime.split(':')[0]);
+    const endHour = parseInt(endTime.split(':')[0]);
+    
+    const formatHour = (hour: number, period: string) => {
+      if (period === 'AM' && hour === 12) return '12';
+      if (period === 'PM' && hour === 12) return '12';
+      if (period === 'PM' && hour < 12) return hour.toString();
+      return hour.toString();
+    };
+
+    return `${formatHour(startHour, startPeriod)}${startPeriod.toLowerCase()}-${formatHour(endHour, endPeriod)}${endPeriod.toLowerCase()}`;
+  };
+
+  const handleSave = () => {
+    onChange(formatTime());
+    onClose();
+  };
+
+  const generateHours = () => {
+    const hours = [];
+    for (let i = 1; i <= 12; i++) {
+      hours.push(`${i.toString().padStart(2, '0')}:00`);
+    }
+    return hours;
+  };
+
+  const hours = generateHours();
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-96 shadow-xl">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <Clock className="w-5 h-5" />
+            {isMultipleEdit ? `Set ${dayName} Schedule for ${selectedCount} Employees` : 'Set Schedule Time'}
+          </h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          {isMultipleEdit && (
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
+              <p className="text-sm text-blue-800">
+                You are editing the <strong>{dayName}</strong> schedule for <strong>{selectedCount}</strong> selected employees. 
+                This will overwrite their current schedule for this day.
+              </p>
+            </div>
+          )}
+
+          {/* OFF Toggle */}
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="off-day"
+              checked={isOff}
+              onChange={(e) => setIsOff(e.target.checked)}
+              className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+            />
+            <label htmlFor="off-day" className="text-sm font-medium text-gray-700">
+              Day Off
+            </label>
+          </div>
+
+          {!isOff && (
+            <>
+              {/* Start Time */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Start Time
+                </label>
+                <div className="flex gap-2">
+                  <select
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                  >
+                    {hours.map(hour => (
+                      <option key={hour} value={hour}>
+                        {hour}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    value={startPeriod}
+                    onChange={(e) => setStartPeriod(e.target.value)}
+                    className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                  >
+                    <option value="AM">AM</option>
+                    <option value="PM">PM</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* End Time */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  End Time
+                </label>
+                <div className="flex gap-2">
+                  <select
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                  >
+                    {hours.map(hour => (
+                      <option key={hour} value={hour}>
+                        {hour}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    value={endPeriod}
+                    onChange={(e) => setEndPeriod(e.target.value)}
+                    className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                  >
+                    <option value="AM">AM</option>
+                    <option value="PM">PM</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Preview */}
+              <div className="bg-gray-50 rounded-md p-3">
+                <span className="text-sm text-gray-600">Preview: </span>
+                <span className="font-medium">{formatTime()}</span>
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="flex gap-2 mt-6">
+          <button
+            onClick={handleSave}
+            className="flex-1 bg-teal-500 hover:bg-teal-600 text-white py-2 px-4 rounded-md transition-colors"
+          >
+            Save
+          </button>
+          <button
+            onClick={onClose}
+            className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-md transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Roster = () => {
   // Dropdown state
@@ -37,10 +225,23 @@ const Roster = () => {
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [currentPage, setCurrentPage] = useState<number>(1);
   
+  // Edit state
+  const [editingEmployeeId, setEditingEmployeeId] = useState<number | null>(null);
+  const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
+  
+  // Time picker state
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [timePickerDay, setTimePickerDay] = useState<keyof Schedule | null>(null);
+  const [timePickerValue, setTimePickerValue] = useState("");
+  
+  // Multiple edit state
+  const [showMultipleEditModal, setShowMultipleEditModal] = useState(false);
+  const [multipleEditDay, setMultipleEditDay] = useState<keyof Schedule | null>(null);
+  
   const datePickerRef = useRef<HTMLDivElement>(null);
 
   // Sample employee data with departments
-  const allEmployees: Employee[] = [
+  const [allEmployees, setAllEmployees] = useState<Employee[]>([
     {
       id: 1,
       name: 'Darlene Robertson',
@@ -125,7 +326,7 @@ const Roster = () => {
         sunday: 'OFF'
       }
     }
-  ];
+  ]);
 
   // Filter employees based on search term and selected department
   const filteredEmployees = allEmployees.filter(employee => {
@@ -140,6 +341,165 @@ const Roster = () => {
   ];
 
   const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  // Edit functions
+  const startEditing = (employee: Employee) => {
+    setEditingEmployeeId(employee.id);
+    setEditingSchedule({ ...employee.schedule });
+  };
+
+  const cancelEditing = () => {
+    setEditingEmployeeId(null);
+    setEditingSchedule(null);
+  };
+
+  const saveEditing = () => {
+    if (editingEmployeeId && editingSchedule) {
+      setAllEmployees(prev => 
+        prev.map(emp => 
+          emp.id === editingEmployeeId 
+            ? { ...emp, schedule: editingSchedule }
+            : emp
+        )
+      );
+      setEditingEmployeeId(null);
+      setEditingSchedule(null);
+    }
+  };
+
+  const updateScheduleField = (day: keyof Schedule, value: string) => {
+    if (editingSchedule) {
+      setEditingSchedule(prev => prev ? { ...prev, [day]: value } : null);
+    }
+  };
+
+  // Time picker functions
+  const openTimePicker = (day: keyof Schedule, currentValue: string) => {
+    setTimePickerDay(day);
+    setTimePickerValue(currentValue);
+    setShowTimePicker(true);
+  };
+
+  const closeTimePicker = () => {
+    setShowTimePicker(false);
+    setTimePickerDay(null);
+    setTimePickerValue("");
+  };
+
+  const handleTimePickerSave = (newValue: string) => {
+    if (timePickerDay) {
+      updateScheduleField(timePickerDay, newValue);
+    }
+    closeTimePicker();
+  };
+
+  // Multiple edit functions
+  const getDayName = (day: keyof Schedule): string => {
+    const dayNames = {
+      sunday: 'Sunday',
+      monday: 'Monday', 
+      tuesday: 'Tuesday',
+      wednesday: 'Wednesday',
+      thursday: 'Thursday',
+      friday: 'Friday',
+      saturday: 'Saturday'
+    };
+    return dayNames[day];
+  };
+
+  const openMultipleEditModal = (day: keyof Schedule) => {
+    if (selectedRows.size === 0) {
+      alert('Please select at least one employee to edit.');
+      return;
+    }
+    setMultipleEditDay(day);
+    setTimePickerValue(""); // Start with empty value for multiple edit
+    setShowMultipleEditModal(true);
+  };
+
+  const closeMultipleEditModal = () => {
+    setShowMultipleEditModal(false);
+    setMultipleEditDay(null);
+    setTimePickerValue("");
+  };
+
+  const handleMultipleEditSave = (newValue: string) => {
+    if (multipleEditDay && selectedRows.size > 0) {
+      setAllEmployees(prev => 
+        prev.map(emp => 
+          selectedRows.has(emp.id) 
+            ? { ...emp, schedule: { ...emp.schedule, [multipleEditDay]: newValue } }
+            : emp
+        )
+      );
+      // Clear selection after edit
+      setSelectedRows(new Set());
+    }
+    closeMultipleEditModal();
+  };
+
+  // Render Multiple Edit Day Selection Modal
+  const renderMultipleEditDayModal = () => {
+    const dayOptions: { key: keyof Schedule; label: string }[] = [
+      { key: 'sunday', label: 'Sunday' },
+      { key: 'monday', label: 'Monday' },
+      { key: 'tuesday', label: 'Tuesday' },
+      { key: 'wednesday', label: 'Wednesday' },
+      { key: 'thursday', label: 'Thursday' },
+      { key: 'friday', label: 'Friday' },
+      { key: 'saturday', label: 'Saturday' }
+    ];
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-6 w-96 shadow-xl">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <Edit className="w-5 h-5" />
+              Multiple Edit - Select Day
+            </h3>
+            <button
+              onClick={() => setShowMultipleEditModal(false)}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="mb-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
+              <p className="text-sm text-blue-800">
+                <strong>{selectedRows.size}</strong> employees selected for editing.
+                Choose which day you want to update:
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              {dayOptions.map((day) => (
+                <button
+                  key={day.key}
+                  onClick={() => openMultipleEditModal(day.key)}
+                  className="w-full text-left px-4 py-3 border border-gray-200 rounded-lg hover:border-teal-500 hover:bg-teal-50 transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">{day.label}</span>
+                    <ChevronRight className="w-4 h-4 text-gray-400" />
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button
+            onClick={() => setShowMultipleEditModal(false)}
+            className="w-full bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-md transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   // Function to get week dates based on selected Sunday
   const getWeekDates = (sundayDate: Date | null) => {
@@ -308,14 +668,36 @@ const Roster = () => {
   const calendarDays = generateCalendarDays();
   const pageNumbers: number[] = [1, 2, 3, 4];
 
+  // Render schedule cell (editable or display)
+  const renderScheduleCell = (employee: Employee, day: keyof Schedule) => {
+    const isEditing = editingEmployeeId === employee.id;
+    const value = isEditing && editingSchedule ? editingSchedule[day] : employee.schedule[day];
+    
+    if (isEditing) {
+      return (
+        <button
+          onClick={() => openTimePicker(day, value)}
+          className="w-full px-2 py-1 text-center text-sm border border-gray-300 rounded hover:border-teal-500 focus:outline-none focus:border-teal-500 transition-colors bg-white"
+        >
+          <div className="flex items-center justify-center gap-1">
+            <Clock className="w-3 h-3 text-gray-400" />
+            <span>{value}</span>
+          </div>
+        </button>
+      );
+    }
+    
+    return <span className="text-sm text-gray-700">{value}</span>;
+  };
+
   return (
     <div className="p-4 w-full">
-      <div className='w-full mx-auto bg-white shadow-lg rounded-lg p-6 mb-6'>
+      <div className='w-full mx-auto bg-white shadow-sm rounded-lg p-6 mb-6'>
         <div className='text-[20px] font-semibold'>Roster</div>
         <p className='text-[#A2A1A8] text-[14px]'>All Employee Roster List</p>
       </div>
-
-      <div className="flex flex-col lg:flex-row gap-4 mb-6 justify-end">
+  <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-4">
+      <div className="flex flex-col lg:flex-row gap-4 justify-end">
         {/* Department Filter Dropdown */}
         <div className="relative w-64 border border-[#14b8a6] rounded-lg">
           <div
@@ -486,7 +868,7 @@ const Roster = () => {
           Export
         </button>
       </div>
-
+</div>
       {/* Results Summary */}
       <div className="mb-4 text-sm text-gray-600">
         Showing {filteredEmployees.length} employee{filteredEmployees.length !== 1 ? 's' : ''} 
@@ -513,52 +895,52 @@ const Roster = () => {
                     onChange={toggleAllRows}
                   />
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-[#fff]g min-w-[180px]">
+                <th className="px-4 py-3 text-left text-sm font-medium min-w-[180px]">
                   Employee Name
                 </th>
-                <th className="px-4 py-3 text-center text-sm font-medium text-[#fff] min-w-[120px]">
+                <th className="px-4 py-3 text-center text-sm font-medium min-w-[120px]">
                   <div className="flex flex-col items-center">
                     <span>Sunday</span>
-                    <span className="text-xs font-normal text-[#fff]">{formatHeaderDate(sunday)}</span>
+                    <span className="text-xs font-normal">{formatHeaderDate(sunday)}</span>
                   </div>
                 </th>
-                <th className="px-4 py-3 text-center text-sm font-medium min-w-[120px] text-[#fff]">
+                <th className="px-4 py-3 text-center text-sm font-medium min-w-[120px]">
                   <div className="flex flex-col items-center">
                     <span>Monday</span>
-                    <span className="text-xs font-normal text-[#fff]">{formatHeaderDate(monday)}</span>
+                    <span className="text-xs font-normal">{formatHeaderDate(monday)}</span>
                   </div>
                 </th>
-                <th className="px-4 py-3 text-center text-sm font-medium text-[#fff] min-w-[120px]">
+                <th className="px-4 py-3 text-center text-sm font-medium min-w-[120px]">
                   <div className="flex flex-col items-center">
                     <span>Tuesday</span>
-                    <span className="text-xs font-normal text-[#fff]">{formatHeaderDate(tuesday)}</span>
+                    <span className="text-xs font-normal">{formatHeaderDate(tuesday)}</span>
                   </div>
                 </th>
-                <th className="px-4 py-3 text-center text-sm font-medium text-[#fff] min-w-[120px]">
+                <th className="px-4 py-3 text-center text-sm font-medium min-w-[120px]">
                   <div className="flex flex-col items-center">
                     <span>Wednesday</span>
-                    <span className="text-xs font-normal text-[#fff]">{formatHeaderDate(wednesday)}</span>
+                    <span className="text-xs font-normal">{formatHeaderDate(wednesday)}</span>
                   </div>
                 </th>
-                <th className="px-4 py-3 text-center text-sm font-medium text-[#fff] min-w-[120px]">
+                <th className="px-4 py-3 text-center text-sm font-medium min-w-[120px]">
                   <div className="flex flex-col items-center">
                     <span>Thursday</span>
-                    <span className="text-xs font-normal text-[#fff]">{formatHeaderDate(thursday)}</span>
+                    <span className="text-xs font-normal">{formatHeaderDate(thursday)}</span>
                   </div>
                 </th>
-                <th className="px-4 py-3 text-center text-sm font-medium text-[#fff] min-w-[120px]">
+                <th className="px-4 py-3 text-center text-sm font-medium min-w-[120px]">
                   <div className="flex flex-col items-center">
                     <span>Friday</span>
-                    <span className="text-xs font-normal text-[#fff]">{formatHeaderDate(friday)}</span>
+                    <span className="text-xs font-normal">{formatHeaderDate(friday)}</span>
                   </div>
                 </th>
-                <th className="px-4 py-3 text-center text-sm font-medium text-[#fff] min-w-[120px]">
+                <th className="px-4 py-3 text-center text-sm font-medium min-w-[120px]">
                   <div className="flex flex-col items-center">
                     <span>Saturday</span>
-                    <span className="text-xs font-normal text-[#fff]">{formatHeaderDate(saturday)}</span>
+                    <span className="text-xs font-normal">{formatHeaderDate(saturday)}</span>
                   </div>
                 </th>
-                <th className="px-4 py-3 text-center text-sm font-medium w-20 text-[#fff]">
+                <th className="px-4 py-3 text-center text-sm font-medium w-24">
                   Action
                 </th>
               </tr>
@@ -572,13 +954,14 @@ const Roster = () => {
                 </tr>
               ) : (
                 filteredEmployees.map((employee: Employee) => (
-                  <tr key={employee.id} className="hover:bg-gray-50">
+                  <tr key={employee.id} className={`hover:bg-gray-50 ${editingEmployeeId === employee.id ? 'bg-blue-50' : ''}`}>
                     <td className="px-4 py-3">
                       <input
                         type="checkbox"
                         className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
                         checked={selectedRows.has(employee.id)}
                         onChange={() => toggleRowSelection(employee.id)}
+                        disabled={editingEmployeeId === employee.id}
                       />
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900 font-medium">
@@ -587,31 +970,55 @@ const Roster = () => {
                         <div className="text-xs text-gray-500">{employee.department}</div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-center text-sm text-gray-700">
-                      {employee.schedule.sunday}
-                    </td>
-                    <td className="px-4 py-3 text-center text-sm text-gray-700">
-                      {employee.schedule.monday}
-                    </td>
-                    <td className="px-4 py-3 text-center text-sm text-gray-700">
-                      {employee.schedule.tuesday}
-                    </td>
-                    <td className="px-4 py-3 text-center text-sm text-gray-700">
-                      {employee.schedule.wednesday}
-                    </td>
-                    <td className="px-4 py-3 text-center text-sm text-gray-700">
-                      {employee.schedule.thursday}
-                    </td>
-                    <td className="px-4 py-3 text-center text-sm text-gray-700">
-                      {employee.schedule.friday}
-                    </td>
-                    <td className="px-4 py-3 text-center text-sm text-gray-700">
-                      {employee.schedule.saturday}
+                    <td className="px-4 py-3 text-center">
+                      {renderScheduleCell(employee, 'sunday')}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <button className="text-gray-400 hover:text-gray-600">
-                        <Edit className="w-4 h-4" />
-                      </button>
+                      {renderScheduleCell(employee, 'monday')}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {renderScheduleCell(employee, 'tuesday')}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {renderScheduleCell(employee, 'wednesday')}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {renderScheduleCell(employee, 'thursday')}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {renderScheduleCell(employee, 'friday')}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {renderScheduleCell(employee, 'saturday')}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {editingEmployeeId === employee.id ? (
+                        <div className="flex items-center justify-center gap-1">
+                          <button 
+                            onClick={saveEditing}
+                            className="text-green-600 hover:text-green-700 p-1"
+                            title="Save changes"
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={cancelEditing}
+                            className="text-red-600 hover:text-red-700 p-1"
+                            title="Cancel editing"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <button 
+                          onClick={() => startEditing(employee)}
+                          className="text-gray-400 hover:text-gray-600 p-1"
+                          title="Edit schedule"
+                          disabled={editingEmployeeId !== null}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -622,8 +1029,16 @@ const Roster = () => {
         
         <div className="px-4 py-3 bg-white border-t border-gray-200 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <button className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white text-sm font-medium rounded-md transition-colors">
-              Multiple Edit
+            <button 
+              onClick={() => setShowMultipleEditModal(true)}
+              disabled={selectedRows.size === 0}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                selectedRows.size === 0 
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                  : 'bg-teal-500 hover:bg-teal-600 text-white'
+              }`}
+            >
+              Multiple Edit {selectedRows.size > 0 && `(${selectedRows.size})`}
             </button>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <span>Showing</span>
@@ -672,6 +1087,30 @@ const Roster = () => {
           </div>
         </div>
       </div>
+
+      {/* Time Picker Modal */}
+      {showTimePicker && (
+        <TimePicker
+          value={timePickerValue}
+          onChange={handleTimePickerSave}
+          onClose={closeTimePicker}
+        />
+      )}
+
+      {/* Multiple Edit Time Picker Modal */}
+      {showMultipleEditModal && multipleEditDay && (
+        <TimePicker
+          value={timePickerValue}
+          onChange={handleMultipleEditSave}
+          onClose={closeMultipleEditModal}
+          isMultipleEdit={true}
+          selectedCount={selectedRows.size}
+          dayName={getDayName(multipleEditDay)}
+        />
+      )}
+
+      {/* Multiple Edit Day Selection Modal */}
+      {showMultipleEditModal && !multipleEditDay && renderMultipleEditDayModal()}
     </div>
   );
 };

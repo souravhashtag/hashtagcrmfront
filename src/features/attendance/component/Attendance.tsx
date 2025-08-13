@@ -33,6 +33,7 @@ interface StatCardProps {
   value: number;
   color: string;
   icon: React.ReactNode;
+  bgcolor?: string;
 }
 
 type ViewType = 'table';
@@ -165,12 +166,12 @@ const Attendance: React.FC = () => {
 
   const stats: AttendanceStats = getAttendanceStats();
 
-  const StatCard: React.FC<StatCardProps> = ({ title, value, color, icon }) => (
-    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+  const StatCard: React.FC<StatCardProps> = ({ title, value, color, icon,bgcolor }) => (
+    <div className={`bg-white p-6 rounded-lg shadow-lg border border-gray-100 ${bgcolor}`}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
+          <p className="text-lg font-medium text-white">{title}</p>
+          <p className="text-4xl font-bold text-white">{value}</p>
         </div>
         <div className={`p-3 rounded-full ${color}`}>
           {icon}
@@ -236,14 +237,14 @@ const Attendance: React.FC = () => {
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check In (PST)</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check Out (PST)</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hours</th>
-              {attendanceData.some(emp => emp.location) && (
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-              )}
+              <th className="px-6 py-3 text-left text-xs font-medium text-[#fff] uppercase tracking-wider">Employee</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-[#fff] uppercase tracking-wider">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-[#fff] uppercase tracking-wider">Check In (PST)</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-[#fff] uppercase tracking-wider">Check Out (PST)</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-[#fff] uppercase tracking-wider">Hours</th>
+              {/* {attendanceData.some(emp => emp.location) && (
+                <th className="px-6 py-3 text-left text-xs font-medium text-[#fff] uppercase tracking-wider">Location</th>
+              )} */}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -260,7 +261,7 @@ const Attendance: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap"><div className="h-6 bg-gray-200 rounded w-16"></div></td>
                   <td className="px-6 py-4 whitespace-nowrap"><div className="h-4 bg-gray-200 rounded w-12"></div></td>
                   <td className="px-6 py-4 whitespace-nowrap"><div className="h-4 bg-gray-200 rounded w-12"></div></td>
-                  <td className="px-6 py-4 whitespace-nowrap"><div className="h-4 bg-gray-200 rounded w-8"></div></td>
+                  <td className="px-6 py-4 whitespace-nowrap"><div className="h-4 bg-gray-200 rounded w-4"></div></td>
                 </tr>
               ))
             ) : filteredData.length === 0 ? (
@@ -278,7 +279,7 @@ const Attendance: React.FC = () => {
                 <tr key={employee._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10">
+                      <div className="flex-shrink-0 h-10">
                         <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-gray-700">
                           {getEmployeeInitials(getFullName(employee))}
                         </div>
@@ -306,11 +307,11 @@ const Attendance: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {employee.totalHours ? `${employee.totalHours}h` : '--'}
                   </td>
-                  {attendanceData.some(emp => emp.location) && (
+                  {/* {attendanceData.some(emp => emp.location) && (
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {employee.location || '--'}
+                      {JSON.parse(employee?.location||"").city}
                     </td>
-                  )}
+                  )} */}
                 </tr>
               ))
             )}
@@ -367,7 +368,7 @@ const Attendance: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-6 ">
       <div className="mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -380,68 +381,62 @@ const Attendance: React.FC = () => {
           <StatCard
             title="Total Employees"
             value={stats.total}
-            color="bg-blue-50"
-            icon={<Users className="w-6 h-6 text-blue-600" />}
+            color="bg-[#fff] shadow-lg"
+            bgcolor="bg-[#4fd1c5] shadow-lg"
+            icon={<Users className="w-6 h-6 text-[#000]"
+              />}
           />
           <StatCard
             title="Present"
             value={stats.present}
-            color="bg-green-50"
-            icon={<CheckCircle className="w-6 h-6 text-green-600" />}
+            color="bg-[#fff]" 
+            bgcolor="bg-[#007170]"
+            icon={<CheckCircle className="w-6 h-6 text-[#000]" />}
           />
           <StatCard
             title="Absent"
             value={stats.absent}
-            color="bg-red-50"
-            icon={<XCircle className="w-6 h-6 text-red-600" />}
+            color="bg-[#fff]"
+              bgcolor="bg-[#34bebd]"
+            icon={<XCircle className="w-6 h-6 text-[#000]" />}
           />
           <StatCard
             title="Late/WFH"
             value={stats.late + stats.wfh}
-            color="bg-yellow-50"
-            icon={<AlertCircle className="w-6 h-6 text-yellow-600" />}
+               color="bg-[#fff]"
+               bgcolor="bg-[#202c74] shadow-lg"
+            icon={<AlertCircle className="w-6 h-6 text-[#000]" />}
           />
         </div>
 
         {/* Controls */}
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
-          <div className="flex flex-wrap gap-4 items-center justify-between">
+          <div className="flex flex-col lg:flex-row gap-4 justify-end">
             <div className="flex flex-wrap gap-4 items-center">
               {/* View Toggle */}
-              <div className="flex bg-gray-100 rounded-lg p-1">
-                <button
-                  onClick={() => handleViewChange('table')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    selectedView === 'table' 
-                      ? 'bg-white text-gray-900 shadow-sm' 
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Table View
-                </button>
-              </div>
+              
 
               {/* Date Picker */}
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-gray-500" />
+              <div className="flex items-center gap-2 w-[500px]">
+                <Calendar className="absolute left-3 h-4 text-gray-400  " />
                 <input
                   type="date"
                   value={selectedDate}
                   onChange={handleDateChange}
-                  className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-[500px] border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <span className="text-xs text-gray-500">PST</span>
+          
               </div>
 
               {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+              <div className="relative w-[500px] flex items-center">
+                <Search className="absolute left-3 h-4 text-gray-400  " />
                 <input
                   type="text"
                   placeholder="Search employees..."
                   value={searchTerm}
                   onChange={handleSearchChange}
-                  className="border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-[500px] border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -450,7 +445,7 @@ const Attendance: React.FC = () => {
             <button 
               onClick={handleExport}
               disabled={isLoading || !attendanceData.length}
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-[#129990] text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-[#1dbfb4] transition-colors "
             >
               <Download className="w-4 h-4" />
               Export (PST)
