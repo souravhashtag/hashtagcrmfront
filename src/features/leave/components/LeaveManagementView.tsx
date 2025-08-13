@@ -566,7 +566,7 @@ const LeaveManagement: React.FC = () => {
                       {leave.approvedBy ? (
                         `${leave.approvedBy.firstName || ''} ${leave.approvedBy.lastName || ''}`
                       ) : (
-                        '-'
+                        'Yet to process'
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
