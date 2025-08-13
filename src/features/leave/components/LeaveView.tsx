@@ -572,12 +572,12 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
                                         <label className="block text-sm font-medium text-gray-500">Email</label>
                                         <p className="text-gray-900 truncate">{getEmployeeData()?.userId?.email || 'N/A'}</p>
                                     </div>
-                                    <div>
+                                    {/* <div>
                                         <label className="block text-sm font-medium text-gray-500">Role</label>
                                         <p className="text-gray-900 capitalize">
                                             {user?.position ?? 'N/A'}
                                         </p>
-                                    </div>
+                                    </div> */}
                                 </div>
                             </div>
                         )}

@@ -35,7 +35,7 @@ interface SettingsSection {
 const settingsSections: SettingsSection[] = [
     {
         id: 'leave-types',
-        name: 'Leave Management',
+        name: 'Leave Type Management',
         icon: Calendar,
         description: 'Manage leave types, policies, and configurations'
     },
