@@ -186,7 +186,15 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
   useEffect(() => {
     if (isOpen && !isEdit) {
       const availableTypes = getAvailableLeaveTypes();
-      const defaultType = availableTypes[0]?.name || 'casual';
+
+      // Filter types with remaining > 0
+      const firstAvailable = availableTypes.find((t: any) => {
+        const bal = getLeaveBalance(t.name);
+        return Number(bal?.remaining ?? 0) > 0;
+      });
+
+      // Fallback: if none available, set to 'normal' or your unpaid leave type
+      const defaultType = firstAvailable ? firstAvailable.name : 'normal';
 
       setFormData({
         type: defaultType,
@@ -200,7 +208,8 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
       setCurrentStep(1);
       setLeaveImpact(null);
     }
-  }, [isOpen, isEdit, leaveTypesData]);
+  }, [isOpen, isEdit, leaveTypesData, leaveBalance]);
+
 
   // Populate form for edit mode
   useEffect(() => {
@@ -402,6 +411,35 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
   const disabledDates = getDisabledDates();
 
 
+  // Reuse your formatLocalYMD helper
+  const getMaxEndDate = () => {
+    // No cap if no start date yet
+    if (!formData.startDate) return '';
+
+    // For half-day, end must equal start
+    if (formData.isHalfDay) return formData.startDate;
+
+    // "normal" leave (unpaid) usually has no cap
+    if (formData.type === 'normal') return '';
+
+    const bal = getLeaveBalance(formData.type);
+    // If we don't have balance yet, don't cap
+    if (!bal) return '';
+
+    const remaining = Number(bal.remaining) || 0;
+
+    // If no remaining, force end to be start (cannot extend)
+    if (remaining <= 0) return formData.startDate;
+
+    const start = new Date(formData.startDate);
+    const maxEnd = new Date(start);
+    // remaining N days means maxEnd = start + (N-1) days
+    maxEnd.setDate(start.getDate() + remaining - 1);
+    return formatLocalYMD(maxEnd);
+  };
+
+
+
   if (!isOpen) return null;
 
   if (isEdit && isLoadingLeave) {
@@ -476,12 +514,16 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {getAvailableLeaveTypes().map((type: any) => {
                       const balance = getLeaveBalance(type.name);
+                      const remaining = Number(balance?.remaining ?? 0);
                       const isSelected = formData.type === type.name;
+                      const isDisabled = remaining === 0;
 
                       return (
                         <label
                           key={type.name}
-                          className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors border-2`}
+                          className={`flex items-center p-3 rounded-lg transition-colors border-2 
+                            ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                          `}
                           style={{
                             borderColor: isSelected ? type.color : '#e5e7eb',
                             backgroundColor: isSelected ? `${type.color}20` : '#ffffff'
@@ -493,6 +535,7 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
                             value={type.name}
                             checked={isSelected}
                             onChange={(e) => handleInputChange('type', e.target.value)}
+                            disabled={isDisabled}
                             className="sr-only"
                           />
                           <div className="text-center w-full">
@@ -515,6 +558,7 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
                         </label>
                       );
                     })}
+
                   </div>
                 )}
                 {errors.type && (
@@ -599,23 +643,55 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
                       onChange={(e) => {
                         const selectedDate = e.target.value;
 
-                        // Block selection if date is in the disabled list
+                        // Block if disabled
                         if (disabledDates.includes(selectedDate)) {
                           alert("This date is unavailable for leave.");
-                          return; 
+                          return;
+                        }
+
+                        // Half-day: must equal start date
+                        if (formData.isHalfDay) {
+                          if (selectedDate !== formData.startDate) {
+                            alert("Half day leave must start and end on the same date.");
+                            return;
+                          }
+                          handleInputChange("endDate", selectedDate);
+                          return;
+                        }
+
+                        // Enforce remaining-day cap for paid/allocated types
+                        if (formData.type !== 'normal' && formData.startDate) {
+                          const bal = getLeaveBalance(formData.type);
+                          const remaining = Number(bal?.remaining ?? 0);
+
+                          if (remaining > 0) {
+                            const start = new Date(formData.startDate);
+                            const end = new Date(selectedDate);
+                            // inclusive day count
+                            const diffDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+                            if (diffDays > remaining) {
+                              alert(`You can select up to ${remaining} day(s) from the start date based on your remaining balance.`);
+                              return;
+                            }
+                          } else {
+                            // no remaining: can't extend beyond start
+                            if (selectedDate !== formData.startDate) {
+                              alert("You have 0 days remaining for this leave type. Please select only the start date or choose Normal Leave.");
+                              return;
+                            }
+                          }
                         }
 
                         handleInputChange("endDate", selectedDate);
-
-                        if (formData.isHalfDay) {
-                          handleInputChange("endDate", selectedDate);
-                        }
                       }}
                       min={formData.startDate || getMinDate()}
+                      // NEW: cap the range using max
+                      max={getMaxEndDate()}
                       disabled={formData.isHalfDay}
-                      className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formData.isHalfDay ? 'bg-gray-100 cursor-not-allowed' : ''
-                        }`}
+                      className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formData.isHalfDay ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                     />
+
                     <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
                   </div>
                   {formData.isHalfDay && (
