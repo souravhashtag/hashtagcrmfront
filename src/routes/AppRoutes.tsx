@@ -93,7 +93,7 @@ const AppRoutes = () => {
             <Route path="/settings" element={<Settings />} />
             <Route path={`${base}screenshort`} element={<ScreenShort />} />
             <Route path="/attendance" element={<Attendance />} />
-            <Route path="/holiday" element={<HolidayComponent />} />
+            <Route path="/holidays" element={<HolidayComponent />} />
             <Route path="/roster" element={<Roster />} />
 
 
