@@ -29,6 +29,7 @@ electronApp.whenReady().then(() => {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    icon: path.join(__dirname, '', 'favicon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'), 
       contextIsolation: true,                     
@@ -36,7 +37,7 @@ electronApp.whenReady().then(() => {
     },
   });
   Menu.setApplicationMenu(null);
-   mainWindow.loadURL('http://51.20.198.23:5004/');
+  mainWindow.loadURL('http://51.20.198.23:5004/');
   //mainWindow.loadURL('http://localhost:3000');
   ipcMain.on('set-user-data', (event, data) => {
     userData = data;

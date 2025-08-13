@@ -1,14 +1,20 @@
 import React from 'react';
-
+import {
+  useGetAllNoticesQuery
+} from '../../../services/noticeService';
 const NoticeBoard = () => {
-  const noticeItems = [
-    "Quality objectives.",
-    "Achievements of the last ten years - Improvements.",
-    "Future plans for the organization.",
-    "Birthday and wedding anniversary wishes.",
-    "Names of the Safety and Quality Committee should be",
-    "Location of the First-Aid Box should be indicated."
-  ];
+  const { 
+      data: noticesResponse, 
+      isLoading, 
+      isError,
+      error,
+      refetch 
+    } = useGetAllNoticesQuery({
+      limit: 6,
+      status: 'published',
+    });
+    // console.log("Notices Response:", noticesResponse);
+  const noticeItems = noticesResponse?.data?.notices?.map((notice: any) => notice.content) || [];
 
   return (
     <div className="max-w-lg bg-white bg-white rounded-lg border border-[#65e3d7] shadow-md p-6 font-sans mt-8">
@@ -20,7 +26,7 @@ const NoticeBoard = () => {
       
       {/* Notice Items */}
       <div className="space-y-3">
-        {noticeItems.map((item, index) => (
+        {noticeItems.map((item:any, index:number) => (
           <div key={index} className="flex items-start gap-3">
             <span className="text-gray-600 font-medium text-sm mt-0.5">
               {String(index + 1).padStart(2, '0')}.
