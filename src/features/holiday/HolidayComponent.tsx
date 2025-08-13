@@ -271,7 +271,7 @@ const HolidayComponent: React.FC = () => {
 
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="p-6 bg-gray-50 min-h-fit">
             {/* Header */}
             <div className="mb-6">
                 <div className="flex justify-between items-start mb-4">
