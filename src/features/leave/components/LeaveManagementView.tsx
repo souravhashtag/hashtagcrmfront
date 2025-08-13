@@ -99,19 +99,6 @@ const LeaveManagement: React.FC = () => {
     }
   };
 
-
-  const handleDelete = async (leaveId: string) => {
-    if (window.confirm('Are you sure you want to delete this leave request?')) {
-      try {
-        await deleteLeave(leaveId).unwrap();
-        refetch();
-      } catch (error) {
-        console.error('Error deleting leave:', error);
-      }
-    }
-  };
-
-
   const openStatusModal = (leave: any, action: 'approved' | 'rejected') => {
     setSelectedLeave(leave._id);
     setActionType(action);
