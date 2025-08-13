@@ -189,7 +189,7 @@ const Leave: React.FC = () => {
               View and manage your leave requests
             </p>
           </div>
-       
+
         </div>
 
         {/* Filters */}
@@ -208,33 +208,33 @@ const Leave: React.FC = () => {
             </div>
 
             {/* Status Filter */}
-                <div className="relative w-[400px]">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg "
-            >
-              <option value="">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-</div>
+            <div className="relative w-[400px]">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg "
+              >
+                <option value="">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
             {/* Quick Stats */}
             <div className="flex items-center justify-center bg-[#202c74] rounded-lg px-4 py-2 w-[210px] ">
               <div className="text-center">
                 <div className="text-lg font-normal text-white"> Total Requests: {filteredLeaves.length}</div>
-              
+
               </div>
             </div>
-               <button
-            onClick={handleApplyLeave}
-            className="bg-[#129990] text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#1dbfb4] transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Apply Leave
-          </button>
+            <button
+              onClick={handleApplyLeave}
+              className="bg-[#129990] text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#1dbfb4] transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Apply Leave
+            </button>
           </div>
         </div>
       </div>
