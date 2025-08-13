@@ -10,6 +10,7 @@ import {
 interface EventData {
   type?: string;
   label?: string;
+  emoji?: string;
 }
 
 interface EventsMap {
@@ -50,7 +51,7 @@ const Calendar: React.FC<CalendarProps> = ({ userId }) => {
     month: currentMonth+1,
   });
 
-
+  // console.log('Events Response:', eventsResponse);
   // Get events data from API response
   const events: EventsMap = eventsResponse?.data || {};
 
@@ -80,13 +81,13 @@ const Calendar: React.FC<CalendarProps> = ({ userId }) => {
     if (!event || !event.label || event.label.trim() === '') {
       return 'bg-white';
     }
-    
+    // console.log('Event Type:', event.type);
     // Color coding based on event type
     switch (event.type?.toLowerCase()) {
       case 'holiday':
         return 'bg-teal-100';
-      case 'tax':
-        return 'bg-pink-200';
+      case 'leave':
+        return 'bg-red-200';
       case 'beach':
         return 'bg-blue-100';
       case 'memorial':
@@ -121,7 +122,7 @@ const Calendar: React.FC<CalendarProps> = ({ userId }) => {
     const { day, event } = selectedEvent;
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 `}>
         <div className="bg-white p-6 rounded-lg shadow-lg w-96 max-w-[90vw]">
           <div className="flex justify-between items-start mb-4">
             <h3 className="text-lg font-semibold text-gray-900">
@@ -138,8 +139,7 @@ const Calendar: React.FC<CalendarProps> = ({ userId }) => {
             </button>
           </div>
           
-          <div className="space-y-3">
-            
+          <div className="space-y-3"> 
             
             <div>
               <span className="text-sm font-medium text-gray-600 block mb-2"></span>
@@ -196,6 +196,9 @@ const Calendar: React.FC<CalendarProps> = ({ userId }) => {
             <span className={`text-sm font-medium ${isWeekend ? 'text-gray-400' : 'text-gray-700'}`}>
               {day}
             </span>
+            {event && (
+              <span className="text-sm">{event?.emoji}</span>
+            )}
           </div>
           {hasEvent && (
             <div className="mt-1">

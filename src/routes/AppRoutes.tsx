@@ -25,7 +25,9 @@ import Leave from '../features/leave/components/Leave';
 import LeaveView from '../features/leave/components/LeaveView';
 import LeaveManagement from '../features/leave/components/LeaveManagementView';
 import EmployeeAssign from '../features/employee/components/EmployeeAssign';
+import NoticeCreate from '../features/notice/components/NoticeCreate';
 import Settings from '../features/settings';
+import NoticeList from '../features/notice/components/NoticeList';
 
 
 
@@ -86,6 +88,11 @@ const AppRoutes = () => {
               <Route path="create" element={<DesignationCreate />} />
               <Route path="edit/:id" element={<DesignationCreate />} />
             </Route>
+            <Route path="notice">
+              <Route index element={<NoticeList />}  />
+              <Route path="create" element={<NoticeCreate />} />
+              {/* <Route path="edit/:id" element={<DesignationCreate />} /> */}
+            </Route>
 
 
             <Route path="/profile" element={<Profile />} />
@@ -101,7 +108,7 @@ const AppRoutes = () => {
             <Route path="/leave-management" element={<LeaveManagement />} />
           </Route>
         </Route>
-
+        
         {/* Catch all */}
         <Route
           path="*"

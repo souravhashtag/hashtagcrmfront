@@ -7,7 +7,8 @@ export const tagTypes = [
   'Permission',
   'Leave',
   'Assignment',
-  'Event'
+  'Event',
+  'Notice'
 ] as const;
 
 export const api = createApi({
