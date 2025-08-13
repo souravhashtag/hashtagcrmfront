@@ -1,78 +1,23 @@
 import React, { useState, useEffect } from 'react';
-
-interface Member {
-  id: number;
-  name: string;
-  position: string;
-  date: string;
-  joinDate?: string;
-  email?: string;
-  department?: string;
-  image: string;
-}
-
-interface ApiResponse {
-  success: boolean;
-  data: Member[];
-  total?: number;
-  month?: string;
-  message?: string;
-}
+import {
+  useGetCurrentMonthNewMembersQuery,
+  Member
+} from '../../../services/newMemberServices';
 
 const NewMembers: React.FC = () => {
-  const [members, setMembers] = useState<Member[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [isVisible, setIsVisible] = useState<boolean>(true);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
 
-  // Fetch new members from backend
-  useEffect(() => {
-    const fetchNewMembers = async (): Promise<void> => {
-      try {
-        setLoading(true);
-        const response = await fetch('http://localhost:5000/api/V1/employee/new-members');
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch new members');
-        }
-        
-        const result: ApiResponse = await response.json();
-        
-        if (result.success) {
-          setMembers(result.data);
-        } else {
-          throw new Error(result.message || 'Failed to fetch data');
-        }
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-        setError(errorMessage);
-        console.error('Error fetching new members:', err);
-        
-        // Fallback to static data if API fails
-        setMembers([
-          {
-            id: 1,
-            name: "Douglas Gruehl",
-            position: "Product Manager",
-            date: "08-05-2025",
-            image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTTUKUnwROtLJpA7PDFyzDpX1racPPBXgxpkSbiaKZltSWMd2uqZCo2vAweErACu-EiR0&usqp=CAU"
-          },
-          {
-            id: 2,
-            name: "Ileana Doe",
-            position: "Sr. Software Developer",
-            date: "08-03-2025",
-            image: "https://images.squarespace-cdn.com/content/v1/5aee389b3c3a531e6245ae76/1531792846005-MYGZAOI0L93I3YJWHB6W/D75_5697-Edit.jpg"
-          }
-        ]);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Redux query hook
+  const {
+    data: membersResponse,
+    isLoading,
+    isError,
+    error,
+    refetch
+  } = useGetCurrentMonthNewMembersQuery({ limit: 10 });
 
-    fetchNewMembers();
-  }, []);
+  const members = membersResponse?.data || [];
 
   // Auto-rotate through members
   useEffect(() => {
@@ -93,7 +38,7 @@ const NewMembers: React.FC = () => {
   }, [members.length]);
 
   // Loading state
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="col-span-4">
         <div className="max-w-lg bg-white rounded-lg border border-[#65e3d7] shadow-md overflow-hidden">
@@ -114,6 +59,30 @@ const NewMembers: React.FC = () => {
     );
   }
 
+  // Error state
+  if (isError) {
+    return (
+      <div className="col-span-4">
+        <div className="max-w-lg bg-white rounded-lg border border-[#65e3d7] shadow-md overflow-hidden">
+          <div className="bg-gray-50 px-4 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-800">New Members</h2>
+          </div>
+          <div className="p-4 text-center text-gray-500">
+            <p className="text-red-500 mb-2">
+              {(error as any)?.data?.message || 'Failed to load new members'}
+            </p>
+            <button
+              onClick={() => refetch()}
+              className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Empty state
   if (members.length === 0) {
     return (
@@ -124,11 +93,6 @@ const NewMembers: React.FC = () => {
           </div>
           <div className="p-4 text-center text-gray-500">
             <p>No new members this month</p>
-            {error && (
-              <p className="text-sm text-red-500 mt-2">
-                API Error: {error}
-              </p>
-            )}
           </div>
         </div>
       </div>
@@ -136,6 +100,21 @@ const NewMembers: React.FC = () => {
   }
 
   const currentMember = members[currentIndex];
+
+  // Helper function to get member image
+  const getMemberImage = (member: Member): string => {
+    return member.image || 
+           member.profilePicture || 
+           `https://via.placeholder.com/150?text=${encodeURIComponent(member.name.charAt(0))}`;
+  };
+
+  // Helper function to format member name
+  const getMemberName = (member: Member): string => {
+    if (member.firstName && member.lastName) {
+      return `${member.firstName} ${member.lastName}`;
+    }
+    return member.name;
+  };
 
   return (
     <div className="col-span-4">
@@ -158,12 +137,12 @@ const NewMembers: React.FC = () => {
             {/* Avatar */}
             <div className="flex items-center justify-center text-white text-xl">
               <img 
-                src={currentMember.image} 
-                alt={currentMember.name}
+                src={getMemberImage(currentMember)} 
+                alt={getMemberName(currentMember)}
                 className="w-15 h-20 rounded-lg object-cover"
                 onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
                   const target = e.target as HTMLImageElement;
-                  target.src = 'https://via.placeholder.com/150?text=' + encodeURIComponent(currentMember.name.charAt(0));
+                  target.src = `https://via.placeholder.com/150?text=${encodeURIComponent(getMemberName(currentMember).charAt(0))}`;
                 }}
               />
             </div>
@@ -171,19 +150,24 @@ const NewMembers: React.FC = () => {
             {/* Member Info */}
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-gray-900 mt-3">
-                {currentMember.name}
+                {getMemberName(currentMember)}
               </h3>
               <div className="flex justify-between items-center mt-1">
                 <p className="text-sm text-gray-600">
                   {currentMember.position}
                 </p>
                 <p className="text-sm text-gray-500">
-                  {currentMember.date}
+                  {currentMember.date || currentMember.joinDate}
                 </p>
               </div>
               {currentMember.department && (
                 <p className="text-xs text-gray-400 mt-1">
                   {currentMember.department}
+                </p>
+              )}
+              {currentMember.email && (
+                <p className="text-xs text-gray-400 mt-1">
+                  {currentMember.email}
                 </p>
               )}
             </div>
@@ -193,7 +177,7 @@ const NewMembers: React.FC = () => {
         {/* Navigation dots (if more than one member) */}
         {members.length > 1 && (
           <div className="flex justify-center space-x-2 pb-4">
-            {members.map((_, index: number) => (
+            {members.map((_: Member, index: number) => (
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index)}

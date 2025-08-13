@@ -26,6 +26,7 @@ import LeaveView from '../features/leave/components/LeaveView';
 import LeaveManagement from '../features/leave/components/LeaveManagementView';
 import EmployeeAssign from '../features/employee/components/EmployeeAssign';
 import Settings from '../features/settings';
+import HolidayComponent from '../features/holiday/HolidayComponent';
 
 
 
@@ -89,12 +90,12 @@ const AppRoutes = () => {
 
 
             <Route path="/profile" element={<Profile />} />
-            <Route path="/settings" element={<Settings/>} />
+            <Route path="/settings" element={<Settings />} />
             <Route path={`${base}screenshort`} element={<ScreenShort />} />
             <Route path="/attendance" element={<Attendance />} />
-
+            <Route path="/holiday" element={<HolidayComponent />} />
             <Route path="/roster" element={<Roster />} />
-           
+
 
             <Route path="/leave" element={<Leave />} />
             <Route path="/leave/view/:id" element={<LeaveView />} />
