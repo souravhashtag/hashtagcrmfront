@@ -51,7 +51,7 @@ const Calendar: React.FC<CalendarProps> = ({ userId }) => {
     month: currentMonth+1,
   });
 
-  // console.log('Events Response:', eventsResponse);
+  console.log('Events Response:', eventsResponse);
   // Get events data from API response
   const events: EventsMap = eventsResponse?.data || {};
 
