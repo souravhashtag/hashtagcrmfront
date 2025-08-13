@@ -583,14 +583,14 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
                                                 {leaveType.name}
                                             </h3>
                                             <span className={`px-3 py-1 text-xs font-semibold rounded-full ${leaveType.ispaidLeave
-                                                    ? 'bg-green-100 text-green-800'
-                                                    : 'bg-orange-100 text-orange-800'
+                                                ? 'bg-green-100 text-green-800'
+                                                : 'bg-orange-100 text-orange-800'
                                                 }`}>
                                                 {leaveType.ispaidLeave ? 'Paid' : 'Unpaid'}
                                             </span>
                                             <span className={`px-3 py-1 text-xs font-semibold rounded-full ${leaveType.carryforward
-                                                    ? 'bg-blue-100 text-blue-800'
-                                                    : 'bg-gray-100 text-gray-800'
+                                                ? 'bg-blue-100 text-blue-800'
+                                                : 'bg-gray-100 text-gray-800'
                                                 }`}>
                                                 {leaveType.carryforward ? 'Carry Forward' : 'No Carry'}
                                             </span>
@@ -732,8 +732,8 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
                                         key={section.id}
                                         onClick={() => setActiveSection(section.id)}
                                         className={`w-full flex items-start gap-3 p-4 rounded-lg text-left transition-all duration-200 ${activeSection === section.id
-                                                ? 'bg-[#129990] text-white shadow-md'
-                                                : 'text-gray-700 hover:bg-gray-50 hover:text-[#129990]'
+                                            ? 'bg-[#129990] text-white shadow-md'
+                                            : 'text-gray-700 hover:bg-gray-50 hover:text-[#129990]'
                                             }`}
                                     >
                                         <div className="flex items-center justify-center w-5 h-5 flex-shrink-0 mt-0.5">
@@ -742,8 +742,8 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
                                         <div className="flex-1 min-w-0">
                                             <span className="block text-sm font-semibold mb-1">{section.name}</span>
                                             <span className={`block text-xs leading-tight ${activeSection === section.id
-                                                    ? 'text-teal-100'
-                                                    : 'text-gray-500'
+                                                ? 'text-teal-100'
+                                                : 'text-gray-500'
                                                 }`}>
                                                 {section.description}
                                             </span>
@@ -773,14 +773,23 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
             {showLeaveTypeModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-lg shadow-xl w-full max-w-lg">
-                        <div className="px-6 py-4 border-b border-gray-200 bg-[#129990]">
+                        <div className="px-6 py-4 border-b border-gray-200 bg-[#129990] relative">
                             <h3 className="text-lg font-bold text-white" style={{ fontFamily: 'Poppins, sans-serif' }}>
                                 {editingLeaveType ? 'Edit Leave Type' : 'Add New Leave Type'}
                             </h3>
                             <p className="text-sm text-teal-100 mt-1">
                                 {editingLeaveType ? 'Update leave type details' : 'Create a new leave type for your organization'}
                             </p>
+                            <button
+                                onClick={() => { setShowLeaveTypeModal(false); }}
+                                disabled={isCreating || isUpdating}
+                                className="text-white hover:text-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed absolute right-2 top-2 m-2"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
                         </div>
+
+
 
                         <div className="p-6 space-y-4 max-h-96 overflow-y-auto">
                             <div>
