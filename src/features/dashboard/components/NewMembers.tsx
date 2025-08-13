@@ -25,7 +25,7 @@ const NewMembers: React.FC = () => {
 
     const interval = setInterval(() => {
       setIsVisible(false);
-      
+
       setTimeout(() => {
         setCurrentIndex((prevIndex) =>
           prevIndex === members.length - 1 ? 0 : prevIndex + 1
@@ -86,15 +86,18 @@ const NewMembers: React.FC = () => {
   // Empty state
   if (members.length === 0) {
     return (
-      <div className="col-span-4">
-        <div className="max-w-lg bg-white rounded-lg border border-[#65e3d7] shadow-md overflow-hidden">
-          <div className="bg-gray-50 px-4 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-800">New Members</h2>
-          </div>
-          <div className="p-4 text-center text-gray-500">
-            <p>No new members this month</p>
-          </div>
-        </div>
+      // <div className="col-span-4">
+      //   <div className="max-w-lg bg-white rounded-lg border border-[#65e3d7] shadow-md overflow-hidden">
+      //     <div className="bg-gray-50 px-4 py-4 border-b border-gray-200">
+      //       <h2 className="text-lg font-semibold text-gray-800">New Members</h2>
+      //     </div>
+      //     <div className="p-4 text-center text-gray-500">
+      //       <p>No new members this month</p>
+      //     </div>
+      //   </div>
+      // </div>
+      <div>
+
       </div>
     );
   }
@@ -103,9 +106,9 @@ const NewMembers: React.FC = () => {
 
   // Helper function to get member image
   const getMemberImage = (member: Member): string => {
-    return member.image || 
-           member.profilePicture || 
-           `https://via.placeholder.com/150?text=${encodeURIComponent(member.name.charAt(0))}`;
+    return member.image ||
+      member.profilePicture ||
+      `https://via.placeholder.com/150?text=${encodeURIComponent(member.name.charAt(0))}`;
   };
 
   // Helper function to format member name
@@ -130,14 +133,14 @@ const NewMembers: React.FC = () => {
             )}
           </h2>
         </div>
-        
+
         {/* Member Card Content */}
         <div className={`p-4 transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
           <div className="flex items-left space-x-4">
             {/* Avatar */}
             <div className="flex items-center justify-center text-white text-xl">
-              <img 
-                src={getMemberImage(currentMember)} 
+              <img
+                src={getMemberImage(currentMember)}
                 alt={getMemberName(currentMember)}
                 className="w-15 h-20 rounded-lg object-cover"
                 onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
@@ -146,7 +149,7 @@ const NewMembers: React.FC = () => {
                 }}
               />
             </div>
-            
+
             {/* Member Info */}
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-gray-900 mt-3">
@@ -181,9 +184,8 @@ const NewMembers: React.FC = () => {
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index)}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  index === currentIndex ? 'bg-[#65e3d7]' : 'bg-gray-300'
-                }`}
+                className={`w-2 h-2 rounded-full transition-colors ${index === currentIndex ? 'bg-[#65e3d7]' : 'bg-gray-300'
+                  }`}
                 aria-label={`View member ${index + 1}`}
               />
             ))}
