@@ -375,7 +375,7 @@ const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBr
         {getWorkingHour && (
            <div className="col-span-8 bg-[#E1F7EF] from-teal-400 to-teal-500 rounded-xl p-4 text-black h-40 border border-[#65e3d7]">
         
-          <div className="mt-6 pt-4 border-t border-teal-300/30 ">
+          <div className="mt-6 pt-4 border-t">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-black/20 rounded-lg flex items-center justify-center">
@@ -384,7 +384,8 @@ const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBr
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-[#000]">Total Working Hours</p>
+                  <p className="text-sm font-medium text-[#000] border border-[#fbcfe8] bg-[#fdf2f8] px-4 py-2 rounded-md text-center">
+Total Working Hours</p>
                   <p className="text-xl font-medium tracking-wider text-[#000]">{getWorkingHour}</p>
                 </div>
               </div>
