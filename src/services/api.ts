@@ -8,7 +8,9 @@ export const tagTypes = [
   'Leave',
   'Assignment',
   'Event',
-  'Notice'
+  'Notice',
+  'Roster',
+  'RosterStats',
 ] as const;
 
 export const api = createApi({

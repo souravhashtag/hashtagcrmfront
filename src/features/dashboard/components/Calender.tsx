@@ -51,7 +51,7 @@ const Calendar: React.FC<CalendarProps> = ({ userId }) => {
     month: currentMonth+1,
   });
 
-  console.log('Events Response:', eventsResponse);
+  // console.log('Events Response:', eventsResponse);
   // Get events data from API response
   const events: EventsMap = eventsResponse?.data || {};
 
@@ -144,7 +144,16 @@ const Calendar: React.FC<CalendarProps> = ({ userId }) => {
             <div>
               <span className="text-sm font-medium text-gray-600 block mb-2"></span>
               <div className="bg-gray-50 p-3 rounded border text-sm text-gray-800 leading-relaxed">
-                {event.label}
+                {event?.label
+                  ? event.label.split(',').map((item, index) => (
+                    <>
+                      <span key={index}>
+                        {index+1}. {item}                        
+                      </span>
+                      <br />
+                       </>
+                    ))
+                  : ""}
               </div>
             </div>
           </div>
@@ -203,8 +212,8 @@ const Calendar: React.FC<CalendarProps> = ({ userId }) => {
           {hasEvent && (
             <div className="mt-1">
               <div className="text-xs text-gray-700 leading-tight">
-                {event?.label && event.label.split(' ').length > 3 
-                  ? `${event.label.split(' ').slice(0, 3).join(' ')}...` 
+                {event?.label && event.label.split(',').length > 1 
+                  ? `${event.label.split(',').slice(0, 1).join(' ')}...` 
                   : event?.label}
               </div>
             </div>
@@ -259,7 +268,7 @@ const Calendar: React.FC<CalendarProps> = ({ userId }) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Cal className="w-5 h-5 text-gray-600 border" />
-              <h1 className="text-lg font-semibold text-gray-900">Attendance Schedule</h1>
+              <h1 className="text-lg font-semibold text-gray-900">Calender</h1>
             </div>
             <div className="flex items-center gap-2">
               <button 
