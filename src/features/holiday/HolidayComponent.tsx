@@ -17,7 +17,6 @@ const HolidayComponent: React.FC = () => {
     const [showPastHolidays, setShowPastHolidays] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editingHoliday, setEditingHoliday] = useState<Holiday | null>(null);
-    const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
     const itemsPerPage = 10;
 
     // Form state

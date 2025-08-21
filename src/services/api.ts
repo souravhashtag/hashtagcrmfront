@@ -9,6 +9,9 @@ export const tagTypes = [
   'Assignment',
   'Event',
   'Notice',
+  'Company',
+  'Country',
+  'Payroll',  
   'Roster',
   'RosterStats',
 ] as const;

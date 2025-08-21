@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, Upload, X, Clock, AlertTriangle, Info } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Calendar, Upload, X, Clock } from 'lucide-react';
 import {
   useCreateLeaveMutation,
   useGetLeaveByIdQuery,
   useUpdateLeaveMutation,
   useGetLeaveTypesQuery,
-  useGetLeaveBalanceQuery,
-  useGetMyLeavesQuery
+  useGetLeaveBalanceQuery
 } from '../../../services/leaveServices';
 
 interface LeaveFormData {
@@ -24,15 +23,6 @@ interface LeaveApplyModalProps {
   editLeaveId?: string;
   onSuccess?: () => void;
   leavesData?: any;
-}
-
-interface LeaveImpact {
-  totalDays: number;
-  fromAllocation: number;
-  fromNormalLeave: number;
-  hasDeduction: boolean;
-  message: string;
-  warning?: string;
 }
 
 const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
@@ -56,7 +46,6 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
-  const [leaveImpact, setLeaveImpact] = useState<LeaveImpact | null>(null);
 
   // Queries and mutations
   const { data: leaveData, isLoading: isLoadingLeave } = useGetLeaveByIdQuery(editLeaveId!, {
@@ -70,6 +59,11 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
   });
   const [createLeave] = useCreateLeaveMutation();
   const [updateLeave] = useUpdateLeaveMutation();
+
+
+
+
+
 
 
   const getMinDate = () => {
@@ -144,44 +138,6 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
     return colors[normalizedName] || '#6b7280'; // Default gray color
   };
 
-  // Calculate leave impact when dates or type change
-  useEffect(() => {
-    if (formData.type && formData.startDate && (formData.endDate || formData.isHalfDay)) {
-      calculateLeaveImpact();
-    } else {
-      setLeaveImpact(null);
-    }
-  }, [formData.type, formData.startDate, formData.endDate, formData.isHalfDay, leaveBalance]);
-
-  const calculateLeaveImpact = () => {
-    const typeBalance = getLeaveBalance(formData.type);
-    if (!typeBalance) return;
-
-    const requestedDays = calculateDays();
-    const available = typeBalance.remaining;
-
-    if (requestedDays <= available) {
-      setLeaveImpact({
-        totalDays: requestedDays,
-        fromAllocation: requestedDays,
-        fromNormalLeave: 0,
-        hasDeduction: false,
-        message: `${requestedDays} days will be deducted from your ${formData.type} allocation`,
-        warning: undefined
-      });
-    } else {
-      const normalLeaveRequired = requestedDays - available;
-      setLeaveImpact({
-        totalDays: requestedDays,
-        fromAllocation: available,
-        fromNormalLeave: normalLeaveRequired,
-        hasDeduction: true,
-        message: `${available} days from ${formData.type} allocation + ${normalLeaveRequired} normal leave days`,
-        warning: 'Normal leave days may result in salary deduction or unpaid leave'
-      });
-    }
-  };
-
   // Reset form when modal opens/closes
   useEffect(() => {
     if (isOpen && !isEdit) {
@@ -206,7 +162,6 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
       });
       setErrors({});
       setCurrentStep(1);
-      setLeaveImpact(null);
     }
   }, [isOpen, isEdit, leaveTypesData, leaveBalance]);
 
@@ -411,6 +366,36 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
   const disabledDates = getDisabledDates();
 
 
+  // NEW – detect when all allocated balances are 0
+  const allAllocatedZero = useMemo(() => {
+    const casual = Number(leaveBalance?.data?.casualLeaves?.remaining ?? 0);
+    const medical = Number(leaveBalance?.data?.medicalLeaves?.remaining ?? 0);
+    return casual <= 0 && medical <= 0;
+  }, [leaveBalance]);
+
+  // NEW – group disabled dates into readable ranges
+  const toLocalMidnight = (s: string) => new Date(`${s}T00:00:00`);
+  const groupDisabledRanges = (dates: string[]) => {
+    const sorted = [...dates].sort();
+    const ranges: { start: string; end: string }[] = [];
+    for (let i = 0; i < sorted.length; i++) {
+      let start = sorted[i];
+      let end = start;
+      while (i + 1 < sorted.length) {
+        const d = toLocalMidnight(sorted[i]);
+        const n = toLocalMidnight(sorted[i + 1]);
+        if (n.getTime() - d.getTime() === 24 * 60 * 60 * 1000) {
+          end = sorted[i + 1];
+          i++;
+        } else break;
+      }
+      ranges.push({ start, end });
+    }
+    return ranges;
+  };
+
+  const disabledRanges = useMemo(() => groupDisabledRanges(disabledDates), [disabledDates]);
+
   // Reuse your formatLocalYMD helper
   const getMaxEndDate = () => {
     // No cap if no start date yet
@@ -558,7 +543,6 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
                         </label>
                       );
                     })}
-
                   </div>
                 )}
                 {errors.type && (
@@ -591,6 +575,47 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
                   {formData.isHalfDay ? 'End date will be set to the same as start date' : 'Select for half day leave'}
                 </p>
               </div>
+
+              {/* Unavailable dates (from approved leaves) */}
+              {disabledDates.length > 0 && (
+                <div className="mt-4 p-3 rounded-lg border bg-gray-50">
+                  <div className="text-sm font-semibold text-gray-800 mb-2">
+                    Unavailable dates (already on approved leave)
+                  </div>
+
+                  {/* Render as compact chips for individual dates when there are just a few */}
+                  {disabledRanges.length <= 6 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {disabledRanges.map((r, i) => {
+                        const same = r.start === r.end;
+                        const label = same
+                          ? new Date(r.start).toLocaleDateString()
+                          : `${new Date(r.start).toLocaleDateString()} — ${new Date(r.end).toLocaleDateString()}`;
+                        return (
+                          <span key={i} className="px-2 py-1 text-xs bg-gray-200 rounded">
+                            {label}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    // If many ranges, use a simple list
+                    <ul className="list-disc pl-5 space-y-1 text-sm text-gray-700">
+                      {disabledRanges.map((r, i) => {
+                        const same = r.start === r.end;
+                        const label = same
+                          ? new Date(r.start).toLocaleDateString()
+                          : `${new Date(r.start).toLocaleDateString()} — ${new Date(r.end).toLocaleDateString()}`;
+                        return <li key={i}>{label}</li>;
+                      })}
+                    </ul>
+                  )}
+
+                  <p className="text-xs text-gray-500 mt-2">
+                    You won’t be able to select these dates in the picker.
+                  </p>
+                </div>
+              )}
 
               {/* Date Selection */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

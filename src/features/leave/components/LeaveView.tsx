@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation, useNavigationType } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
     ArrowLeft,
     Calendar,
@@ -9,7 +9,6 @@ import {
     Download,
     Check,
     X,
-    Edit,
     MessageSquare,
     AlertTriangle
 } from 'lucide-react';
@@ -105,44 +104,6 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
         navigate(-1);
     };
 
-    // Alternative: More sophisticated back navigation with breadcrumb tracking
-    const handleSmartBackNavigation = () => {
-        // Check for breadcrumb in session storage
-        const breadcrumb = sessionStorage.getItem('leaveBreadcrumb');
-
-        if (breadcrumb) {
-            const parsedBreadcrumb = JSON.parse(breadcrumb);
-            navigate(parsedBreadcrumb.path, { state: parsedBreadcrumb.state });
-            return;
-        }
-
-        // Check URL parameters for context
-        const urlParams = new URLSearchParams(window.location.search);
-        const source = urlParams.get('source');
-
-        switch (source) {
-            case 'my-leaves':
-                navigate('/leave/my-leaves');
-                break;
-            case 'pending':
-                navigate('/leave?status=pending');
-                break;
-            case 'all':
-                navigate('/leave');
-                break;
-            case 'dashboard':
-                navigate('/dashboard');
-                break;
-            default:
-                // Use browser history if available
-                if (window.history.length > 1 && document.referrer.includes(window.location.origin)) {
-                    navigate(-1);
-                } else {
-                    // Default fallback
-                    navigate('/leave');
-                }
-        }
-    };
 
     // Helper function to safely get employee data
     const getEmployeeData = () => {
