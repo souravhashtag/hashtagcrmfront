@@ -282,34 +282,12 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
         setTimeout(() => setNotification(null), 5000);
     };
 
-    // const handleInputChange = (field: string, value: any) => {
-    //     setFormData(prev => ({
-    //         ...prev,
-    //         [field]: value
-    //     }));
-    // };
-
     const handleLeaveTypeFormChange = (field: keyof LeaveTypeFormData, value: any) => {
         setLeaveTypeForm(prev => ({
             ...prev,
             [field]: value
         }));
     };
-
-    // const handleSave = async (section: string) => {
-    //     setSaveStatus('saving');
-    //     try {
-    //         // Here you would implement actual security settings API call
-    //         await new Promise(resolve => setTimeout(resolve, 1000));
-    //         setSaveStatus('saved');
-    //         showNotification('success', 'Settings saved successfully!');
-    //         setTimeout(() => setSaveStatus('idle'), 2000);
-    //     } catch (error) {
-    //         setSaveStatus('error');
-    //         showNotification('error', 'Failed to save settings. Please try again.');
-    //         setTimeout(() => setSaveStatus('idle'), 2000);
-    //     }
-    // };
 
     const openLeaveTypeModal = (leaveType?: LeaveType) => {
         if (leaveType) {
