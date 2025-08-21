@@ -169,6 +169,12 @@ const HolidayComponent: React.FC = () => {
     };
 
     const handleDelete = async (holidayId: string) => {
+        const confirmed = window.confirm(
+            'Are you sure you want to delete this holiday? This action cannot be undone.'
+        );
+
+        if (!confirmed) return; // exit if user cancels
+
         try {
             setDeletingId(holidayId);
             await deleteHoliday({ id: holidayId, permanent: false }).unwrap();
@@ -180,6 +186,7 @@ const HolidayComponent: React.FC = () => {
             setDeletingId(null);
         }
     };
+
 
 
     const getTypeBadge = (type: string) => {

@@ -120,10 +120,8 @@ export default function PayrollManagement() {
                     <select value={query.status} onChange={(e) => setQuery((p) => ({ ...p, status: e.target.value }))}
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
                         <option value="">All Status</option>
-                        <option value="unpaid">Unpaid</option>
-                        <option value="processing">Processing</option>
+                        <option value="pending">Pending</option>
                         <option value="paid">Paid</option>
-                        <option value="failed">Failed</option>
                     </select>
                     <div className="flex gap-2">
                         <button onClick={() => { setPage(1); refetch(); }} className="px-4 py-2 border rounded-lg hover:bg-gray-50">Refresh</button>
