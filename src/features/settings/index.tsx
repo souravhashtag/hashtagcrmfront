@@ -185,7 +185,6 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
         sortOrder: 'asc'
     });
 
-    const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
     const [notification, setNotification] = useState<{
         type: 'success' | 'error' | 'info';
         message: string;
@@ -666,15 +665,10 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
                 <div className="pt-6 border-t border-gray-200">
                     <button
                         onClick={() => handleSave('security')}
-                        disabled={saveStatus === 'saving'}
                         className="inline-flex items-center gap-2 px-4 py-2 bg-[#129990] text-white text-sm font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                     >
-                        {saveStatus === 'saving' ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                            <Save className="w-4 h-4" />
-                        )}
-                        {saveStatus === 'saving' ? 'Saving...' : 'Save Security Settings'}
+                        <Save className="w-4 h-4" />
+                        saving
                     </button>
                 </div>
             </div>
@@ -983,11 +977,10 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
                 <div className="pt-6 border-t border-gray-200">
                     <button
                         onClick={() => handleSave('company')}
-                        disabled={saveStatus === 'saving'}
                         className="inline-flex items-center gap-2 px-4 py-2 bg-[#129990] text-white text-sm font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                     >
                         <Save className="w-4 h-4" />
-                        {saveStatus === 'saving' ? 'Saving...' : 'Save Company Settings'}
+                        saving
                     </button>
                 </div>
             </div>
@@ -1260,14 +1253,6 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
                                 );
                             })}
                         </nav>
-
-                        {/* Save Status Indicator */}
-                        {saveStatus === 'saved' && (
-                            <div className="flex items-center gap-2 p-3 mt-4 bg-green-50 text-green-700 rounded-lg border border-green-200">
-                                <CheckCircle className="w-4 h-4" />
-                                <span className="text-sm font-medium">Settings saved successfully!</span>
-                            </div>
-                        )}
                     </div>
                 </div>
 
