@@ -11,8 +11,9 @@ export const tagTypes = [
   'Notice',
   'Company',
   'Country',
-  'Payroll'
-  
+  'Payroll',  
+  'Roster',
+  'RosterStats',
 ] as const;
 
 export const api = createApi({
