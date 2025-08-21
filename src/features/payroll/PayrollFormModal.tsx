@@ -125,12 +125,24 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
         if (!form.employeeId) e.employeeId = 'Employee is required';
         if (!form.month || form.month < 1 || form.month > 12) e.month = 'Month 1-12';
         if (!form.year) e.year = 'Year is required';
-        if (!form.allowances) e.allowances = 'Allowances is required';
-        if (!form.hra) e.hra = 'HRA is required';
-        if (!form.basic) e.basic = 'Basic is required';
+
+        // require these inside salaryStructure
+        const reqKeys = ['basic', 'hra', 'allowances'] as const;
+        reqKeys.forEach((k) => {
+            const v = (form as any)?.salaryStructure?.[k];
+            if (v === '' || v === undefined || v === null) {
+                e[`salaryStructure.${k}`] = `${k.toUpperCase()} is required`;
+            }
+        });
+
         setErrors(e);
         return Object.keys(e).length === 0;
     };
+
+    const err = (path: string) => errors[path];
+    const hasErr = (path: string) => Boolean(errors[path]);
+
+
 
     const submit = async () => {
         if (!validate()) return;
@@ -258,14 +270,28 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                     <div>
                         <h3 className="text-lg font-semibold mb-2">Salary Structure</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {['basic', 'hra', 'allowances', 'bonus', 'overtime', 'otherEarnings'].map((k) => (
-                                <div key={k}>
-                                    <label className="block text-sm font-semibold mb-1">{k === 'otherEarnings' ? 'Other Earnings' : k.toUpperCase()}</label>
-                                    <input value={numberOrEmpty((form as any).salaryStructure?.[k as any])}
-                                        onChange={(e) => handle(`salaryStructure.${k}`, e.target.value)}
-                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" />
-                                </div>
-                            ))}
+                            {['basic', 'hra', 'allowances', 'bonus', 'overtime', 'otherEarnings'].map((k) => {
+                                const path = `salaryStructure.${k}`;
+                                return (
+                                    <div key={k}>
+                                        <label className="block text-sm font-semibold mb-1">
+                                            {k === 'otherEarnings' ? 'Other Earnings' : k.toUpperCase()}
+                                        </label>
+
+                                        <input
+                                            value={numberOrEmpty((form as any).salaryStructure?.[k as any])}
+                                            onChange={(e) => handle(path, e.target.value)}
+                                            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${hasErr(path) ? 'border-red-500 focus:ring-red-500' : ''
+                                                }`}
+                                        />
+
+                                        {err(path) && (
+                                            <p className="text-sm text-red-600 mt-1">{err(path)}</p>
+                                        )}
+                                    </div>
+                                );
+                            })}
+
                         </div>
                     </div>
 
