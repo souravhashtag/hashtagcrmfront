@@ -11,6 +11,7 @@ export const tagTypes = [
   'Notice',
   'Company',
   'Country',
+  'Payroll'
   
 ] as const;
 

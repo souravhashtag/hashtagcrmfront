@@ -29,6 +29,8 @@ import NoticeCreate from '../features/notice/components/NoticeCreate';
 import Settings from '../features/settings';
 import HolidayComponent from '../features/holiday/HolidayComponent';
 import NoticeList from '../features/notice/components/NoticeList';
+import PayrollManagement from '../features/payroll/PayrollManagement';
+import PayrollView from '../features/payroll/PayrollView';
 
 
 
@@ -91,7 +93,7 @@ const AppRoutes = () => {
               <Route path="edit/:id" element={<DesignationCreate />} />
             </Route>
             <Route path="notice">
-              <Route index element={<NoticeList />}  />
+              <Route index element={<NoticeList />} />
               <Route path="create" element={<NoticeCreate />} />
               {/* <Route path="edit/:id" element={<DesignationCreate />} /> */}
             </Route>
@@ -104,13 +106,25 @@ const AppRoutes = () => {
             <Route path="/holidays" element={<HolidayComponent />} />
             <Route path="/roster" element={<Roster />} />
 
-
+            {/* Leave  */}
             <Route path="/leave" element={<Leave />} />
             <Route path="/leave/view/:id" element={<LeaveView />} />
             <Route path="/leave-management" element={<LeaveManagement />} />
+
+
+
+
+            {/* Payroll */}
+            <Route path="/payroll">
+              <Route index element={<Navigate to={`${base}payroll/list`} replace />} />
+              <Route path="list" element={<PayrollManagement />} />
+              {/* <Route path="create" element={< />} />
+              <Route path="edit/:id" element={<PayrollCreate />} /> */}
+              <Route path="view/:id" element={<PayrollView />} />
+            </Route>
           </Route>
         </Route>
-        
+
         {/* Catch all */}
         <Route
           path="*"
