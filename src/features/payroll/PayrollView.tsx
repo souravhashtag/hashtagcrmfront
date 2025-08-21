@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Edit, Calculator, Check, RefreshCw } from 'lucide-react';
 import { useGetPayrollByIdQuery, useSetPaymentStatusMutation, useRecalcTotalsMutation } from '../../services/payrollServices';
 import PayrollFormModal from './PayrollFormModal';
+import PaymentStatusModal from './PaymentStatusModal';
 
 function useQuery() {
     const { search } = useLocation();
@@ -14,13 +15,30 @@ export default function PayrollView() {
     const navigate = useNavigate();
     const q = useQuery();
     const { data: payroll, isLoading, refetch } = useGetPayrollByIdQuery(id!);
-    const [setStatus, { isLoading: setting }] = useSetPaymentStatusMutation();
     const [recalc, { isLoading: recalcing }] = useRecalcTotalsMutation();
     const [showEdit, setShowEdit] = useState(Boolean(q.get('edit')));
+    const [selectedPayrollId, setSelectedPayrollId] = useState<string | null>(null);
+    const [open, setOpen] = useState(false);
+    const [setPaymentStatus, { isLoading: settingStatus }] = useSetPaymentStatusMutation();
 
-    const setPaid = async () => {
-        await setStatus({ id: id!, data: { paymentStatus: 'paid' } }).unwrap();
-        refetch();
+    const handleConfirmPaid = async (p: { paymentMethod: string; transactionId: string; paymentDate?: string }) => {
+        if (!selectedPayrollId) return;
+        try {
+            await setPaymentStatus({
+                id: selectedPayrollId,
+                data: {
+                    paymentStatus: 'paid',
+                    paymentMethod: p.paymentMethod,
+                    transactionId: p.transactionId,
+                    ...(p.paymentDate ? { paymentDate: p.paymentDate } : {}),
+                },
+            }).unwrap();
+            setOpen(false);
+            setSelectedPayrollId(null);
+            refetch();
+        } catch (err) {
+            console.error('Failed to update payment status', err);
+        }
     };
 
     const handleRecalc = async () => {
@@ -51,7 +69,14 @@ export default function PayrollView() {
                     <button onClick={() => setShowEdit(true)} className="px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"><Edit className="w-4 h-4 inline mr-1" /> Edit</button>
                     <button onClick={handleRecalc} disabled={recalcing} className="px-3 py-2 border rounded-lg hover:bg-gray-50"><RefreshCw className="w-4 h-4 inline mr-1" /> Recalculate</button>
                     {payroll.paymentStatus !== 'paid' && (
-                        <button onClick={setPaid} disabled={setting} className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"><Check className="w-4 h-4 inline mr-1" /> Mark Paid</button>
+                        <button
+                            onClick={() => { setSelectedPayrollId(payroll._id); setOpen(true); }}
+                            disabled={settingStatus && selectedPayrollId === payroll._id}
+                            className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                        >
+                            <Check className="w-4 h-4 inline mr-1" />
+                            Mark Paid
+                        </button>
                     )}
                 </div>
             </div>
@@ -129,8 +154,8 @@ export default function PayrollView() {
                         <h2 className="text-xl font-semibold mb-4">Payment</h2>
                         <div className="space-y-2 text-sm">
                             <div>Status: <span className={`px-2 py-0.5 rounded-full text-xs border ${payroll.paymentStatus === 'paid' ? 'bg-green-100 text-green-800 border-green-300' :
-                                    payroll.paymentStatus === 'processing' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
-                                        payroll.paymentStatus === 'failed' ? 'bg-red-100 text-red-800 border-red-300' : 'bg-gray-100 text-gray-800 border-gray-300'
+                                payroll.paymentStatus === 'processing' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
+                                    payroll.paymentStatus === 'failed' ? 'bg-red-100 text-red-800 border-red-300' : 'bg-gray-100 text-gray-800 border-gray-300'
                                 }`}>{String(payroll.paymentStatus || 'unpaid').toUpperCase()}</span></div>
                             <div>Method: {payroll.paymentMethod || '-'}</div>
                             <div>Txn ID: {payroll.transactionId || '-'}</div>
@@ -148,6 +173,11 @@ export default function PayrollView() {
 
             {/* Edit modal */}
             <PayrollFormModal isOpen={showEdit} onClose={() => setShowEdit(false)} editId={id!} initial={payroll as any} onSuccess={() => refetch()} />
+            <PaymentStatusModal
+                open={open}
+                onClose={() => { setOpen(false); setSelectedPayrollId(null); }}
+                onConfirm={handleConfirmPaid}
+            />
         </div>
     );
 }
