@@ -31,6 +31,7 @@ import HolidayComponent from '../features/holiday/HolidayComponent';
 import NoticeList from '../features/notice/components/NoticeList';
 import PayrollManagement from '../features/payroll/PayrollManagement';
 import PayrollView from '../features/payroll/PayrollView';
+import MyPayrolls from '../features/payroll/MyPayrolls';
 
 
 
@@ -113,15 +114,16 @@ const AppRoutes = () => {
 
 
 
-
             {/* Payroll */}
             <Route path="/payroll">
               <Route index element={<Navigate to={`${base}payroll/list`} replace />} />
+
               <Route path="list" element={<PayrollManagement />} />
               {/* <Route path="create" element={< />} />
               <Route path="edit/:id" element={<PayrollCreate />} /> */}
               <Route path="view/:id" element={<PayrollView />} />
             </Route>
+            <Route path='/self-payroll' element={<MyPayrolls />} />
           </Route>
         </Route>
 

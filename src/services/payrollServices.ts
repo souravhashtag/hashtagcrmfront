@@ -25,6 +25,19 @@ export const payrollServices = api.injectEndpoints({
                     : [{ type: 'Payroll', id: 'LIST' }],
         }),
 
+
+        // List My Payrolls
+        getMyPayrolls: builder.query<ListResponse, Record<string, any>>({
+            query: (params) => ({ url: 'payrolls/my', params }),
+            providesTags: (res) =>
+                res?.items
+                    ? [
+                        ...res.items.map((i) => ({ type: 'Payroll' as const, id: i._id })),
+                        { type: 'Payroll', id: 'LIST' },
+                    ]
+                    : [{ type: 'Payroll', id: 'LIST' }],
+        }),
+
         // Get Payroll by ID
         getPayrollById: builder.query<PayrollDoc, string>({
             query: (id) => `payrolls/${id}`,
@@ -97,6 +110,7 @@ export const {
     useCreatePayrollMutation,
     useUpdatePayrollMutation,
     useDeletePayrollMutation,
+    useGetMyPayrollsQuery,
     useSetPaymentStatusMutation,
     useRecalcTotalsMutation,
     useLazyGetPayrollsQuery,

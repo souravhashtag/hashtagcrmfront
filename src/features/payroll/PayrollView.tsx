@@ -16,10 +16,19 @@ export default function PayrollView() {
     const q = useQuery();
     const { data: payroll, isLoading, refetch } = useGetPayrollByIdQuery(id!);
     const [recalc, { isLoading: recalcing }] = useRecalcTotalsMutation();
-    const [showEdit, setShowEdit] = useState(Boolean(q.get('edit')));
     const [selectedPayrollId, setSelectedPayrollId] = useState<string | null>(null);
     const [open, setOpen] = useState(false);
     const [setPaymentStatus, { isLoading: settingStatus }] = useSetPaymentStatusMutation();
+    const location = useLocation();
+
+    // ⬅️ NEW: detect read-only mode (query AND/OR location.state)
+    const readOnly =
+        q.get('readonly') === '1' ||
+        q.get('readonly') === 'true' ||
+        (location.state && (location.state as any).readOnly === true);
+
+    // ⬅️ if readOnly, don’t auto-open edit modal even if ?edit=1 is present
+    const [showEdit, setShowEdit] = useState(!readOnly && Boolean(q.get('edit')));
 
     const handleConfirmPaid = async (p: { paymentMethod: string; transactionId: string; paymentDate?: string }) => {
         if (!selectedPayrollId) return;
@@ -65,20 +74,26 @@ export default function PayrollView() {
                     <h1 className="text-3xl font-bold text-gray-900">Payroll Details</h1>
                     <p className="text-gray-600 mt-1">ID: {payroll._id}</p>
                 </div>
-                <div className="flex gap-2">
-                    <button onClick={() => setShowEdit(true)} className="px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"><Edit className="w-4 h-4 inline mr-1" /> Edit</button>
-                    <button onClick={handleRecalc} disabled={recalcing} className="px-3 py-2 border rounded-lg hover:bg-gray-50"><RefreshCw className="w-4 h-4 inline mr-1" /> Recalculate</button>
-                    {payroll.paymentStatus !== 'paid' && (
-                        <button
-                            onClick={() => { setSelectedPayrollId(payroll._id); setOpen(true); }}
-                            disabled={settingStatus && selectedPayrollId === payroll._id}
-                            className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-                        >
-                            <Check className="w-4 h-4 inline mr-1" />
-                            Mark Paid
+                {!readOnly && (
+                    <div className="flex gap-2">
+                        <button onClick={() => setShowEdit(true)} className="px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
+                            <Edit className="w-4 h-4 inline mr-1" /> Edit
                         </button>
-                    )}
-                </div>
+                        <button onClick={handleRecalc} disabled={recalcing} className="px-3 py-2 border rounded-lg hover:bg-gray-50">
+                            <RefreshCw className="w-4 h-4 inline mr-1" /> Recalculate
+                        </button>
+                        {payroll.paymentStatus !== 'paid' && (
+                            <button
+                                onClick={() => { setSelectedPayrollId(payroll._id); setOpen(true); }}
+                                disabled={settingStatus && selectedPayrollId === payroll._id}
+                                className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                            >
+                                <Check className="w-4 h-4 inline mr-1" />
+                                Mark Paid
+                            </button>
+                        )}
+                    </div>
+                )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -172,12 +187,24 @@ export default function PayrollView() {
             </div>
 
             {/* Edit modal */}
-            <PayrollFormModal isOpen={showEdit} onClose={() => setShowEdit(false)} editId={id!} initial={payroll as any} onSuccess={() => refetch()} />
-            <PaymentStatusModal
-                open={open}
-                onClose={() => { setOpen(false); setSelectedPayrollId(null); }}
-                onConfirm={handleConfirmPaid}
-            />
+            {!readOnly && (
+                <PayrollFormModal
+                    isOpen={showEdit}
+                    onClose={() => setShowEdit(false)}
+                    editId={id!}
+                    initial={payroll as any}
+                    onSuccess={() => refetch()}
+                />
+            )}
+
+            {/* Payment modal — don’t render if readOnly */}
+            {!readOnly && (
+                <PaymentStatusModal
+                    open={open}
+                    onClose={() => { setOpen(false); setSelectedPayrollId(null); }}
+                    onConfirm={handleConfirmPaid}
+                />
+            )}
         </div>
     );
 }
