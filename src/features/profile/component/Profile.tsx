@@ -9,7 +9,6 @@ import {
   Camera,
   Briefcase,
   Clock,
-  Save,
   X,
   Check
 } from 'lucide-react';

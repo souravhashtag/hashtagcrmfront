@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Calendar, Clock, ArrowLeft, Edit, Calculator, Check, X, RefreshCw } from 'lucide-react';
-import { useGetPayrollByIdQuery, useSetPaymentStatusMutation, useRecalcTotalsMutation, useUpdatePayrollMutation } from '../../services/payrollServices';
+import { ArrowLeft, Edit, Calculator, Check, RefreshCw } from 'lucide-react';
+import { useGetPayrollByIdQuery, useSetPaymentStatusMutation, useRecalcTotalsMutation } from '../../services/payrollServices';
 import PayrollFormModal from './PayrollFormModal';
 
 function useQuery() {
@@ -16,7 +16,6 @@ export default function PayrollView() {
     const { data: payroll, isLoading, refetch } = useGetPayrollByIdQuery(id!);
     const [setStatus, { isLoading: setting }] = useSetPaymentStatusMutation();
     const [recalc, { isLoading: recalcing }] = useRecalcTotalsMutation();
-    const [update] = useUpdatePayrollMutation();
     const [showEdit, setShowEdit] = useState(Boolean(q.get('edit')));
 
     const setPaid = async () => {

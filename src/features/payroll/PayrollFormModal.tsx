@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { X, Calendar, Plus, Minus, Calculator } from 'lucide-react';
+import { X, Plus, Minus, Calculator } from 'lucide-react';
 import {
     useCreatePayrollMutation,
     useUpdatePayrollMutation,
@@ -211,18 +211,24 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                                     {initial?.employeeId?.userId?.firstName} {initial?.employeeId?.userId?.lastName}
                                 </div>
                             ) : (
-                                <select
-                                    value={form.employeeId || ''}
-                                    onChange={(e) => handle('employeeId', e.target.value)}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="">Select employee</option>
-                                    {(employees.data ?? []).map((emp: any) => (
-                                        <option key={emp._id} value={emp._id}>
-                                            {emp.userId?.firstName} {emp.userId?.lastName}
-                                        </option>
-                                    ))}
-                                </select>
+
+
+                                loadingEmployees ? (
+                                    <div className="w-full px-3 py-2 border rounded-lg bg-gray-100 text-gray-700" > Loading...</div>
+                                ) : (
+                                    <select
+                                        value={form.employeeId || ''}
+                                        onChange={(e) => handle('employeeId', e.target.value)}
+                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="">Select employee</option>
+                                        {(employees.data ?? []).map((emp: any) => (
+                                            <option key={emp._id} value={emp._id}>
+                                                {emp.userId?.firstName} {emp.userId?.lastName}
+                                            </option>
+                                        ))}
+                                    </select>
+                                )
                             )}
 
                             {errors.employeeId && <p className="text-sm text-red-600 mt-1">{errors.employeeId}</p>}
@@ -379,6 +385,6 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                     </button>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

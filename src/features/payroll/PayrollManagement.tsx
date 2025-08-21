@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { Search, Eye, Edit, Trash2, Download, Check, X, IndianRupee, Plus } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, Eye, Edit, Trash2, Download, Check, Plus } from 'lucide-react';
 import { useGetPayrollsQuery, useDeletePayrollMutation, useSetPaymentStatusMutation } from '../../services/payrollServices';
 import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
@@ -24,7 +24,6 @@ export default function PayrollManagement() {
     });
 
     const [del] = useDeletePayrollMutation();
-    const [setStatus] = useSetPaymentStatusMutation();
 
     const items = data?.items ?? [];
     const pages = data?.pages ?? 1;

@@ -10,7 +10,6 @@ import {
 import { useNavigate } from 'react-router-dom';
 import {
   useGetAllLeavesQuery,
-  useDeleteLeaveMutation,
   useUpdateLeaveStatusMutation
 } from '../../../services/leaveServices';
 import * as XLSX from 'xlsx';
@@ -64,7 +63,6 @@ const LeaveManagement: React.FC = () => {
   });
 
   const [updateLeaveStatus] = useUpdateLeaveStatusMutation();
-  const [deleteLeave] = useDeleteLeaveMutation();
 
   // Reset page when filters change
   useEffect(() => {
@@ -88,7 +86,6 @@ const LeaveManagement: React.FC = () => {
     );
   });
 
-  const canApproveLeave = (leave: any) => leave.status === 'pending';
 
   const handleStatusUpdate = async (leaveId: string, status: 'approved' | 'rejected') => {
     try {

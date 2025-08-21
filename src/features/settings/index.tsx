@@ -35,12 +35,7 @@ import {
     useAddRecipientMutation,
     useGetCompanyDetailsQuery,
     useInitializeCompanyMutation,
-    useRemoveRecipientMutation,
-    useUpdateAddressMutation,
-    useUpdateCeoTalkMessageMutation,
-    useUpdateCompanyInfoMutation,
-    useUpdateContactInfoMutation,
-    useUpdateSenderMutation
+    useUpdateCompanyInfoMutation
 } from '../../services/companyDetailsServices';
 
 interface SettingsSection {
@@ -199,18 +194,11 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
     // Redux hooks
     const {
         data: companyResponse,
-        isLoading: isLoadingCompany,
         error: companyError,
-        refetch: refetchCompany
     } = useGetCompanyDetailsQuery();
-    const [updateCompanyInfo, { isLoading: isUpdatingCompany }] = useUpdateCompanyInfoMutation();
-    const [updateCeoTalkMessage, { isLoading: isUpdatingCeoTalk }] = useUpdateCeoTalkMessageMutation();
-    const [addRecipient, { isLoading: isAddingRecipient }] = useAddRecipientMutation();
-    const [removeRecipient, { isLoading: isRemovingRecipient }] = useRemoveRecipientMutation();
-    const [initializeCompany, { isLoading: isInitializing }] = useInitializeCompanyMutation();
-    const [updateSender] = useUpdateSenderMutation();
-    const [updateAddress] = useUpdateAddressMutation();
-    const [updateContactInfo] = useUpdateContactInfoMutation();
+    const [updateCompanyInfo] = useUpdateCompanyInfoMutation();
+    const [addRecipient] = useAddRecipientMutation();
+    const [initializeCompany] = useInitializeCompanyMutation();
 
     // RTK Query hooks with correct refetch options placement
     const {
@@ -549,36 +537,6 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
             setNewRecipient({ id: '', email: '', name: '' });
         } catch (error) {
             console.error('Error adding recipient:', error);
-        }
-    };
-
-    const handleRemoveRecipient = async (recipientId: string, type: 'to' | 'cc' | 'bcc') => {
-        try {
-            const result = await removeRecipient({
-                recipientId,
-                type
-            }).unwrap();
-
-            // Update local state with the response
-            setCompanyData(prev => ({
-                ...prev,
-                settings: {
-                    ...prev.settings,
-                    recipients: result.data
-                }
-            }));
-        } catch (error) {
-            console.error('Error removing recipient:', error);
-        }
-    };
-
-    const handleSaveCeoTalkMessage = async () => {
-        try {
-            await updateCeoTalkMessage({
-                message: companyData.settings.ceoTalk.Message
-            }).unwrap();
-        } catch (error) {
-            console.error('Error updating CEO talk message:', error);
         }
     };
 
