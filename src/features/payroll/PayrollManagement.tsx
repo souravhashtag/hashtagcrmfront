@@ -200,11 +200,50 @@ export default function PayrollManagement() {
                     <div className="flex items-center justify-between p-4 border-t">
                         <div className="text-sm text-gray-600">Page {page} of {pages}</div>
                         <div className="flex gap-2">
-                            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1 border rounded disabled:opacity-50">Prev</button>
-                            <button onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={page === pages} className="px-3 py-1 border rounded disabled:opacity-50">Next</button>
+                            {/* Prev button */}
+                            <button
+                                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                                className="px-3 py-1 border rounded disabled:opacity-50"
+                            >
+                                Prev
+                            </button>
+
+                            {/* Page number buttons */}
+                            {Array.from({ length: pages }, (_, i) => i + 1)
+                                .filter(p =>
+                                    // Show first page, last page, current page and 2 pages around current
+                                    p === 1 ||
+                                    p === pages ||
+                                    (p >= page - 2 && p <= page + 2)
+                                )
+                                .map((p, idx, arr) => (
+                                    <React.Fragment key={p}>
+                                        {/* Add ellipsis between non-consecutive pages */}
+                                        {idx > 0 && arr[idx] !== arr[idx - 1] + 1 && (
+                                            <span className="px-2">...</span>
+                                        )}
+                                        <button
+                                            onClick={() => setPage(p)}
+                                            className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${p === page ? "z-10 bg-blue-50 border-blue-500 text-blue-600" : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"}`}
+                                        >
+                                            {p}
+                                        </button>
+                                    </React.Fragment>
+                                ))}
+
+                            {/* Next button */}
+                            <button
+                                onClick={() => setPage((p) => Math.min(pages, p + 1))}
+                                disabled={page === pages}
+                                className="px-3 py-1 border rounded disabled:opacity-50"
+                            >
+                                Next
+                            </button>
                         </div>
                     </div>
                 )}
+
             </div>
 
             {/* Create/Edit Modal */}

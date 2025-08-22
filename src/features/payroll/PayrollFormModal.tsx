@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { X, Plus, Minus, Calculator } from 'lucide-react';
+import { X, Calculator } from 'lucide-react';
 import {
     useCreatePayrollMutation,
     useUpdatePayrollMutation,
