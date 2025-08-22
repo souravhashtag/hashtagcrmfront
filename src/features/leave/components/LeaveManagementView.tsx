@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Search,
@@ -11,8 +10,6 @@ import {
 import { useNavigate } from 'react-router-dom';
 import {
   useGetAllLeavesQuery,
-
-  useDeleteLeaveMutation,
   useUpdateLeaveStatusMutation
 } from '../../../services/leaveServices';
 import * as XLSX from 'xlsx';
@@ -28,16 +25,24 @@ const LeaveManagement: React.FC = () => {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [actionType, setActionType] = useState<'approved' | 'rejected'>('approved');
+  const [downloadScope, setDownloadScope] = useState<'current' | 'all'>('current');
   const { user } = useUser();
-
-
 
   const itemsPerPage = 10;
 
-  // Query parameters
+  // Query parameters for current page
   const queryParams = {
     page: currentPage,
     limit: itemsPerPage,
+    search: searchTerm,
+    status: statusFilter,
+    type: typeFilter
+  };
+
+  // Query parameters for all data
+  const allDataQueryParams = {
+    page: 1,
+    limit: 1000, // Large number to fetch all data
     search: searchTerm,
     status: statusFilter,
     type: typeFilter
@@ -50,25 +55,26 @@ const LeaveManagement: React.FC = () => {
     refetch
   } = useGetAllLeavesQuery(queryParams);
 
+  const {
+    data: allLeavesData,
+    refetch: refetchAll
+  } = useGetAllLeavesQuery(allDataQueryParams, {
+    skip: downloadScope !== 'all' 
+  });
+
   const [updateLeaveStatus] = useUpdateLeaveStatusMutation();
-
-  const [deleteLeave] = useDeleteLeaveMutation();
-
 
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter, typeFilter]);
 
-
   const filteredLeaves = (leavesData?.data ?? []).filter((leave: any) => {
     const term = searchTerm.trim().toLowerCase();
-    if (!term) return true; // No search, include all
+    if (!term) return true;
 
     const employeeName = `${leave.employeeId?.userId?.firstName || ''} ${leave.employeeId?.userId?.lastName || ''}`.toLowerCase();
     const status = (leave.status || '').toLowerCase();
-
-    // Convert dates to string for comparison
     const startDate = leave.startDate ? new Date(leave.startDate).toLocaleDateString('en-US') : '';
     const endDate = leave.endDate ? new Date(leave.endDate).toLocaleDateString('en-US') : '';
 
@@ -79,7 +85,6 @@ const LeaveManagement: React.FC = () => {
       endDate.includes(term)
     );
   });
-  const canApproveLeave = (leave: any) => leave.status === 'pending';
 
 
   const handleStatusUpdate = async (leaveId: string, status: 'approved' | 'rejected') => {
@@ -99,32 +104,24 @@ const LeaveManagement: React.FC = () => {
     }
   };
 
-
-  const handleDelete = async (leaveId: string) => {
-    if (window.confirm('Are you sure you want to delete this leave request?')) {
-      try {
-        await deleteLeave(leaveId).unwrap();
-        refetch();
-      } catch (error) {
-        console.error('Error deleting leave:', error);
-      }
-    }
-  };
-
-
   const openStatusModal = (leave: any, action: 'approved' | 'rejected') => {
     setSelectedLeave(leave._id);
     setActionType(action);
     setShowStatusModal(true);
   };
 
-
-
-  // Export to CSV function
-  const handleExportCSV = () => {
+  // Export to Excel function
+  const handleExportExcel = async () => {
     try {
+      // Determine which data to export based on downloadScope
+      let exportData = filteredLeaves;
+      if (downloadScope === 'all') {
+        await refetchAll();
+        exportData = allLeavesData?.data ?? [];
+      }
+
       // Prepare data with better formatting
-      const excelData = filteredLeaves.map((leave: any, index: number) => ({
+      const excelData = exportData.map((leave: any, index: number) => ({
         'S.No': index + 1,
         'Employee Name': `${leave.employeeId?.userId?.firstName || ''} ${leave.employeeId?.userId?.lastName || ''}`.trim() || 'N/A',
         'Employee ID': leave.employeeId?.employeeId || 'N/A',
@@ -186,7 +183,7 @@ const LeaveManagement: React.FC = () => {
       // Style the header row
       const headerStyle = {
         font: { bold: true, color: { rgb: "FFFFFF" } },
-        fill: { fgColor: { rgb: "4F46E5" } }, // Blue background
+        fill: { fgColor: { rgb: "4F46E5" } },
         alignment: { horizontal: "center", vertical: "center" },
         border: {
           top: { style: "thin", color: { rgb: "000000" } },
@@ -206,51 +203,47 @@ const LeaveManagement: React.FC = () => {
 
       // Style data rows with alternating colors and status-based coloring
       excelData.forEach((row, rowIndex) => {
-        const actualRowIndex = rowIndex + 1; // +1 because header is row 0
+        const actualRowIndex = rowIndex + 1;
 
         headers.forEach((header, colIndex) => {
           const cellAddress = XLSX.utils.encode_cell({ c: colIndex, r: actualRowIndex });
           if (!ws[cellAddress]) ws[cellAddress] = {};
 
-          // Alternating row colors
-          const isEvenRow = actualRowIndex % 2 === 0;
-          let fillColor = isEvenRow ? "F8FAFC" : "FFFFFF"; // Light gray for even rows
+          let fillColor = actualRowIndex % 2 === 0 ? "F8FAFC" : "FFFFFF";
 
-          // Status-based coloring
           if (header === 'Status') {
             const status = row[header].toLowerCase();
             switch (status) {
               case 'approved':
-                fillColor = "D1FAE5"; // Light green
+                fillColor = "D1FAE5";
                 break;
               case 'rejected':
-                fillColor = "FEE2E2"; // Light red
+                fillColor = "FEE2E2";
                 break;
               case 'pending':
-                fillColor = "FEF3C7"; // Light yellow
+                fillColor = "FEF3C7";
                 break;
               case 'cancelled':
-                fillColor = "F3F4F6"; // Light gray
+                fillColor = "F3F4F6";
                 break;
             }
           }
 
-          // Leave type coloring
           if (header === 'Leave Type') {
             const leaveType = row[header].toLowerCase();
             switch (leaveType) {
               case 'casual':
-                fillColor = "DBEAFE"; // Light blue
+                fillColor = "DBEAFE";
                 break;
               case 'medical':
-                fillColor = "FED7E2"; // Light pink
+                fillColor = "FED7E2";
                 break;
               case 'annual':
-                fillColor = "D1FAE5"; // Light green
+                fillColor = "D1FAE5";
                 break;
               case 'maternity':
               case 'paternity':
-                fillColor = "E9D5FF"; // Light purple
+                fillColor = "E9D5FF";
                 break;
             }
           }
@@ -267,7 +260,6 @@ const LeaveManagement: React.FC = () => {
             font: { color: { rgb: "374151" } }
           };
 
-          // Special formatting for specific columns
           if (header === 'Total Days') {
             ws[cellAddress].s.font = { bold: true, color: { rgb: "1F2937" } };
           }
@@ -278,10 +270,8 @@ const LeaveManagement: React.FC = () => {
         });
       });
 
-      // Add the worksheet to workbook
       XLSX.utils.book_append_sheet(wb, ws, "Leave Requests");
 
-      // Generate filename with current date and filter info
       const currentDate = new Date().toISOString().split('T')[0];
       const filterInfo = [];
       if (statusFilter) filterInfo.push(`status-${statusFilter}`);
@@ -289,14 +279,12 @@ const LeaveManagement: React.FC = () => {
       if (searchTerm) filterInfo.push(`search-${searchTerm.replace(/[^a-zA-Z0-9]/g, '')}`);
 
       const filterSuffix = filterInfo.length > 0 ? `-${filterInfo.join('-')}` : '';
-      const filename = `leave-requests-${currentDate}${filterSuffix}.xlsx`;
+      const scopeSuffix = downloadScope === 'all' ? '-all' : '-page';
+      const filename = `leave-requests-${currentDate}${filterSuffix}${scopeSuffix}.xlsx`;
 
-      // Write and download file
       XLSX.writeFile(wb, filename);
 
-      // Show success message
       console.log('Excel file exported successfully!');
-
     } catch (error) {
       console.error('Error exporting Excel:', error);
       alert('Failed to export Excel file. Please try again.');
@@ -361,7 +349,6 @@ const LeaveManagement: React.FC = () => {
     }
   };
 
-  // Helper function to render action buttons
   const renderActionButtons = (leave: any) => (
     <div className="flex items-center gap-2">
       <button
@@ -472,13 +459,20 @@ const LeaveManagement: React.FC = () => {
             </select>
 
             {/* Export Button */}
+            <select
+              value={downloadScope}
+              onChange={(e) => setDownloadScope(e.target.value as 'current' | 'all')}
+              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="current">Current Page</option>
+              <option value="all">All Data</option>
+            </select>
             <button
-              onClick={handleExportCSV}
-              disabled={filteredLeaves.length === 0}
-              className="bg-[#129990] text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#1dbfb4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleExportExcel}
+              className="flex items-center gap-2 px-4 py-2 bg-[#129990] text-white rounded-lg hover:bg-[#1dbfb4]"
             >
               <Download className="w-4 h-4" />
-              Export CSV
+              Export Excel
             </button>
           </div>
         </div>
@@ -569,7 +563,7 @@ const LeaveManagement: React.FC = () => {
                       {leave.approvedBy ? (
                         `${leave.approvedBy.firstName || ''} ${leave.approvedBy.lastName || ''}`
                       ) : (
-                        '-'
+                        'Yet to process'
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">

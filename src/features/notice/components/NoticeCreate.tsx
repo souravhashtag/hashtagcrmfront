@@ -51,7 +51,7 @@ const NoticeCreate: React.FC = () => {
   const handleCancel = () => {
     navigate('/notice');
   };
-
+console.log("Form Data:");
   return (
     <>
       <div className="mx-auto bg-white rounded-lg shadow-sm border">

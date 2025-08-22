@@ -12,10 +12,17 @@ import {
     CheckCircle,
     Loader2,
     AlertCircle,
-    RefreshCw
+    RefreshCw,
+    Upload,
+    Phone,
+    Mail,
+    Globe,
+    MapPin,
+    MessageSquare,
+    Send,
+    Building2
 } from 'lucide-react';
 
-// Import the actual Redux services
 import {
     useGetLeaveTypesQuery,
     useCreateLeaveTypeMutation,
@@ -24,6 +31,12 @@ import {
     LeaveType,
     LeaveTypeFormData
 } from '../../services/leaveTypesServices';
+import {
+    useAddRecipientMutation,
+    useGetCompanyDetailsQuery,
+    useInitializeCompanyMutation,
+    useUpdateCompanyInfoMutation
+} from '../../services/companyDetailsServices';
 
 interface SettingsSection {
     id: string;
@@ -31,13 +44,62 @@ interface SettingsSection {
     icon: React.ComponentType<any>;
     description: string;
 }
+interface Recipient {
+    id: string;
+    email: string;
+    name: string;
+}
 
+interface CompanyData {
+    name: string;
+    domain: string;
+    logo: string;
+    address: {
+        street: string;
+        city: string;
+        state: string;
+        country: string;
+        zipCode: string;
+    };
+    contactInfo: {
+        phone: string;
+        email: string;
+        website: string;
+    };
+    ceo: {
+        userId: string;
+        signature: string;
+        bio: string;
+        profileImage: string;
+    };
+    settings: {
+        ceoTalk: {
+            Message: string;
+        };
+        recipients: {
+            to: Array<{ id: string, email: string, name: string }>;
+            cc: Array<{ id: string, email: string, name: string }>;
+            bcc: Array<{ id: string, email: string, name: string }>;
+        };
+        sender: {
+            userId: string;
+            email: string;
+            name: string;
+        };
+    };
+}
 const settingsSections: SettingsSection[] = [
     {
         id: 'leave-types',
         name: 'Leave Type Management',
         icon: Calendar,
         description: 'Manage leave types, policies, and configurations'
+    },
+    {
+        id: 'company',
+        name: 'Company Settings',
+        icon: Building2,
+        description: 'Company information, contact details, and business settings'
     },
     {
         id: 'security',
@@ -48,6 +110,52 @@ const settingsSections: SettingsSection[] = [
 ];
 
 const CorrectedLeaveManagementSettings: React.FC = () => {
+    const [companyData, setCompanyData] = useState<CompanyData>({
+        name: '',
+        domain: '',
+        logo: '',
+        address: {
+            street: '',
+            city: '',
+            state: '',
+            country: '',
+            zipCode: ''
+        },
+        contactInfo: {
+            phone: '',
+            email: '',
+            website: ''
+        },
+        ceo: {
+            userId: '',
+            signature: '',
+            bio: '',
+            profileImage: ''
+        },
+        settings: {
+            ceoTalk: {
+                Message: "Thank you for reaching out. Your success is our priority. We will get back to you soon."
+            },
+            recipients: {
+                to: [],
+                cc: [],
+                bcc: []
+            },
+            sender: {
+                userId: '',
+                email: '',
+                name: ''
+            }
+        }
+    });
+
+    const [showRecipientModal, setShowRecipientModal] = useState(false);
+    const [recipientType, setRecipientType] = useState<'to' | 'cc' | 'bcc'>('to');
+    const [newRecipient, setNewRecipient] = useState<Recipient>({
+        id: '',
+        email: '',
+        name: ''
+    });
     const [activeSection, setActiveSection] = useState('leave-types'); // Start with leave types
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
@@ -77,11 +185,19 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
         sortOrder: 'asc'
     });
 
-    const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
     const [notification, setNotification] = useState<{
         type: 'success' | 'error' | 'info';
         message: string;
     } | null>(null);
+
+    // Redux hooks
+    const {
+        data: companyResponse,
+        error: companyError,
+    } = useGetCompanyDetailsQuery();
+    const [updateCompanyInfo] = useUpdateCompanyInfoMutation();
+    const [addRecipient] = useAddRecipientMutation();
+    const [initializeCompany] = useInitializeCompanyMutation();
 
     // RTK Query hooks with correct refetch options placement
     const {
@@ -166,33 +282,11 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
         setTimeout(() => setNotification(null), 5000);
     };
 
-    const handleInputChange = (field: string, value: any) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: value
-        }));
-    };
-
     const handleLeaveTypeFormChange = (field: keyof LeaveTypeFormData, value: any) => {
         setLeaveTypeForm(prev => ({
             ...prev,
             [field]: value
         }));
-    };
-
-    const handleSave = async (section: string) => {
-        setSaveStatus('saving');
-        try {
-            // Here you would implement actual security settings API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            setSaveStatus('saved');
-            showNotification('success', 'Settings saved successfully!');
-            setTimeout(() => setSaveStatus('idle'), 2000);
-        } catch (error) {
-            setSaveStatus('error');
-            showNotification('error', 'Failed to save settings. Please try again.');
-            setTimeout(() => setSaveStatus('idle'), 2000);
-        }
     };
 
     const openLeaveTypeModal = (leaveType?: LeaveType) => {
@@ -293,6 +387,134 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
     const handleManualRefresh = () => {
         refetchLeaveTypes();
         showNotification('info', 'Refreshing leave types...');
+    };
+    // Check if company exists and needs initialization
+    const needsInitialization = companyError && (companyError as any)?.status === 404;
+
+    // Update local state when Redux data changes
+    useEffect(() => {
+        if (companyResponse?.success && companyResponse.data) {
+            setCompanyData(companyResponse.data);
+        }
+    }, [companyResponse]);
+
+    // Initialize company if it doesn't exist
+    const handleInitializeCompany = async () => {
+        try {
+            const initData = {
+                ...companyData,
+                ceo: {
+                    userId: "686ba39694a7d69724c00846"
+                },
+                settings: {
+                    sender: {
+                        userId: "6889f63d0a09308db5b5b4b2",
+                        email: "anubrati@hashtagbizsolutions.com",
+                        name: "Anubrati Mitra"
+                    }
+                }
+            };
+            const result = await initializeCompany(initData).unwrap();
+            // After successful initialization, the query will automatically refetch
+            console.log('Company initialized successfully:', result);
+        } catch (error) {
+            console.error('Error initializing company:', error);
+        }
+    };
+
+    const handleInputChange = (field: string, value: any) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
+
+    const handleCompanyDataChange = (field: string, value: any) => {
+        const fieldParts = field.split('.');
+
+        if (fieldParts.length === 1) {
+            setCompanyData(prev => ({
+                ...prev,
+                [field]: value
+            }));
+        } else if (fieldParts.length === 2) {
+            setCompanyData(prev => {
+                const [parentKey, childKey] = fieldParts;
+                return {
+                    ...prev,
+                    [parentKey]: {
+                        ...(prev[parentKey as keyof CompanyData] as Record<string, any>),
+                        [childKey]: value
+                    }
+                };
+            });
+        } else if (fieldParts.length === 3) {
+            setCompanyData(prev => {
+                const [parentKey, middleKey, childKey] = fieldParts;
+                const parentObj = prev[parentKey as keyof CompanyData] as Record<string, any>;
+                const middleObj = parentObj[middleKey] as Record<string, any>;
+
+                return {
+                    ...prev,
+                    [parentKey]: {
+                        ...parentObj,
+                        [middleKey]: {
+                            ...middleObj,
+                            [childKey]: value
+                        }
+                    }
+                };
+            });
+        }
+    };
+
+    const handleSave = async (section: string) => {
+        try {
+            switch (section) {
+                case 'security':
+                    // Handle security settings (implement your security update logic)
+                    console.log('Saving security settings:', formData);
+                    break;
+
+                case 'company':
+                    if (needsInitialization) {
+                        await handleInitializeCompany();
+                    } else {
+                        await updateCompanyInfo(companyData).unwrap();
+                    }
+                    break;
+
+                case 'leave-types':
+                    // Handle leave types save
+                    console.log('Saving leave types:', leaveTypes);
+                    break;
+            }
+        } catch (error) {
+            console.error('Save error:', error);
+        }
+    };
+
+    const handleAddRecipient = async () => {
+        try {
+            const result = await addRecipient({
+                type: recipientType,
+                recipientData: newRecipient
+            }).unwrap();
+
+            // Update local state with the response
+            setCompanyData(prev => ({
+                ...prev,
+                settings: {
+                    ...prev.settings,
+                    recipients: result.data
+                }
+            }));
+
+            setShowRecipientModal(false);
+            setNewRecipient({ id: '', email: '', name: '' });
+        } catch (error) {
+            console.error('Error adding recipient:', error);
+        }
     };
 
     // Toggle Switch Component
@@ -421,15 +643,322 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
                 <div className="pt-6 border-t border-gray-200">
                     <button
                         onClick={() => handleSave('security')}
-                        disabled={saveStatus === 'saving'}
                         className="inline-flex items-center gap-2 px-4 py-2 bg-[#129990] text-white text-sm font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                     >
-                        {saveStatus === 'saving' ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                            <Save className="w-4 h-4" />
-                        )}
-                        {saveStatus === 'saving' ? 'Saving...' : 'Save Security Settings'}
+                        <Save className="w-4 h-4" />
+                        saving
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+
+
+    const renderCompanySettings = () => (
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200 bg-[#129990]">
+                <h2 className="text-xl font-bold text-white mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>Company Settings</h2>
+                <p className="text-sm text-teal-100">Manage your company information and business settings</p>
+            </div>
+
+            <div className="p-6 space-y-8">
+                {/* Basic Company Information */}
+                <div className="pb-6 border-b border-gray-200">
+                    <h3 className="text-base font-semibold text-gray-900 mb-4">Basic Information</h3>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Company Name
+                            </label>
+                            <input
+                                type="text"
+                                value={companyData.name}
+                                onChange={(e) => handleCompanyDataChange('name', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
+                                placeholder="Enter company name"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Domain
+                            </label>
+                            <input
+                                type="text"
+                                value={companyData.domain}
+                                onChange={(e) => handleCompanyDataChange('domain', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
+                                placeholder="company.com"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="mb-4">
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Company Logo
+                        </label>
+                        <div className="flex items-center gap-4">
+                            {companyData.logo && (
+                                <img src={companyData.logo} alt="Company Logo" className="w-16 aspect-square object-contain rounded-lg border bg-[#111D32]" />
+                            )}
+                            <div className="flex-1">
+                                <input
+                                    type="text"
+                                    value={companyData.logo}
+                                    onChange={(e) => handleCompanyDataChange('logo', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
+                                    placeholder="Logo URL or upload path"
+                                />
+                            </div>
+                            <button className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm">
+                                <Upload className="w-4 h-4" />
+                                Upload
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Contact Information */}
+                <div className="pb-6 border-b border-gray-200">
+                    <h3 className="text-base font-semibold text-gray-900 mb-4">Contact Information</h3>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                <Phone className="w-4 h-4 inline mr-1" />
+                                Phone
+                            </label>
+                            <input
+                                type="tel"
+                                value={companyData.contactInfo.phone}
+                                onChange={(e) => handleCompanyDataChange('contactInfo.phone', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
+                                placeholder="+1 (555) 123-4567"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                <Mail className="w-4 h-4 inline mr-1" />
+                                Email
+                            </label>
+                            <input
+                                type="email"
+                                value={companyData.contactInfo.email}
+                                onChange={(e) => handleCompanyDataChange('contactInfo.email', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
+                                placeholder="contact@company.com"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                <Globe className="w-4 h-4 inline mr-1" />
+                                Website
+                            </label>
+                            <input
+                                type="url"
+                                value={companyData.contactInfo.website}
+                                onChange={(e) => handleCompanyDataChange('contactInfo.website', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
+                                placeholder="https://company.com"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Address */}
+                <div className="pb-6 border-b border-gray-200">
+                    <h3 className="text-base font-semibold text-gray-900 mb-4">
+                        <MapPin className="w-4 h-4 inline mr-1" />
+                        Address
+                    </h3>
+
+                    <div className="mb-4">
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Street Address
+                        </label>
+                        <input
+                            type="text"
+                            value={companyData.address.street}
+                            onChange={(e) => handleCompanyDataChange('address.street', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
+                            placeholder="123 Business Street"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                City
+                            </label>
+                            <input
+                                type="text"
+                                value={companyData.address.city}
+                                onChange={(e) => handleCompanyDataChange('address.city', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
+                                placeholder="New York"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                State
+                            </label>
+                            <input
+                                type="text"
+                                value={companyData.address.state}
+                                onChange={(e) => handleCompanyDataChange('address.state', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
+                                placeholder="NY"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Country
+                            </label>
+                            <input
+                                type="text"
+                                value={companyData.address.country}
+                                onChange={(e) => handleCompanyDataChange('address.country', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
+                                placeholder="United States"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                ZIP Code
+                            </label>
+                            <input
+                                type="text"
+                                value={companyData.address.zipCode}
+                                onChange={(e) => handleCompanyDataChange('address.zipCode', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
+                                placeholder="10001"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* CEO Talk Message */}
+                <div className="pb-6 border-b border-gray-200">
+                    <h3 className="text-base font-semibold text-gray-900 mb-4">
+                        <MessageSquare className="w-4 h-4 inline mr-1" />
+                        CEO Talk Message
+                    </h3>
+
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Default Message
+                        </label>
+                        <textarea
+                            value={companyData.settings.ceoTalk.Message}
+                            onChange={(e) => handleCompanyDataChange('settings.ceoTalk.Message', e.target.value)}
+                            rows={4}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
+                            placeholder="Enter the default CEO talk message..."
+                        />
+                        <p className="text-xs text-gray-500 mt-1">This message will be displayed when users contact through CEO Talk feature.</p>
+                    </div>
+                </div>
+
+                {/* Email Recipients */}
+                <div className="pb-6 border-b border-gray-200">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-base font-semibold text-gray-900">
+                            <Send className="w-4 h-4 inline mr-1" />
+                            Email Recipients
+                        </h3>
+                        <button
+                            onClick={() => {
+                                setRecipientType('to');
+                                setShowRecipientModal(true);
+                            }}
+                            className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#129990] text-white text-xs font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 transition-colors"
+                        >
+                            <Plus className="w-3 h-3" />
+                            Add Recipient
+                        </button>
+                    </div>
+
+                    {/* TO Recipients */}
+                    <div className="mb-4">
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">To</label>
+                        <div className="space-y-2">
+                            {companyData.settings.recipients.to.map((recipient, index) => (
+                                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                                    <div>
+                                        <span className="text-sm font-medium">{recipient.name}</span>
+                                        <span className="text-xs text-gray-500 ml-2">{recipient.email}</span>
+                                    </div>
+                                    <button
+                                        // onClick={() => removeRecipient(recipient.id, 'to')}
+                                        className="text-red-600 hover:text-red-800 p-1"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            ))}
+                            {companyData.settings.recipients.to.length === 0 && (
+                                <p className="text-sm text-gray-500 italic">No recipients added</p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* CC Recipients */}
+                    <div className="mb-4">
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">CC</label>
+                        <div className="space-y-2">
+                            {companyData.settings.recipients.cc.map((recipient, index) => (
+                                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                                    <div>
+                                        <span className="text-sm font-medium">{recipient.name}</span>
+                                        <span className="text-xs text-gray-500 ml-2">{recipient.email}</span>
+                                    </div>
+                                    <button
+                                        // onClick={() => removeRecipient(recipient.id, 'cc')}
+                                        className="text-red-600 hover:text-red-800 p-1"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            ))}
+                            {companyData.settings.recipients.cc.length === 0 && (
+                                <p className="text-sm text-gray-500 italic">No CC recipients added</p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* BCC Recipients */}
+                    <div className="mb-4">
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">BCC</label>
+                        <div className="space-y-2">
+                            {companyData.settings.recipients.bcc.map((recipient, index) => (
+                                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                                    <div>
+                                        <span className="text-sm font-medium">{recipient.name}</span>
+                                        <span className="text-xs text-gray-500 ml-2">{recipient.email}</span>
+                                    </div>
+                                    <button
+                                        // onClick={() => removeRecipient(recipient.id, 'bcc')}
+                                        className="text-red-600 hover:text-red-800 p-1"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            ))}
+                            {companyData.settings.recipients.bcc.length === 0 && (
+                                <p className="text-sm text-gray-500 italic">No BCC recipients added</p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Save Button */}
+                <div className="pt-6 border-t border-gray-200">
+                    <button
+                        onClick={() => handleSave('company')}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-[#129990] text-white text-sm font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                    >
+                        <Save className="w-4 h-4" />
+                        saving
                     </button>
                 </div>
             </div>
@@ -474,58 +1003,6 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
                         </button>
                     </div>
                 )}
-
-                {/* Filters */}
-                {/* <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
-                            <input
-                                type="text"
-                                value={queryParams.search}
-                                onChange={(e) => handleQueryParamsChange('search', e.target.value)}
-                                placeholder="Search leave types..."
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                            <select
-                                value={queryParams.isPaid}
-                                onChange={(e) => handleQueryParamsChange('isPaid', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                            >
-                                <option value="">All Types</option>
-                                <option value="true">Paid Leave</option>
-                                <option value="false">Unpaid Leave</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
-                            <select
-                                value={queryParams.sortBy}
-                                onChange={(e) => handleQueryParamsChange('sortBy', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                            >
-                                <option value="name">Name</option>
-                                <option value="leaveCount">Leave Count</option>
-                                <option value="createdAt">Created Date</option>
-                                <option value="updatedAt">Modified Date</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Order</label>
-                            <select
-                                value={queryParams.sortOrder}
-                                onChange={(e) => handleQueryParamsChange('sortOrder', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                            >
-                                <option value="asc">Ascending</option>
-                                <option value="desc">Descending</option>
-                            </select>
-                        </div>
-                    </div>
-                </div> */}
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
@@ -701,10 +1178,12 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
 
     const renderContent = () => {
         switch (activeSection) {
-            case 'security':
-                return renderSecuritySettings();
             case 'leave-types':
                 return renderLeaveTypesManagement();
+            case 'company':
+                return renderCompanySettings();
+            case 'security':
+                return renderSecuritySettings();
             default:
                 return renderSecuritySettings();
         }
@@ -752,14 +1231,6 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
                                 );
                             })}
                         </nav>
-
-                        {/* Save Status Indicator */}
-                        {saveStatus === 'saved' && (
-                            <div className="flex items-center gap-2 p-3 mt-4 bg-green-50 text-green-700 rounded-lg border border-green-200">
-                                <CheckCircle className="w-4 h-4" />
-                                <span className="text-sm font-medium">Settings saved successfully!</span>
-                            </div>
-                        )}
                     </div>
                 </div>
 
@@ -768,6 +1239,86 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
                     {renderContent()}
                 </div>
             </div>
+
+
+            {/* Recipient Modal */}
+            {showRecipientModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+                        <div className="px-6 py-4 border-b border-gray-200 bg-[#129990]">
+                            <h3 className="text-lg font-bold text-white" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                                Add Email Recipient
+                            </h3>
+                            <p className="text-sm text-teal-100 mt-1">
+                                Add a new recipient to your email list
+                            </p>
+                        </div>
+
+                        <div className="p-6">
+                            <div className="mb-4">
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    Recipient Type
+                                </label>
+                                <select
+                                    value={recipientType}
+                                    onChange={(e) => setRecipientType(e.target.value as 'to' | 'cc' | 'bcc')}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
+                                >
+                                    <option value="to">To</option>
+                                    <option value="cc">CC</option>
+                                    <option value="bcc">BCC</option>
+                                </select>
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    Name
+                                </label>
+                                <input
+                                    type="text"
+                                    value={newRecipient.name}
+                                    onChange={(e) => setNewRecipient(prev => ({ ...prev, name: e.target.value }))}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
+                                    placeholder="Enter recipient name"
+                                />
+                            </div>
+
+                            <div className="mb-6">
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    Email
+                                </label>
+                                <input
+                                    type="email"
+                                    value={newRecipient.email}
+                                    onChange={(e) => setNewRecipient(prev => ({ ...prev, email: e.target.value }))}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
+                                    placeholder="Enter email address"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3 bg-gray-50">
+                            <button
+                                onClick={() => {
+                                    setShowRecipientModal(false);
+                                    setNewRecipient({ id: '', email: '', name: '' });
+                                }}
+                                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 text-sm font-semibold transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleAddRecipient}
+                                disabled={!newRecipient.name || !newRecipient.email}
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-[#129990] text-white text-sm font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                            >
+                                <Plus className="w-4 h-4" />
+                                Add Recipient
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Leave Type Modal */}
             {showLeaveTypeModal && (
