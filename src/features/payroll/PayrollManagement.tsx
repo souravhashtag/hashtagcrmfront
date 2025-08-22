@@ -171,7 +171,9 @@ export default function PayrollManagement() {
                                     <td className="px-6 py-3 whitespace-nowrap text-sm">
                                         <div className="flex items-center gap-2">
                                             <button onClick={() => navigate(`/payroll/view/${p._id}`)} className="p-1 text-blue-600 hover:text-blue-800" title="View"><Eye className="w-4 h-4" /></button>
-                                            <button onClick={() => navigate(`/payroll/view/${p._id}?edit=1`)} className="p-1 text-emerald-600 hover:text-emerald-800" title="Edit"><Edit className="w-4 h-4" /></button>
+                                            {p.paymentStatus !== 'paid' && (
+                                                <button onClick={() => navigate(`/payroll/view/${p._id}?edit=1`)} className="p-1 text-emerald-600 hover:text-emerald-800" title="Edit"><Edit className="w-4 h-4" /></button>
+                                            )}
                                             <button onClick={() => {
                                                 handleDelete(p._id);
                                             }} className="p-1 text-red-600 hover:text-red-800" title="Delete"><Trash2 className="w-4 h-4" /></button>

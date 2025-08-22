@@ -6,6 +6,7 @@ import {
     PayrollDoc,
 } from '../../services/payrollServices';
 import { useGetEmployeesQuery } from '../../services/employeeServices';
+import { useListDeductionRulesQuery } from '../../services/salaryDeductionRuleServices';
 
 
 interface Props {
@@ -16,7 +17,41 @@ interface Props {
     onSuccess?: () => void;
 }
 
+type RuleMode = 'fixed' | 'percent_of_basic' | 'percent_of_gross';
+type DeductionRule = {
+    _id: string;
+    name: string;
+    code: string;
+    type: string;
+    active: boolean;
+    compute: { mode: RuleMode; fixedAmount?: number; percent?: number };
+};
+
 const numberOrEmpty = (v: any) => (v === 0 || v ? String(v) : '');
+
+
+function getBases(form: any) {
+    const s = form?.salaryStructure || {};
+    const baseBasic = Number(form?.basicSalary) || 0;
+    const basic = Number(s.basic ?? baseBasic) || 0;
+    const hra = Number(s.hra) || 0;
+    const allowances = Number(s.allowances) || 0;
+    const sBonus = Number(s.bonus) || 0;
+    const sOT = Number(s.overtime) || 0;
+    const other = Number(s.otherEarnings) || 0;
+    const tBonus = Number(form?.bonus) || 0;
+    const tOT = Number(form?.overtimePay) || 0;
+    const gross = basic + hra + allowances + sBonus + sOT + other + tBonus + tOT;
+    return { basic, gross };
+}
+
+function computeAmountForRule(rule: DeductionRule, bases: { basic: number; gross: number }) {
+    const { mode, fixedAmount = 0, percent = 0 } = rule.compute || {};
+    if (mode === 'fixed') return Math.max(0, Number(fixedAmount) || 0);
+    if (mode === 'percent_of_basic') return Math.max(0, ((Number(percent) || 0) / 100) * bases.basic);
+    if (mode === 'percent_of_gross') return Math.max(0, ((Number(percent) || 0) / 100) * bases.gross);
+    return 0;
+}
 
 export default function PayrollFormModal({ isOpen, onClose, editId, initial, onSuccess }: Props) {
     const isEdit = Boolean(editId);
@@ -39,45 +74,135 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
         limit: 1000,
         search: ''
     });
+    const { data: rulesResp } = useListDeductionRulesQuery({ activeOnly: true });
+    const activeRules: DeductionRule[] = (rulesResp?.data || []).filter((r: any) => r.active);
 
+    const [selectedRuleIds, setSelectedRuleIds] = useState<string[]>([]);
+
+
+    // helper: try to find the rule that created a saved deduction
+    function findRuleIdForSavedDeduction(d: any, rules: DeductionRule[]) {
+        // 1) match by rule name stored in description
+        let rule = rules.find(r => r.name?.trim() && r.name.trim() === (d.description || '').trim());
+        if (rule) return rule._id;
+
+        // 2) match by type
+        rule = rules.find(r => r.type && r.type === d.type);
+        if (rule) return rule._id;
+
+        // 3) match by code (if you used code in 'type' previously)
+        rule = rules.find(r => r.code && r.code === d.type);
+        if (rule) return rule._id;
+
+        return undefined;
+    }
+
+
+
+    const hydratedRef = React.useRef(false);
 
     useEffect(() => {
-        if (isOpen) {
-            if (isEdit && initial) {
-                setForm({
-                    ...initial,
-                    basicSalary: numberOrEmpty(initial.basicSalary),
-                    bonus: numberOrEmpty(initial.bonus),
-                    overtimePay: numberOrEmpty(initial.overtimePay),
-                    salaryStructure: {
-                        basic: numberOrEmpty(initial.salaryStructure?.basic),
-                        hra: numberOrEmpty(initial.salaryStructure?.hra),
-                        allowances: numberOrEmpty(initial.salaryStructure?.allowances),
-                        bonus: numberOrEmpty(initial.salaryStructure?.bonus),
-                        overtime: numberOrEmpty(initial.salaryStructure?.overtime),
-                        otherEarnings: numberOrEmpty(initial.salaryStructure?.otherEarnings),
-                    },
-                    deductions: (initial.deductions ?? []).map((d: any) => ({
-                        type: d.type || '',
-                        amount: numberOrEmpty(d.amount),
-                        description: d.description || '',
-                    })),
-                } as any);
-            } else {
-                setForm({
-                    employeeId: '',
-                    month: new Date().getMonth() + 1,
-                    year: new Date().getFullYear(),
-                    basicSalary: '',
-                    bonus: '',
-                    overtimePay: '',
-                    salaryStructure: {},
-                    deductions: [],
-                } as any);
-            }
-            setErrors({});
+        if (!isOpen) { hydratedRef.current = false; return; }
+        if (!(isEdit && initial)) return;
+        if (hydratedRef.current) return;            // <-- prevents re-runs
+
+        // (optional) if you need rules to be present first:
+        // if (!rulesResp) return;
+
+        const enrichedDeds = (initial.deductions ?? []).map((d: any) => {
+            const fromRuleId = findRuleIdForSavedDeduction(d, activeRules);
+            return {
+                type: d.type || '',
+                amount: numberOrEmpty(d.amount),
+                description: d.description || '',
+                _fromRule: fromRuleId,
+            };
+        });
+
+        setForm({
+            ...initial,
+            basicSalary: numberOrEmpty(initial.basicSalary),
+            bonus: numberOrEmpty(initial.bonus),
+            overtimePay: numberOrEmpty(initial.overtimePay),
+            salaryStructure: {
+                basic: numberOrEmpty(initial.salaryStructure?.basic),
+                hra: numberOrEmpty(initial.salaryStructure?.hra),
+                allowances: numberOrEmpty(initial.salaryStructure?.allowances),
+                bonus: numberOrEmpty(initial.salaryStructure?.bonus),
+                overtime: numberOrEmpty(initial.salaryStructure?.overtime),
+                otherEarnings: numberOrEmpty(initial.salaryStructure?.otherEarnings),
+            },
+            deductions: enrichedDeds,
+        } as any);
+
+        setSelectedRuleIds(
+            enrichedDeds.map((d: any) => d._fromRule).filter(Boolean) as string[]
+        );
+
+        setErrors({});
+        hydratedRef.current = true;                 // <-- lock it to one-time init
+    }, [isOpen, isEdit, initial, activeRules, rulesResp]);
+
+
+
+
+    // helper: shallow compare (type+amount+description) so we don't set state unnecessarily
+    function sameDeductions(a: any[] = [], b: any[] = []) {
+        if (a.length !== b.length) return false;
+        for (let i = 0; i < a.length; i++) {
+            if (a[i].type !== b[i].type) return false;
+            // compare as numbers (avoid "100" vs 100 diffs)
+            if (Number(a[i].amount) !== Number(b[i].amount)) return false;
+            if ((a[i].description || '') !== (b[i].description || '')) return false;
         }
-    }, [isOpen, isEdit, initial]);
+        return true;
+    }
+
+
+
+
+
+
+    // mark rule rows so we can remove them when deselected
+    useEffect(() => {
+        const bases = getBases(form);
+        const chosen = activeRules.filter(r => selectedRuleIds.includes(r._id));
+
+        // build fresh rule deductions (tag each with _fromRule)
+        const ruleDeductions = chosen.map((r) => ({
+            type: r.type,
+            amount: Number(computeAmountForRule(r, bases).toFixed(2)),
+            description: r.name,
+            _fromRule: r._id,
+        }));
+
+        // if you DON'T support manual rows, just use ruleDeductions:
+        // const next = ruleDeductions;
+
+        // if you DO want to keep manual rows, keep only ones NOT created by rules:
+        const manualKeepers = (form.deductions ?? []).filter((d: any) => d && !d._fromRule);
+        const next = [...ruleDeductions, ...manualKeepers];
+
+        if (!sameDeductions(next, form.deductions as any[])) {
+            setForm(prev => ({ ...prev, deductions: next }));
+        }
+
+    }, [
+        selectedRuleIds,
+        activeRules,
+        form.basicSalary,
+        form.bonus, form.overtimePay,
+        form.salaryStructure?.basic,
+        form.salaryStructure?.hra,
+        form.salaryStructure?.allowances,
+        form.salaryStructure?.bonus,
+        form.salaryStructure?.overtime,
+        form.salaryStructure?.otherEarnings,
+    ]);
+
+
+
+
 
     const handle = (path: string, value: any) => {
         setForm((prev: any) => {
@@ -92,13 +217,6 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
             return copy;
         });
     };
-
-    const addDeduction = () =>
-        handle('deductions', [
-            ...(form.deductions ?? []),
-            { type: '', amount: '', description: '' },
-        ]);
-    const removeDeduction = (idx: number) => handle('deductions', (form.deductions ?? []).filter((_: any, i: number) => i !== idx));
 
     // Client-side totals preview (mirrors backend calc)
     const totals = useMemo(() => {
@@ -218,7 +336,26 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                                 ) : (
                                     <select
                                         value={form.employeeId || ''}
-                                        onChange={(e) => handle('employeeId', e.target.value)}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            handle('employeeId', value);
+
+                                            if (!isEdit) {
+                                                const selected = (employees?.data ?? []).find((emp: any) => emp._id === value);
+                                                const amt = selected?.salary?.amount;
+
+                                                setForm(prev => ({
+                                                    ...prev,
+                                                    basicSalary: amt != null ? String(amt) : '',
+                                                    salaryStructure: {
+                                                        ...(prev.salaryStructure ?? {}),
+                                                        basic: amt != null ? String(amt) : ''
+                                                    },
+                                                }));
+                                            }
+                                        }}
+
+
                                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                                     >
                                         <option value="">Select employee</option>
@@ -257,8 +394,8 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label className="block text-sm font-semibold mb-1">Basic Salary</label>
-                            <input value={numberOrEmpty((form as any).basicSalary)} onChange={(e) => handle('basicSalary', e.target.value)}
-                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" />
+                            <input disabled value={numberOrEmpty((form as any).basicSalary)}
+                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-100 text-gray-600 cursor-not-allowed" />
                         </div>
                         <div>
                             <label className="block text-sm font-semibold mb-1">Bonus (Top-level)</label>
@@ -278,6 +415,7 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {['basic', 'hra', 'allowances', 'bonus', 'overtime', 'otherEarnings'].map((k) => {
                                 const path = `salaryStructure.${k}`;
+                                const isBasic = k === 'basic';
                                 return (
                                     <div key={k}>
                                         <label className="block text-sm font-semibold mb-1">
@@ -287,71 +425,86 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                                         <input
                                             value={numberOrEmpty((form as any).salaryStructure?.[k as any])}
                                             onChange={(e) => handle(path, e.target.value)}
+                                            disabled={isBasic}   // <<<<<< LOCK BASIC HERE
                                             className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${hasErr(path) ? 'border-red-500 focus:ring-red-500' : ''
-                                                }`}
+                                                } ${isBasic ? 'bg-gray-100 text-gray-600 cursor-not-allowed' : ''}`}
                                         />
 
-                                        {err(path) && (
-                                            <p className="text-sm text-red-600 mt-1">{err(path)}</p>
-                                        )}
+                                        {err(path) && <p className="text-sm text-red-600 mt-1">{err(path)}</p>}
                                     </div>
                                 );
                             })}
+
 
                         </div>
                     </div>
 
                     {/* Deductions */}
-                    <div>
-                        <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-lg font-semibold">Deductions</h3>
-                            <button onClick={addDeduction} className="flex items-center gap-2 px-3 py-1.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"><Plus className="w-4 h-4" />Add</button>
-                        </div>
-                        {(form.deductions ?? []).length === 0 && (
-                            <p className="text-sm text-gray-500">No deductions added.</p>
-                        )}
-                        <div className="space-y-3">
-                            {(form.deductions ?? []).map((d: any, idx: number) => (
-                                <div key={idx} className="grid grid-cols-1 md:grid-cols-[1fr_100px_1fr_40px] items-center gap-3">
-                                    <input
-                                        placeholder="Type (e.g., tax, pf)"
-                                        value={d.type}
-                                        onChange={(e) => {
-                                            const copy = [...form.deductions];
-                                            copy[idx] = { ...copy[idx], type: e.target.value };
-                                            handle('deductions', copy);
-                                        }}
-                                        className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                                    />
-                                    <input
-                                        placeholder="Amount"
-                                        value={d.amount}
-                                        onChange={(e) => {
-                                            const copy = [...form.deductions];
-                                            copy[idx] = { ...copy[idx], amount: e.target.value };
-                                            handle('deductions', copy);
-                                        }}
-                                        className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                                    />
-                                    <input
-                                        placeholder="Description"
-                                        value={d.description}
-                                        onChange={(e) => {
-                                            const copy = [...form.deductions];
-                                            copy[idx] = { ...copy[idx], description: e.target.value };
-                                            handle('deductions', copy);
-                                        }}
-                                        className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                                    />
-                                    <button onClick={() => removeDeduction(idx)} className="p-2 rounded-lg border text-red-600 hover:bg-red-50">
-                                        <Minus className="w-4 h-4" />
+                    {form.employeeId && (
+                        <div>
+                            <div className="flex items-center justify-between mb-2">
+                                <h3 className="text-lg font-semibold">Deductions</h3>
+                                <div className="flex items-center gap-3">
+                                    {/* Optional: Select All / None */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setSelectedRuleIds(activeRules.map(r => r._id))}
+                                        className="px-3 py-1.5 border rounded-lg hover:bg-gray-50"
+                                    >
+                                        Select all
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setSelectedRuleIds([])}
+                                        className="px-3 py-1.5 border rounded-lg hover:bg-gray-50"
+                                    >
+                                        Clear
                                     </button>
                                 </div>
+                            </div>
 
-                            ))}
+                            {/* Available active rules to choose */}
+
+                            <div className="border rounded-lg p-3 mb-4">
+                                {activeRules.length === 0 && form.employeeId ? (
+                                    <div className="text-sm text-gray-500">No active deduction rules available.</div>
+                                ) : (
+                                    <div className="grid md:grid-cols-2 gap-2">
+                                        {activeRules.map((r) => {
+                                            const bases = getBases(form);
+                                            const amount = computeAmountForRule(r, bases);
+                                            const checked = selectedRuleIds.includes(r._id);
+                                            return (
+                                                <label key={r._id} className="flex items-center justify-between gap-3 p-2 border rounded-lg cursor-pointer hover:bg-gray-50">
+                                                    <div className="flex items-center gap-2">
+                                                        <input
+                                                            type="checkbox"
+                                                            className="h-4 w-4"
+                                                            checked={checked}
+                                                            onChange={(e) => {
+                                                                setSelectedRuleIds((prev) =>
+                                                                    e.target.checked ? [...prev, r._id] : prev.filter(id => id !== r._id)
+                                                                );
+                                                            }}
+                                                        />
+                                                        <div className="font-medium">{r.name}</div>
+                                                        <div className="text-xs text-gray-500">
+                                                            {r.compute.mode === 'fixed'
+                                                                ? 'Fixed'
+                                                                : r.compute.mode === 'percent_of_basic'
+                                                                    ? `${r.compute.percent}% of Basic`
+                                                                    : `${r.compute.percent}% of Gross`}
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-sm font-semibold">{(Number(amount || 0))}</div>
+                                                </label>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    </div>
-
+                    )}
                     {/* Totals Preview */}
                     <div className="p-4 rounded-lg border bg-blue-50">
                         <div className="flex items-center gap-2 text-blue-800 font-medium mb-2"><Calculator className="w-4 h-4" /> Totals (Preview)</div>
