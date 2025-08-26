@@ -20,7 +20,8 @@ import {
     MapPin,
     MessageSquare,
     Send,
-    Building2
+    Building2,
+    ChartColumnDecreasing
 } from 'lucide-react';
 
 import {
@@ -103,10 +104,10 @@ const settingsSections: SettingsSection[] = [
         icon: Building2,
         description: 'Company information, contact details, and business settings'
     },
-     {
+    {
         id: 'deductions',
         name: 'Deductions Settings',
-        icon: Building2,
+        icon: ChartColumnDecreasing,
         description: 'Salary Deduction information'
     },
     {
