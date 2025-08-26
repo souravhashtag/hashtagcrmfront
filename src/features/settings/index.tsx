@@ -37,6 +37,8 @@ import {
     useInitializeCompanyMutation,
     useUpdateCompanyInfoMutation
 } from '../../services/companyDetailsServices';
+import TaxDeductionModal from './TaxDeductionModal';
+import DeductionRulesPage from './pages/DeductionRulesPage';
 
 interface SettingsSection {
     id: string;
@@ -101,6 +103,12 @@ const settingsSections: SettingsSection[] = [
         icon: Building2,
         description: 'Company information, contact details, and business settings'
     },
+     {
+        id: 'deductions',
+        name: 'Deductions Settings',
+        icon: Building2,
+        description: 'Salary Deduction information'
+    },
     {
         id: 'security',
         name: 'Security & Privacy',
@@ -158,6 +166,8 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
     });
     const [activeSection, setActiveSection] = useState('leave-types'); // Start with leave types
     const [showPassword, setShowPassword] = useState(false);
+    const [showTaxModal, setShowTaxModal] = useState(false);
+    const [editingRule, setEditingRule] = useState<any | null>(null);
     const [formData, setFormData] = useState({
         currentPassword: '',
         newPassword: '',
@@ -1176,12 +1186,21 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
         </div>
     );
 
+
+    const renderDeductionsSettings = () => (
+        <>
+            <DeductionRulesPage />
+        </>
+    );
+
     const renderContent = () => {
         switch (activeSection) {
             case 'leave-types':
                 return renderLeaveTypesManagement();
             case 'company':
                 return renderCompanySettings();
+            case 'deductions':
+                return renderDeductionsSettings();
             case 'security':
                 return renderSecuritySettings();
             default:
@@ -1414,6 +1433,22 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
                     </div>
                 </div>
             )}
+
+
+
+
+            {/* Tax Deduction Modal - Add this to your existing modals section */}
+            {/* {showTaxDeductionModal && ( */}
+
+            {/* <button onClick={() => setShowTaxModal(true)} className="mt-4 px-4 py-2 bg-[#129990] text-white text-sm font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-colors">
+                Open Tax Deduction Modal
+            </button>
+            <TaxDeductionModal
+                isOpen={showTaxModal}
+                onClose={() => { setShowTaxModal(false); setEditingRule(null); }}
+                editingRule={editingRule}
+            /> */}
+            {/* )} */}
         </div>
     );
 };

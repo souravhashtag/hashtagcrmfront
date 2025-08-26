@@ -6,6 +6,7 @@ import {
     PayrollDoc,
 } from '../../services/payrollServices';
 import { useGetEmployeesQuery } from '../../services/employeeServices';
+import { useGetCompanyPartOfSalaryQuery } from '../../services/companyDetailsServices';
 import { useListDeductionRulesQuery } from '../../services/salaryDeductionRuleServices';
 
 
@@ -24,6 +25,8 @@ type DeductionRule = {
     code: string;
     type: string;
     active: boolean;
+    is_applicable?: boolean;
+    tax_slab?: any[];
     compute: { mode: RuleMode; fixedAmount?: number; percent?: number };
 };
 
@@ -32,20 +35,31 @@ const numberOrEmpty = (v: any) => (v === 0 || v ? String(v) : '');
 
 function getBases(form: any) {
     const s = form?.salaryStructure || {};
-    const baseBasic = Number(form?.basicSalary) || 0;
-    const basic = Number(s.basic ?? baseBasic) || 0;
-    const hra = Number(s.hra) || 0;
-    const allowances = Number(s.allowances) || 0;
-    const sBonus = Number(s.bonus) || 0;
-    const sOT = Number(s.overtime) || 0;
-    const other = Number(s.otherEarnings) || 0;
-    const tBonus = Number(form?.bonus) || 0;
-    const tOT = Number(form?.overtimePay) || 0;
-    const gross = basic + hra + allowances + sBonus + sOT + other + tBonus + tOT;
+    const baseBasic = Number(form?.grossSalary) || 0;
+    const basic = Number(s.basic) || 0;
+    const gross = baseBasic;
     return { basic, gross };
 }
 
-function computeAmountForRule(rule: DeductionRule, bases: { basic: number; gross: number }) {
+function computeAmountForRule(
+    rule: DeductionRule,
+    bases: { basic: number; gross: number }
+) {
+    // ✅ Slab-first: rate is a FIXED AMOUNT
+    if (rule.is_applicable && Array.isArray(rule.tax_slab) && rule.tax_slab.length > 0) {
+        const base = bases.gross; // or bases.basic if your slabs apply to basic
+        const matched = rule.tax_slab.find((s: any) =>
+            (s.from == null || base >= Number(s.from)) &&
+            (s.to == null || base <= Number(s.to))
+        );
+        if (matched) {
+            const amt = Number(matched.rate) || 0; // ← fixed amount
+            return Math.max(0, amt);
+        }
+        return 0;
+    }
+
+    // Fallbacks for non-slab rules
     const { mode, fixedAmount = 0, percent = 0 } = rule.compute || {};
     if (mode === 'fixed') return Math.max(0, Number(fixedAmount) || 0);
     if (mode === 'percent_of_basic') return Math.max(0, ((Number(percent) || 0) / 100) * bases.basic);
@@ -53,13 +67,14 @@ function computeAmountForRule(rule: DeductionRule, bases: { basic: number; gross
     return 0;
 }
 
+
 export default function PayrollFormModal({ isOpen, onClose, editId, initial, onSuccess }: Props) {
     const isEdit = Boolean(editId);
     const [form, setForm] = useState<PayrollDoc>(() => ({
         employeeId: '',
         month: new Date().getMonth() + 1,
         year: new Date().getFullYear(),
-        basicSalary: '',
+        grossSalary: '',
         bonus: '',
         overtimePay: '',
         salaryStructure: {},
@@ -69,13 +84,19 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [createPayroll, { isLoading: creating }] = useCreatePayrollMutation();
     const [updatePayroll, { isLoading: updating }] = useUpdatePayrollMutation();
+    const fmtMoney = (n: number) => `₹ ${Number(n || 0).toFixed(2)}`;
     const { data: employees = [], isLoading: loadingEmployees } = useGetEmployeesQuery({
         page: 1,
         limit: 1000,
         search: ''
     });
-    const { data: rulesResp } = useListDeductionRulesQuery({ activeOnly: true });
-    const activeRules: DeductionRule[] = (rulesResp?.data || []).filter((r: any) => r.active);
+    // const { data: rulesResp } = useListDeductionRulesQuery({ activeOnly: true });
+    const { data: companyPartData } = useGetCompanyPartOfSalaryQuery();
+
+
+    const { data: rulesResp } = useListDeductionRulesQuery();
+    const activeRules: DeductionRule[] = (rulesResp?.data || []).filter((r) => r.active);
+
 
     const [selectedRuleIds, setSelectedRuleIds] = useState<string[]>([]);
 
@@ -121,7 +142,7 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
 
         setForm({
             ...initial,
-            basicSalary: numberOrEmpty(initial.basicSalary),
+            grossSalary: numberOrEmpty(initial.grossSalary),
             bonus: numberOrEmpty(initial.bonus),
             overtimePay: numberOrEmpty(initial.overtimePay),
             salaryStructure: {
@@ -221,19 +242,9 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
     // Client-side totals preview (mirrors backend calc)
     const totals = useMemo(() => {
         const s: any = form.salaryStructure || {};
-        const baseBasic = Number(form.basicSalary) || 0;
-        const basic = Number(s.basic ?? baseBasic) || 0;
-        const hra = Number(s.hra) || 0;
-        const allowances = Number(s.allowances) || 0;
-        const sBonus = Number(s.bonus) || 0;
-        const sOvertime = Number(s.overtime) || 0;
-        const otherEarnings = Number(s.otherEarnings) || 0;
-        const tBonus = Number(form.bonus) || 0;
-        const tOT = Number(form.overtimePay) || 0;
-
-        const earnings = basic + hra + allowances + sBonus + sOvertime + otherEarnings + tBonus + tOT;
+        const baseBasic = Number(form.grossSalary) || 0;
         const ded = (form.deductions ?? []).reduce((acc: number, d: any) => acc + (Number(d.amount) || 0), 0);
-        const gross = Math.max(0, earnings);
+        const gross = Math.max(0, baseBasic);
         const net = Math.max(0, gross - Math.max(0, ded));
         return { earnings: gross, deductions: Math.max(0, ded), net };
     }, [form]);
@@ -266,7 +277,7 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
         if (!validate()) return;
         const payload: any = { ...form };
         // Coerce numbers to match backend normalizePayload
-        ['month', 'year', 'basicSalary', 'bonus', 'overtimePay'].forEach((k) => {
+        ['month', 'year', 'grossSalary', 'bonus', 'overtimePay'].forEach((k) => {
             if ((payload as any)[k] !== undefined && (payload as any)[k] !== '') {
                 (payload as any)[k] = Number((payload as any)[k]);
             } else if ((payload as any)[k] === '') {
@@ -340,19 +351,50 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                                             const value = e.target.value;
                                             handle('employeeId', value);
 
+                                            // if (!isEdit) {
+                                            //     const selected = (employees?.data ?? []).find((emp: any) => emp._id === value);
+                                            //     const amt = selected?.salary?.amount;
+
+                                            //     setForm(prev => ({
+                                            //         ...prev,
+                                            //         grossSalary: amt != null ? String(amt) : '',
+                                            //         salaryStructure: {
+                                            //             ...(prev.salaryStructure ?? {}),
+                                            //             // basic: amt != null ? String(amt) : ''
+                                            //         },
+                                            //     }));
+                                            // }
+
                                             if (!isEdit) {
                                                 const selected = (employees?.data ?? []).find((emp: any) => emp._id === value);
-                                                const amt = selected?.salary?.amount;
+                                                const grossAmount = selected?.salary?.amount;
 
-                                                setForm(prev => ({
-                                                    ...prev,
-                                                    basicSalary: amt != null ? String(amt) : '',
-                                                    salaryStructure: {
-                                                        ...(prev.salaryStructure ?? {}),
-                                                        basic: amt != null ? String(amt) : ''
-                                                    },
-                                                }));
+                                                if (companyPartData?.data) {
+                                                    const components = companyPartData.data;
+
+                                                    const getPercent = (code: string) => {
+                                                        return components.find((c: any) => c.code === code)?.percent || 0;
+                                                    };
+
+                                                    const gross = grossAmount != null ? Number(grossAmount) : 0;
+
+                                                    const computedBasic = (gross * getPercent('basic')) / 100;
+                                                    const computedHra = (gross * getPercent('hra')) / 100;
+                                                    const computedAllowances = (gross * getPercent('allowances')) / 100;
+
+                                                    setForm(prev => ({
+                                                        ...prev,
+                                                        grossSalary: gross ? String(gross) : '',
+                                                        salaryStructure: {
+                                                            ...(prev.salaryStructure ?? {}),
+                                                            basic: gross ? String(computedBasic) : '',
+                                                            hra: gross ? String(computedHra) : '',
+                                                            allowances: gross ? String(computedAllowances) : '',
+                                                        },
+                                                    }));
+                                                }
                                             }
+
                                         }}
 
 
@@ -393,8 +435,8 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                     {/* Row: Base + Top-level */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label className="block text-sm font-semibold mb-1">Basic Salary</label>
-                            <input disabled value={numberOrEmpty((form as any).basicSalary)}
+                            <label className="block text-sm font-semibold mb-1">Gross Salary</label>
+                            <input disabled value={numberOrEmpty((form as any).grossSalary)}
                                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-100 text-gray-600 cursor-not-allowed" />
                         </div>
                         <div>
@@ -415,7 +457,7 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {['basic', 'hra', 'allowances', 'bonus', 'overtime', 'otherEarnings'].map((k) => {
                                 const path = `salaryStructure.${k}`;
-                                const isBasic = k === 'basic';
+                                const isBasic = ['basic', 'hra', 'allowances'].includes(k);
                                 return (
                                     <div key={k}>
                                         <label className="block text-sm font-semibold mb-1">
@@ -470,12 +512,25 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                                     <div className="text-sm text-gray-500">No active deduction rules available.</div>
                                 ) : (
                                     <div className="grid md:grid-cols-2 gap-2">
-                                        {activeRules.map((r) => {
+                                        {activeRules.map((r:any) => {
                                             const bases = getBases(form);
                                             const amount = computeAmountForRule(r, bases);
                                             const checked = selectedRuleIds.includes(r._id);
+
+                                            const isSlab = r.is_applicable && Array.isArray(r.tax_slab) && r.tax_slab.length > 0;
+                                            let matched: any;
+                                            if (isSlab) {
+                                                matched = r.tax_slab.find((s: any) =>
+                                                    (s.from == null || bases.gross >= Number(s.from)) &&
+                                                    (s.to == null || bases.gross <= Number(s.to))
+                                                );
+                                            }
+
                                             return (
-                                                <label key={r._id} className="flex items-center justify-between gap-3 p-2 border rounded-lg cursor-pointer hover:bg-gray-50">
+                                                <label
+                                                    key={r._id}
+                                                    className="flex items-center justify-between gap-3 p-2 border rounded-lg cursor-pointer hover:bg-gray-50"
+                                                >
                                                     <div className="flex items-center gap-2">
                                                         <input
                                                             type="checkbox"
@@ -489,17 +544,29 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                                                         />
                                                         <div className="font-medium">{r.name}</div>
                                                         <div className="text-xs text-gray-500">
-                                                            {r.compute.mode === 'fixed'
-                                                                ? 'Fixed'
-                                                                : r.compute.mode === 'percent_of_basic'
-                                                                    ? `${r.compute.percent}% of Basic`
-                                                                    : `${r.compute.percent}% of Gross`}
+                                                            {isSlab ? (
+                                                                <>
+                                                                    <span className="inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 mr-1">
+                                                                        Slab-based
+                                                                    </span>
+                                                                    {matched
+                                                                        ? `(${matched.from ?? 0} - ${matched.to ?? '∞'} @ ₹${Number(matched.rate) || 0} fixed)`
+                                                                        : `(no matching slab for ₹${bases.gross})`}
+                                                                </>
+                                                            ) : r.compute.mode === 'fixed' ? (
+                                                                `Fixed ₹${Number(r.compute.fixedAmount) || 0}`
+                                                            ) : r.compute.mode === 'percent_of_basic' ? (
+                                                                `${r.compute.percent ?? 0}% of Basic`
+                                                            ) : (
+                                                                `${r.compute.percent ?? 0}% of Gross`
+                                                            )}
                                                         </div>
                                                     </div>
-                                                    <div className="text-sm font-semibold">{(Number(amount || 0))}</div>
+                                                    <div className="text-sm font-semibold">₹{Number(amount || 0)}</div>
                                                 </label>
                                             );
                                         })}
+
                                     </div>
                                 )}
                             </div>

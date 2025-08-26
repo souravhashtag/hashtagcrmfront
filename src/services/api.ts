@@ -14,6 +14,7 @@ export const tagTypes = [
   'Payroll',  
   'Roster',
   'RosterStats',
+  'DeductionRules'
 ] as const;
 
 export const api = createApi({
