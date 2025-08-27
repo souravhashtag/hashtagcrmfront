@@ -5,7 +5,7 @@ import {
     useUpsertPercentRuleMutation,
     useUpdatePercentRuleByIdMutation,
     useDeleteDeductionRuleMutation,
-} from '../../services/salaryDeductionRuleServices';
+} from '../../../services/salaryDeductionRuleServices';
 
 type RuleModeUI = 'fixed' | 'percent_of_basic' | 'percent_of_gross';
 type Slab = { from?: number; to?: number; rate?: number };

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Plus, Edit3, Trash2, RefreshCw, Loader2, Search } from 'lucide-react';
-import TaxDeductionModal from '../TaxDeductionModal';
+import TaxDeductionModal from '../components/TaxDeductionModal';
 import {
     useListDeductionRulesQuery,
     useDeleteDeductionRuleMutation,

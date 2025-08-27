@@ -1,25 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
     Shield,
-    Save,
-    Plus,
-    Edit3,
-    Trash2,
     X,
     Calendar,
-    Eye,
-    EyeOff,
     CheckCircle,
-    Loader2,
     AlertCircle,
-    RefreshCw,
-    Upload,
-    Phone,
-    Mail,
-    Globe,
-    MapPin,
-    MessageSquare,
-    Send,
     Building2,
     ChartColumnDecreasing
 } from 'lucide-react';
@@ -38,8 +23,12 @@ import {
     useInitializeCompanyMutation,
     useUpdateCompanyInfoMutation
 } from '../../services/companyDetailsServices';
-import TaxDeductionModal from './TaxDeductionModal';
 import DeductionRulesPage from './pages/DeductionRulesPage';
+import LeaveTypeModal from './components/LeaveTypeModal';
+import RecipientModal from './components/RecipientModal';
+import CompanySettingsPage from './pages/CompanySettingsPage';
+import LeaveTypesManagementPage from './pages/LeaveTypesManagementPage';
+import SecuritySettingsPage from './pages/SecuritySettingsPage';
 
 interface SettingsSection {
     id: string;
@@ -167,8 +156,6 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
     });
     const [activeSection, setActiveSection] = useState('leave-types'); // Start with leave types
     const [showPassword, setShowPassword] = useState(false);
-    const [showTaxModal, setShowTaxModal] = useState(false);
-    const [editingRule, setEditingRule] = useState<any | null>(null);
     const [formData, setFormData] = useState({
         currentPassword: '',
         newPassword: '',
@@ -182,6 +169,7 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
     const [leaveTypeForm, setLeaveTypeForm] = useState<LeaveTypeFormData>({
         name: '',
         leaveCount: 0,
+        monthlyDays: 0,
         ispaidLeave: true,
         carryforward: false
     });
@@ -305,61 +293,51 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
             setEditingLeaveType(leaveType);
             setLeaveTypeForm({
                 name: leaveType.name,
+                monthlyDays: (leaveType.leaveCount || 0) / 12,  // 👈 keep decimals
                 leaveCount: leaveType.leaveCount,
                 ispaidLeave: leaveType.ispaidLeave,
-                carryforward: leaveType.carryforward
+                carryforward: leaveType.carryforward,
             });
         } else {
             setEditingLeaveType(null);
             setLeaveTypeForm({
                 name: '',
+                monthlyDays: 0,
                 leaveCount: 0,
                 ispaidLeave: true,
-                carryforward: false
+                carryforward: false,
             });
         }
         setShowLeaveTypeModal(true);
     };
 
+
+
     const handleSaveLeaveType = async () => {
         try {
+            const payload = {
+                ...leaveTypeForm,
+                leaveCount: (leaveTypeForm.monthlyDays || 0) * 12, // 👈 decimals preserved
+            };
+
             let result;
-
             if (editingLeaveType) {
-                // Update existing leave type
-                result = await updateLeaveType({
-                    id: editingLeaveType._id,
-                    data: leaveTypeForm
-                }).unwrap();
-
+                result = await updateLeaveType({ id: editingLeaveType._id, data: payload }).unwrap();
                 showNotification('success', result.message || 'Leave type updated successfully!');
             } else {
-                // Create new leave type
-                result = await createLeaveType(leaveTypeForm).unwrap();
-
+                result = await createLeaveType(payload).unwrap();
                 showNotification('success', result.message || 'Leave type created successfully!');
             }
 
             setShowLeaveTypeModal(false);
             setEditingLeaveType(null);
-
-            // The cache will automatically invalidate and refetch due to invalidatesTags
-
         } catch (error: any) {
             console.error('Error saving leave type:', error);
-
-            // Handle specific backend validation errors
-            let errorMessage = 'Failed to save leave type. Please try again.';
-
-            if (error?.data?.message) {
-                errorMessage = error.data.message;
-            } else if (error?.message) {
-                errorMessage = error.message;
-            }
-
+            let errorMessage = error?.data?.message || error?.message || 'Failed to save leave type. Please try again.';
             showNotification('error', errorMessage);
         }
     };
+
 
     const handleDeleteLeaveType = async (id: string, name: string) => {
         if (window.confirm(`Are you sure you want to delete "${name}" leave type?`)) {
@@ -528,30 +506,6 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
         }
     };
 
-    // Toggle Switch Component
-    const ToggleSwitch: React.FC<{
-        checked: boolean;
-        onChange: (checked: boolean) => void;
-        label: string;
-        description: string;
-    }> = ({ checked, onChange, label, description }) => (
-        <div className="flex items-center justify-between py-4 border-b border-gray-200 last:border-b-0">
-            <div className="flex-1">
-                <span className="block font-semibold text-gray-700 mb-1">{label}</span>
-                <p className="text-sm text-gray-500 m-0">{description}</p>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer ml-4">
-                <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={(e) => onChange(e.target.checked)}
-                    className="sr-only peer"
-                />
-                <div className="w-12 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-6 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#129990]"></div>
-            </label>
-        </div>
-    );
-
     // Notification Component
     const NotificationBanner = () => {
         if (!notification) return null;
@@ -581,610 +535,43 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
     };
 
     const renderSecuritySettings = () => (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 bg-[#129990]">
-                <h2 className="text-xl font-bold text-white mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>Security & Privacy</h2>
-                <p className="text-sm text-teal-100">Manage your password, two-factor authentication, and privacy settings</p>
-            </div>
-
-            <div className="p-6">
-                <div className="mb-8 pb-6 border-b border-gray-200">
-                    <h3 className="text-base font-semibold text-gray-900 mb-4">Change Password</h3>
-
-                    <div className="mb-4">
-                        <label htmlFor="currentPassword" className="block text-sm font-semibold text-gray-700 mb-2">
-                            Current Password
-                        </label>
-                        <div className="relative">
-                            <input
-                                type={showPassword ? 'text' : 'password'}
-                                id="currentPassword"
-                                value={formData.currentPassword}
-                                onChange={(e) => handleInputChange('currentPassword', e.target.value)}
-                                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
-                            >
-                                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label htmlFor="newPassword" className="block text-sm font-semibold text-gray-700 mb-2">
-                                New Password
-                            </label>
-                            <input
-                                type={showPassword ? 'text' : 'password'}
-                                id="newPassword"
-                                value={formData.newPassword}
-                                onChange={(e) => handleInputChange('newPassword', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 mb-2">
-                                Confirm New Password
-                            </label>
-                            <input
-                                type={showPassword ? 'text' : 'password'}
-                                id="confirmPassword"
-                                value={formData.confirmPassword}
-                                onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="mb-6">
-                    <h3 className="text-base font-semibold text-gray-900 mb-4">Two-Factor Authentication</h3>
-                    <ToggleSwitch
-                        checked={formData.twoFactorEnabled}
-                        onChange={(checked) => handleInputChange('twoFactorEnabled', checked)}
-                        label="Enable Two-Factor Authentication"
-                        description="Add an extra layer of security to your account"
-                    />
-                </div>
-
-                <div className="pt-6 border-t border-gray-200">
-                    <button
-                        onClick={() => handleSave('security')}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-[#129990] text-white text-sm font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                    >
-                        <Save className="w-4 h-4" />
-                        saving
-                    </button>
-                </div>
-            </div>
-        </div>
+        <SecuritySettingsPage
+            formData={formData}
+            handleInputChange={handleInputChange}
+            showPassword={showPassword}
+            setShowPassword={setShowPassword}
+            handleSave={handleSave}
+        />
     );
 
 
     const renderCompanySettings = () => (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 bg-[#129990]">
-                <h2 className="text-xl font-bold text-white mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>Company Settings</h2>
-                <p className="text-sm text-teal-100">Manage your company information and business settings</p>
-            </div>
-
-            <div className="p-6 space-y-8">
-                {/* Basic Company Information */}
-                <div className="pb-6 border-b border-gray-200">
-                    <h3 className="text-base font-semibold text-gray-900 mb-4">Basic Information</h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                Company Name
-                            </label>
-                            <input
-                                type="text"
-                                value={companyData.name}
-                                onChange={(e) => handleCompanyDataChange('name', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                                placeholder="Enter company name"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                Domain
-                            </label>
-                            <input
-                                type="text"
-                                value={companyData.domain}
-                                onChange={(e) => handleCompanyDataChange('domain', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                                placeholder="company.com"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Company Logo
-                        </label>
-                        <div className="flex items-center gap-4">
-                            {companyData.logo && (
-                                <img src={companyData.logo} alt="Company Logo" className="w-16 aspect-square object-contain rounded-lg border bg-[#111D32]" />
-                            )}
-                            <div className="flex-1">
-                                <input
-                                    type="text"
-                                    value={companyData.logo}
-                                    onChange={(e) => handleCompanyDataChange('logo', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                                    placeholder="Logo URL or upload path"
-                                />
-                            </div>
-                            <button className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm">
-                                <Upload className="w-4 h-4" />
-                                Upload
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Contact Information */}
-                <div className="pb-6 border-b border-gray-200">
-                    <h3 className="text-base font-semibold text-gray-900 mb-4">Contact Information</h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                <Phone className="w-4 h-4 inline mr-1" />
-                                Phone
-                            </label>
-                            <input
-                                type="tel"
-                                value={companyData.contactInfo.phone}
-                                onChange={(e) => handleCompanyDataChange('contactInfo.phone', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                                placeholder="+1 (555) 123-4567"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                <Mail className="w-4 h-4 inline mr-1" />
-                                Email
-                            </label>
-                            <input
-                                type="email"
-                                value={companyData.contactInfo.email}
-                                onChange={(e) => handleCompanyDataChange('contactInfo.email', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                                placeholder="contact@company.com"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                <Globe className="w-4 h-4 inline mr-1" />
-                                Website
-                            </label>
-                            <input
-                                type="url"
-                                value={companyData.contactInfo.website}
-                                onChange={(e) => handleCompanyDataChange('contactInfo.website', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                                placeholder="https://company.com"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Address */}
-                <div className="pb-6 border-b border-gray-200">
-                    <h3 className="text-base font-semibold text-gray-900 mb-4">
-                        <MapPin className="w-4 h-4 inline mr-1" />
-                        Address
-                    </h3>
-
-                    <div className="mb-4">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Street Address
-                        </label>
-                        <input
-                            type="text"
-                            value={companyData.address.street}
-                            onChange={(e) => handleCompanyDataChange('address.street', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                            placeholder="123 Business Street"
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                City
-                            </label>
-                            <input
-                                type="text"
-                                value={companyData.address.city}
-                                onChange={(e) => handleCompanyDataChange('address.city', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                                placeholder="New York"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                State
-                            </label>
-                            <input
-                                type="text"
-                                value={companyData.address.state}
-                                onChange={(e) => handleCompanyDataChange('address.state', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                                placeholder="NY"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                Country
-                            </label>
-                            <input
-                                type="text"
-                                value={companyData.address.country}
-                                onChange={(e) => handleCompanyDataChange('address.country', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                                placeholder="United States"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                ZIP Code
-                            </label>
-                            <input
-                                type="text"
-                                value={companyData.address.zipCode}
-                                onChange={(e) => handleCompanyDataChange('address.zipCode', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                                placeholder="10001"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {/* CEO Talk Message */}
-                <div className="pb-6 border-b border-gray-200">
-                    <h3 className="text-base font-semibold text-gray-900 mb-4">
-                        <MessageSquare className="w-4 h-4 inline mr-1" />
-                        CEO Talk Message
-                    </h3>
-
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Default Message
-                        </label>
-                        <textarea
-                            value={companyData.settings.ceoTalk.Message}
-                            onChange={(e) => handleCompanyDataChange('settings.ceoTalk.Message', e.target.value)}
-                            rows={4}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                            placeholder="Enter the default CEO talk message..."
-                        />
-                        <p className="text-xs text-gray-500 mt-1">This message will be displayed when users contact through CEO Talk feature.</p>
-                    </div>
-                </div>
-
-                {/* Email Recipients */}
-                <div className="pb-6 border-b border-gray-200">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-base font-semibold text-gray-900">
-                            <Send className="w-4 h-4 inline mr-1" />
-                            Email Recipients
-                        </h3>
-                        <button
-                            onClick={() => {
-                                setRecipientType('to');
-                                setShowRecipientModal(true);
-                            }}
-                            className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#129990] text-white text-xs font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 transition-colors"
-                        >
-                            <Plus className="w-3 h-3" />
-                            Add Recipient
-                        </button>
-                    </div>
-
-                    {/* TO Recipients */}
-                    <div className="mb-4">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">To</label>
-                        <div className="space-y-2">
-                            {companyData.settings.recipients.to.map((recipient, index) => (
-                                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
-                                    <div>
-                                        <span className="text-sm font-medium">{recipient.name}</span>
-                                        <span className="text-xs text-gray-500 ml-2">{recipient.email}</span>
-                                    </div>
-                                    <button
-                                        // onClick={() => removeRecipient(recipient.id, 'to')}
-                                        className="text-red-600 hover:text-red-800 p-1"
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            ))}
-                            {companyData.settings.recipients.to.length === 0 && (
-                                <p className="text-sm text-gray-500 italic">No recipients added</p>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* CC Recipients */}
-                    <div className="mb-4">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">CC</label>
-                        <div className="space-y-2">
-                            {companyData.settings.recipients.cc.map((recipient, index) => (
-                                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
-                                    <div>
-                                        <span className="text-sm font-medium">{recipient.name}</span>
-                                        <span className="text-xs text-gray-500 ml-2">{recipient.email}</span>
-                                    </div>
-                                    <button
-                                        // onClick={() => removeRecipient(recipient.id, 'cc')}
-                                        className="text-red-600 hover:text-red-800 p-1"
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            ))}
-                            {companyData.settings.recipients.cc.length === 0 && (
-                                <p className="text-sm text-gray-500 italic">No CC recipients added</p>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* BCC Recipients */}
-                    <div className="mb-4">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">BCC</label>
-                        <div className="space-y-2">
-                            {companyData.settings.recipients.bcc.map((recipient, index) => (
-                                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
-                                    <div>
-                                        <span className="text-sm font-medium">{recipient.name}</span>
-                                        <span className="text-xs text-gray-500 ml-2">{recipient.email}</span>
-                                    </div>
-                                    <button
-                                        // onClick={() => removeRecipient(recipient.id, 'bcc')}
-                                        className="text-red-600 hover:text-red-800 p-1"
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            ))}
-                            {companyData.settings.recipients.bcc.length === 0 && (
-                                <p className="text-sm text-gray-500 italic">No BCC recipients added</p>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Save Button */}
-                <div className="pt-6 border-t border-gray-200">
-                    <button
-                        onClick={() => handleSave('company')}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-[#129990] text-white text-sm font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                    >
-                        <Save className="w-4 h-4" />
-                        saving
-                    </button>
-                </div>
-            </div>
-        </div>
+        <CompanySettingsPage
+            companyData={companyData}
+            handleSave={handleSave}
+            handleCompanyDataChange={handleCompanyDataChange}
+            setRecipientType={setRecipientType}
+            setShowRecipientModal={setShowRecipientModal}
+        />
     );
 
     const renderLeaveTypesManagement = () => (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 bg-[#129990]">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h2 className="text-xl font-bold text-white mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>Leave Types Management</h2>
-                        <p className="text-sm text-teal-100">Configure and manage leave types for your organization</p>
-                    </div>
-                    <button
-                        onClick={handleManualRefresh}
-                        disabled={isLoadingLeaveTypes || isFetchingLeaveTypes}
-                        className="p-2 text-white hover:bg-teal-600 rounded-md transition-colors disabled:opacity-50"
-                        title="Refresh"
-                    >
-                        <RefreshCw className={`w-5 h-5 ${isLoadingLeaveTypes || isFetchingLeaveTypes ? 'animate-spin' : ''}`} />
-                    </button>
-                </div>
-            </div>
-
-            <div className="p-6">
-                {/* Error State */}
-                {leaveTypesError && (
-                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                        <div className="flex items-center gap-2 text-red-700">
-                            <AlertCircle className="w-5 h-5" />
-                            <span className="font-medium">Error loading leave types</span>
-                        </div>
-                        <p className="text-sm text-red-600 mt-1">
-                            {(leaveTypesError as any)?.data?.message || 'Please try again or contact support if the problem persists.'}
-                        </p>
-                        <button
-                            onClick={handleManualRefresh}
-                            className="mt-2 text-sm text-red-700 hover:text-red-800 underline"
-                        >
-                            Try again
-                        </button>
-                    </div>
-                )}
-
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
-                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 text-center">
-                        <div className="text-2xl font-bold text-[#129990] mb-2">{statistics.total}</div>
-                        <div className="text-sm text-gray-600 font-medium">Total Leave Types</div>
-                    </div>
-                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 text-center">
-                        <div className="text-2xl font-bold text-[#129990] mb-2">{statistics.paidLeaveTypes}</div>
-                        <div className="text-sm text-gray-600 font-medium">Paid Types</div>
-                    </div>
-                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 text-center">
-                        <div className="text-2xl font-bold text-[#129990] mb-2">{statistics.unpaidLeaveTypes}</div>
-                        <div className="text-sm text-gray-600 font-medium">Unpaid Types</div>
-                    </div>
-                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 text-center">
-                        <div className="text-2xl font-bold text-[#129990] mb-2">{statistics.averageLeaveCount}</div>
-                        <div className="text-sm text-gray-600 font-medium">Avg Days/Year</div>
-                    </div>
-                </div>
-
-                {/* Add New Leave Type Button */}
-                <div className="mb-8">
-                    <button
-                        onClick={() => openLeaveTypeModal()}
-                        disabled={isCreating}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-[#129990] text-white text-sm font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                    >
-                        {isCreating ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                            <Plus className="w-4 h-4" />
-                        )}
-                        Add New Leave Type
-                    </button>
-                </div>
-
-                {/* Loading State */}
-                {isLoadingLeaveTypes && (
-                    <div className="flex items-center justify-center py-12">
-                        <Loader2 className="w-8 h-8 animate-spin text-[#129990]" />
-                        <span className="ml-2 text-gray-600">Loading leave types...</span>
-                    </div>
-                )}
-
-                {/* Leave Types List */}
-                {!isLoadingLeaveTypes && (
-                    <div className="space-y-4">
-                        {leaveTypes.map((leaveType: any) => (
-                            <div key={leaveType._id} className="border border-gray-200 rounded-lg p-6 hover:shadow-sm transition-shadow bg-white">
-                                <div className="flex items-start justify-between">
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-3 mb-3">
-                                            <h3 className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                                                {leaveType.name}
-                                            </h3>
-                                            <span className={`px-3 py-1 text-xs font-semibold rounded-full ${leaveType.ispaidLeave
-                                                ? 'bg-green-100 text-green-800'
-                                                : 'bg-orange-100 text-orange-800'
-                                                }`}>
-                                                {leaveType.ispaidLeave ? 'Paid' : 'Unpaid'}
-                                            </span>
-                                            <span className={`px-3 py-1 text-xs font-semibold rounded-full ${leaveType.carryforward
-                                                ? 'bg-blue-100 text-blue-800'
-                                                : 'bg-gray-100 text-gray-800'
-                                                }`}>
-                                                {leaveType.carryforward ? 'Carry Forward' : 'No Carry'}
-                                            </span>
-                                        </div>
-                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                            <div className="bg-gray-50 p-3 rounded-md">
-                                                <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Max Days/Year</span>
-                                                <span className="text-lg font-bold text-[#129990]">{leaveType.leaveCount}</span>
-                                            </div>
-                                            <div className="bg-gray-50 p-3 rounded-md">
-                                                <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Type</span>
-                                                <span className="text-lg font-bold text-[#129990]">{leaveType.ispaidLeave ? 'Paid' : 'Unpaid'}</span>
-                                            </div>
-                                            <div className="bg-gray-50 p-3 rounded-md">
-                                                <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Carry Forward</span>
-                                                <span className="text-lg font-bold text-[#129990]">{leaveType.carryforward ? 'Yes' : 'No'}</span>
-                                            </div>
-                                        </div>
-                                        <div className="mt-3 text-sm text-gray-500">
-                                            Created: {new Date(leaveType.createdAt).toLocaleDateString()}
-                                            {leaveType.updatedAt !== leaveType.createdAt && (
-                                                <span className="ml-4">
-                                                    Updated: {new Date(leaveType.updatedAt).toLocaleDateString()}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-2 ml-6">
-                                        <button
-                                            onClick={() => openLeaveTypeModal(leaveType)}
-                                            disabled={isUpdating}
-                                            className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded-md transition-colors disabled:opacity-50"
-                                            title="Edit"
-                                        >
-                                            <Edit3 className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDeleteLeaveType(leaveType._id, leaveType.name)}
-                                            disabled={isDeleting}
-                                            className="text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded-md transition-colors disabled:opacity-50"
-                                            title="Delete"
-                                        >
-                                            {isDeleting ? (
-                                                <Loader2 className="w-4 h-4 animate-spin" />
-                                            ) : (
-                                                <Trash2 className="w-4 h-4" />
-                                            )}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {/* Empty State */}
-                {!isLoadingLeaveTypes && leaveTypes.length === 0 && (
-                    <div className="text-center py-12">
-                        <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-gray-600 mb-2">No leave types found</h3>
-                        <p className="text-gray-500 mb-6">
-                            {queryParams.search || queryParams.isPaid
-                                ? 'No leave types match your current filters.'
-                                : 'Add your first leave type to get started with leave management.'}
-                        </p>
-                        {(!queryParams.search && !queryParams.isPaid) && (
-                            <button
-                                onClick={() => openLeaveTypeModal()}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-[#129990] text-white text-sm font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 transition-colors"
-                            >
-                                <Plus className="w-4 h-4" />
-                                Add First Leave Type
-                            </button>
-                        )}
-                    </div>
-                )}
-
-                {/* Pagination */}
-                {!isLoadingLeaveTypes && pagination.totalPages > 1 && (
-                    <div className="mt-8 flex items-center justify-between">
-                        <div className="text-sm text-gray-700">
-                            Showing {((pagination.currentPage - 1) * pagination.itemsPerPage) + 1} to {Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems)} of {pagination.totalItems} results
-                        </div>
-                        <div className="flex gap-2">
-                            <button
-                                onClick={() => handleQueryParamsChange('page', Math.max(1, pagination.currentPage - 1))}
-                                disabled={!pagination.hasPrevPage}
-                                className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                Previous
-                            </button>
-                            <span className="px-3 py-2 text-sm">
-                                Page {pagination.currentPage} of {pagination.totalPages}
-                            </span>
-                            <button
-                                onClick={() => handleQueryParamsChange('page', Math.min(pagination.totalPages, pagination.currentPage + 1))}
-                                disabled={!pagination.hasNextPage}
-                                className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                Next
-                            </button>
-                        </div>
-                    </div>
-                )}
-            </div>
-        </div>
+        <LeaveTypesManagementPage
+            leaveTypes={leaveTypes}
+            statistics={statistics}
+            pagination={pagination}
+            handleQueryParamsChange={handleQueryParamsChange}
+            openLeaveTypeModal={openLeaveTypeModal}
+            handleDeleteLeaveType={handleDeleteLeaveType}
+            isLoadingLeaveTypes={isLoadingLeaveTypes}
+            isFetchingLeaveTypes={isFetchingLeaveTypes}
+            leaveTypesError={leaveTypesError}
+            handleManualRefresh={handleManualRefresh}
+            isCreating={isCreating}
+            isUpdating={isUpdating}
+            isDeleting={isDeleting}
+            queryParams={queryParams}
+        />
     );
 
 
@@ -1263,193 +650,29 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
 
             {/* Recipient Modal */}
             {showRecipientModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
-                        <div className="px-6 py-4 border-b border-gray-200 bg-[#129990]">
-                            <h3 className="text-lg font-bold text-white" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                                Add Email Recipient
-                            </h3>
-                            <p className="text-sm text-teal-100 mt-1">
-                                Add a new recipient to your email list
-                            </p>
-                        </div>
-
-                        <div className="p-6">
-                            <div className="mb-4">
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Recipient Type
-                                </label>
-                                <select
-                                    value={recipientType}
-                                    onChange={(e) => setRecipientType(e.target.value as 'to' | 'cc' | 'bcc')}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                                >
-                                    <option value="to">To</option>
-                                    <option value="cc">CC</option>
-                                    <option value="bcc">BCC</option>
-                                </select>
-                            </div>
-
-                            <div className="mb-4">
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Name
-                                </label>
-                                <input
-                                    type="text"
-                                    value={newRecipient.name}
-                                    onChange={(e) => setNewRecipient(prev => ({ ...prev, name: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                                    placeholder="Enter recipient name"
-                                />
-                            </div>
-
-                            <div className="mb-6">
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Email
-                                </label>
-                                <input
-                                    type="email"
-                                    value={newRecipient.email}
-                                    onChange={(e) => setNewRecipient(prev => ({ ...prev, email: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                                    placeholder="Enter email address"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3 bg-gray-50">
-                            <button
-                                onClick={() => {
-                                    setShowRecipientModal(false);
-                                    setNewRecipient({ id: '', email: '', name: '' });
-                                }}
-                                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 text-sm font-semibold transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleAddRecipient}
-                                disabled={!newRecipient.name || !newRecipient.email}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-[#129990] text-white text-sm font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                            >
-                                <Plus className="w-4 h-4" />
-                                Add Recipient
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <RecipientModal
+                    recipientType={recipientType}
+                    setRecipientType={setRecipientType}
+                    newRecipient={newRecipient}
+                    setNewRecipient={setNewRecipient}
+                    setShowRecipientModal={setShowRecipientModal}
+                    handleAddRecipient={handleAddRecipient}
+                />
             )}
 
             {/* Leave Type Modal */}
             {showLeaveTypeModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-xl w-full max-w-lg">
-                        <div className="px-6 py-4 border-b border-gray-200 bg-[#129990] relative">
-                            <h3 className="text-lg font-bold text-white" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                                {editingLeaveType ? 'Edit Leave Type' : 'Add New Leave Type'}
-                            </h3>
-                            <p className="text-sm text-teal-100 mt-1">
-                                {editingLeaveType ? 'Update leave type details' : 'Create a new leave type for your organization'}
-                            </p>
-                            <button
-                                onClick={() => { setShowLeaveTypeModal(false); }}
-                                disabled={isCreating || isUpdating}
-                                className="text-white hover:text-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed absolute right-2 top-2 m-2"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-
-
-
-                        <div className="p-6 space-y-4 max-h-96 overflow-y-auto">
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Leave Type Name *</label>
-                                <input
-                                    type="text"
-                                    value={leaveTypeForm.name}
-                                    onChange={(e) => handleLeaveTypeFormChange('name', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                                    placeholder="e.g., Annual Leave"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Maximum Days Per Year *</label>
-                                <input
-                                    type="number"
-                                    value={leaveTypeForm.leaveCount}
-                                    onChange={(e) => handleLeaveTypeFormChange('leaveCount', parseInt(e.target.value) || 0)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                                    min="0"
-                                    placeholder="25"
-                                    required
-                                />
-                            </div>
-
-                            <div className="space-y-3 pt-4 border-t border-gray-200">
-                                <h4 className="text-sm font-semibold text-gray-700">Policy Settings</h4>
-
-                                <ToggleSwitch
-                                    checked={leaveTypeForm.ispaidLeave}
-                                    onChange={(checked) => handleLeaveTypeFormChange('ispaidLeave', checked)}
-                                    label="Paid Leave"
-                                    description="Employees receive salary during this leave type"
-                                />
-
-                                <ToggleSwitch
-                                    checked={leaveTypeForm.carryforward}
-                                    onChange={(checked) => handleLeaveTypeFormChange('carryforward', checked)}
-                                    label="Allow Carry Forward"
-                                    description="Unused days can be carried to next year"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3 bg-gray-50">
-                            <button
-                                onClick={() => {
-                                    setShowLeaveTypeModal(false);
-                                    setEditingLeaveType(null);
-                                }}
-                                disabled={isCreating || isUpdating}
-                                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 text-sm font-semibold transition-colors disabled:opacity-50"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleSaveLeaveType}
-                                disabled={!leaveTypeForm.name.trim() || leaveTypeForm.leaveCount < 0 || isCreating || isUpdating}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-[#129990] text-white text-sm font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                            >
-                                {isCreating || isUpdating ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                    <Save className="w-4 h-4" />
-                                )}
-                                {editingLeaveType ? 'Update Leave Type' : 'Create Leave Type'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <LeaveTypeModal
+                    editingLeaveType={editingLeaveType}
+                    setShowLeaveTypeModal={setShowLeaveTypeModal}
+                    isCreating={isCreating}
+                    isUpdating={isUpdating}
+                    leaveTypeForm={leaveTypeForm}
+                    handleLeaveTypeFormChange={handleLeaveTypeFormChange}
+                    setEditingLeaveType={setEditingLeaveType}
+                    handleSaveLeaveType={handleSaveLeaveType}
+                />
             )}
-
-
-
-
-            {/* Tax Deduction Modal - Add this to your existing modals section */}
-            {/* {showTaxDeductionModal && ( */}
-
-            {/* <button onClick={() => setShowTaxModal(true)} className="mt-4 px-4 py-2 bg-[#129990] text-white text-sm font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-colors">
-                Open Tax Deduction Modal
-            </button>
-            <TaxDeductionModal
-                isOpen={showTaxModal}
-                onClose={() => { setShowTaxModal(false); setEditingRule(null); }}
-                editingRule={editingRule}
-            /> */}
-            {/* )} */}
         </div>
     );
 };
