@@ -26,6 +26,7 @@ export interface CompanyData {
         profileImage: string;
     };
     settings: {
+        gracePeriod: number; // in minutes
         ceoTalk: {
             Message: string;
         };
@@ -148,7 +149,7 @@ export const companyServices = api.injectEndpoints({
         }),
 
         // Get company details
-        getCompanyPartOfSalary: builder.query<{ success: any; data:any }, void>({
+        getCompanyPartOfSalary: builder.query<{ success: any; data: any }, void>({
             query: () => '/company/payroll/components',
             providesTags: ['Company'],
         }),

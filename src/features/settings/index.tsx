@@ -65,6 +65,7 @@ interface CompanyData {
         profileImage: string;
     };
     settings: {
+        gracePeriod: number; // in minutes
         ceoTalk: {
             Message: string;
         };
@@ -131,6 +132,7 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
             profileImage: ''
         },
         settings: {
+            gracePeriod: 15, // default value in minutes
             ceoTalk: {
                 Message: "Thank you for reaching out. Your success is our priority. We will get back to you soon."
             },
