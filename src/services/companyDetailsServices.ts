@@ -20,10 +20,11 @@ export interface CompanyData {
         website: string;
     };
     ceo: {
-        userId: string;
-        signature: string;
-        bio: string;
-        profileImage: string;
+        name: string,
+        email: string,
+        signature: string,
+        bio: string,
+        profileImage: string
     };
     settings: {
         gracePeriod: number; // in minutes

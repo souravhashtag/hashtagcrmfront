@@ -59,10 +59,11 @@ interface CompanyData {
         website: string;
     };
     ceo: {
-        userId: string;
-        signature: string;
-        bio: string;
-        profileImage: string;
+        name: string,
+        email: string,
+        signature: string,
+        bio: string,
+        profileImage: string
     };
     settings: {
         gracePeriod: number; // in minutes
@@ -126,7 +127,8 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
             website: ''
         },
         ceo: {
-            userId: '',
+            name: '',
+            email: '',
             signature: '',
             bio: '',
             profileImage: ''
@@ -394,9 +396,9 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
         try {
             const initData = {
                 ...companyData,
-                ceo: {
-                    userId: "686ba39694a7d69724c00846"
-                },
+                // ceo: {
+                //     userId: "686ba39694a7d69724c00846"
+                // },
                 settings: {
                     sender: {
                         userId: "6889f63d0a09308db5b5b4b2",
@@ -471,7 +473,10 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
                     if (needsInitialization) {
                         await handleInitializeCompany();
                     } else {
+                        console.log(companyData);
                         await updateCompanyInfo(companyData).unwrap();
+
+
                     }
                     break;
 
