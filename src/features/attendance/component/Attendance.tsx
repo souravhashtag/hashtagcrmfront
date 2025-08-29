@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, Users, Filter, Search, Download, ChevronDown, CheckCircle, XCircle, AlertCircle, Home } from 'lucide-react';
-import { useGetAttendanceByDateQuery } from '../../../services/AttendanceRedxService'; // Import your RTK Query hook
-
+import { useGetAttendanceByDateQuery } from '../../../services/AttendanceRedxService';
+import { useGetWeekRosterQuery } from '../../../services/rosterServices';
+import {
+  useGetEmployeesQuery,
+} from '../../../services/employeeServices';
 // Type definitions
 interface Employee {
   _id: string;
@@ -10,13 +13,21 @@ interface Employee {
     firstName: string;
     lastName: string;
     email: string;
+    employeeId:string
   };
   date: string;
-  status: 'present' | 'absent' | 'late' | 'half-day' | 'work-from-home';
+  status: string;
   clockIn?: string;
   clockOut?: string;
   totalHours?: number;
   location?: string;
+  scheduledStartTime?: string;
+  scheduledEndTime?: string;
+  isScheduled?: boolean;
+  isEarlyArrival?: boolean;
+  isLateArrival?: boolean;
+  isEarlyDeparture?: boolean;
+  isLateDeparture?: boolean;
 }
 
 interface AttendanceStats {
@@ -37,21 +48,103 @@ interface StatCardProps {
 }
 
 type ViewType = 'table';
-type StatusType = 'present' | 'absent' | 'late' | 'work-from-home' | 'half-day';
+type StatusType = '';
 
 // Helper function to get current date in PST
 const getCurrentPSTDate = (): string => {
   const now = new Date();
   const pstDate = new Date(now.toLocaleString("en-US", { timeZone: "America/Los_Angeles" }));
 
-  // Format to YYYY-MM-DD in Pacific Time
   const year = pstDate.getFullYear();
   const month = String(pstDate.getMonth() + 1).padStart(2, '0');
   const day = String(pstDate.getDate()).padStart(2, '0');
 
   const formattedDate = `${year}-${month}-${day}`;
-  // console.log("Pacific Time Date (YYYY-MM-DD):", formattedDate);
   return formattedDate;
+};
+
+// Helper function to get week number and year from date
+const getWeekInfo = (dateString: string) => {
+  const date = new Date(dateString);
+  const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+  const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
+  const weekNumber = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+  
+  return {
+    year: date.getFullYear(),
+    weekNumber: weekNumber
+  };
+};
+
+// Helper function to get day name from date
+const getDayName = (dateString: string): string => {
+  const date = new Date(dateString);
+  const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  return days[date.getDay()];
+};
+
+// Helper function to parse time string to minutes
+const parseTimeToMinutes = (timeString: string): number => {
+  if (!timeString || timeString === 'OFF') return 0;
+  
+  // Handle formats like "10:00", "10am", "10:30am", "19-08-2025 20:00"
+  let cleanTime = timeString;
+  
+  // Extract time from datetime format "19-08-2025 20:00"
+  const datetimeMatch = timeString.match(/\d{2}-\d{2}-\d{4}\s+(\d{1,2}:\d{2})/);
+  if (datetimeMatch) {
+    cleanTime = datetimeMatch[1];
+  }
+  
+  const time24Match = cleanTime.match(/^(\d{1,2}):(\d{2})$/);
+  if (time24Match) {
+    return parseInt(time24Match[1]) * 60 + parseInt(time24Match[2]);
+  }
+  
+  const time12Match = cleanTime.match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)$/i);
+  if (time12Match) {
+    let hours = parseInt(time12Match[1]);
+    const minutes = parseInt(time12Match[2] || '0');
+    const ampm = time12Match[3].toLowerCase();
+    
+    if (ampm === 'pm' && hours !== 12) hours += 12;
+    if (ampm === 'am' && hours === 12) hours = 0;
+    
+    return hours * 60 + minutes;
+  }
+  
+  return 0;
+};
+
+// Helper function to convert minutes to time string
+// const minutesToTimeString = (minutes: number): string => {
+//   const hours = Math.floor(minutes / 60);
+//   const mins = minutes % 60;
+//   return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+// };
+
+// Helper function to convert minutes to time string
+const minutesToTimeString = (minutes: number): string => {
+  if (minutes === null || minutes === undefined) return '--';
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+};
+
+// Helper function to convert PST time to local time for comparison
+const convertPSTToLocal = (pstTimeString: string): string => {
+  if (!pstTimeString || pstTimeString === 'OFF') return pstTimeString;
+  
+  // Create a date object with PST time
+  const today = new Date().toISOString().split('T')[0]; // Get today's date
+  const pstDateTime = new Date(`${today}T${pstTimeString}:00-08:00`); // PST is UTC-8
+  
+  // Convert to local time
+  return pstDateTime.toLocaleTimeString('en-US', { 
+    hour12: false, 
+    hour: '2-digit', 
+    minute: '2-digit'
+  });
 };
 
 // Helper function to convert date to PST format for display
@@ -81,19 +174,30 @@ const formatTimeToPST = (timeString?: string): string => {
   }
 };
 
-// Helper function to convert date input to PST date string
-const convertToPSTDateString = (dateString: string): string => {
-  const date = new Date(dateString + 'T00:00:00');
-  const pstDate = new Date(date.toLocaleString("en-US", { timeZone: "America/Los_Angeles" }));
-  return pstDate.toISOString().split('T')[0];
-};
-
 const Attendance: React.FC = () => {
   const [selectedView, setSelectedView] = useState<ViewType>('table');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<string>(getCurrentPSTDate());
 
-  // RTK Query hook to fetch attendance data
+  const [search, setSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const limit = 100;
+  // Get week info for roster query
+  const weekInfo = getWeekInfo(selectedDate);
+  
+  const {
+      data: employeesResponse,
+      isLoading: employeesLoading,
+      refetch: refetchEmployees,
+      isFetching
+    } = useGetEmployeesQuery(
+      { page: currentPage, limit, search },
+      {
+        refetchOnMountOrArgChange: true,
+      }
+    );
+    // console.log("employeesResponse",employeesResponse)
+  // RTK Query hooks
   const { 
     data: attendanceResponse, 
     error, 
@@ -101,29 +205,184 @@ const Attendance: React.FC = () => {
     refetch 
   } = useGetAttendanceByDateQuery(selectedDate);
 
-  // Extract attendance data from API response
-  // console.log('Attendance Response:', attendanceResponse);
-  const attendanceData: Employee[] = attendanceResponse?.data?.attendance || [];
+  const { 
+    data: rosterResponse,
+    isLoading: rosterLoading 
+  } = useGetWeekRosterQuery({
+    year: weekInfo.year,
+    weekNumber: weekInfo.weekNumber
+  });
+
+  // Extract data from API responses
+  const attendance: Employee[] = attendanceResponse?.data?.attendance || [];
+  const employeeData: Employee[] = employeesResponse?.data || [];
+  // console.log("attendanceData",attendanceData)
+  const attendanceMap = new Map(attendance.map(item => [item.userId._id, item]));
+  console.log("attendanceMap",attendanceMap)
+  const attendanceData: Employee[] = employeeData.map(emp => { 
+    const attendanceGet = attendanceMap.get(emp?.userId?._id);
+    return attendanceGet ? { ...emp, ...attendanceGet } : { 
+      ...emp, 
+      date: selectedDate, 
+      status: 'Not logged in yet', 
+      clockIn: undefined, 
+      clockOut: undefined, 
+      totalHours: 0,
+      isScheduled: false,
+      isEarlyArrival: false,
+      isLateArrival: false,
+      isEarlyDeparture: false,
+      isLateDeparture: false
+    };
+  });
+  console.log("mergedAttendanceData",attendanceData) 
+
+  const rosterData = rosterResponse?.data || []; // Updated to match controller structure
   const apiSummary = attendanceResponse?.data?.summary || {};
 
-  const getStatusIcon = (status: StatusType): React.ReactNode => {
+
+  const getEmployeeSchedule = (employeeId: string, date: string) => {
+    const dayName = getDayName(date);
+    
+    const employeeRoster = rosterData.find((roster: any) => {
+      return roster.employee?._id == employeeId;
+    });
+    if (employeeRoster && employeeRoster.schedule && employeeRoster.schedule[dayName]) {
+      const dayScheduleString = employeeRoster.schedule[dayName];
+      console.log(`Roster for Employee ID: ${employeeId} on ${dayName}:`, dayScheduleString);
+      if (dayScheduleString && dayScheduleString !== 'OFF' && dayScheduleString !== '---') {
+        if (dayScheduleString.includes('-')) {
+          const [start, end] = [
+            dayScheduleString?.split(" ")[1].split("-")[0], 
+            dayScheduleString?.split(" ")[2] ? dayScheduleString.split(" ")[2] : dayScheduleString.split(" ")[3].split("-")[0] // handling edge cases
+          ];
+          return {
+            startTime: start.trim(),
+            endTime: end.trim(),
+            isScheduled: true
+          };
+        } else {
+          // Single time entry
+          return {
+            startTime: dayScheduleString.trim(),
+            endTime: dayScheduleString.trim(),
+            isScheduled: true
+          };
+        }
+      }
+    }
+
+    return null;
+  };
+
+  const enhancedAttendanceData: Employee[] = attendanceData.map(employee => {
+    // console.log(`Processing attendance for Employee ID: ${employee._id}, Date: ${employee.date}`,employee);
+    const schedule = getEmployeeSchedule(employee?.userId?.employeeId ?? employee?._id, employee.date);
+
+    if (!schedule) {
+      return {
+        ...employee,
+        scheduledStartTime: '--',
+        scheduledEndTime: '--',
+        isScheduled: false,
+        isEarlyArrival: false,
+        isLateArrival: false,
+        isEarlyDeparture: false,
+        isLateDeparture: false
+      };
+    }
+
+    const scheduledStartMinutes = parseTimeToMinutes(schedule.startTime);
+    const scheduledEndMinutes = parseTimeToMinutes(schedule.endTime);
+    
+    let actualClockInMinutes = 0;
+    let actualClockOutMinutes = 0;
+    
+    if (employee.clockIn) {
+  
+      const clockInTime = typeof employee.clockIn === 'string' ? 
+        employee.clockIn : 
+        new Date(employee.clockIn).toLocaleTimeString('en-US', { 
+          hour12: false, 
+          hour: '2-digit', 
+          minute: '2-digit'
+        });
+      actualClockInMinutes = parseTimeToMinutes(clockInTime);
+    }
+    
+    if (employee.clockOut) {
+      const clockOutTime = typeof employee.clockOut === 'string' ? 
+        employee.clockOut : 
+        new Date(employee.clockOut).toLocaleTimeString('en-US', { 
+          hour12: false, 
+          hour: '2-digit', 
+          minute: '2-digit'
+        });
+      actualClockOutMinutes = parseTimeToMinutes(clockOutTime);
+    }
+    
+    // Calculate attendance status based on roster
+    let enhancedStatus = employee.status;
+    let isEarlyArrival = false;
+    let isLateArrival = false;
+    let isEarlyDeparture = false;
+    let isLateDeparture = false;
+
+
+    if (employee.clockIn && scheduledStartMinutes > 0 && actualClockInMinutes > 0) {
+      const timeDifference = actualClockInMinutes - scheduledStartMinutes;
+      const gracePerodMinutes = 15; // 15 min grace period
+      
+      // Early arrival: clocked in before scheduled time
+      isEarlyArrival = timeDifference < 0;
+      
+      // Late arrival: clocked in after grace period
+      isLateArrival = timeDifference > gracePerodMinutes;
+      
+      // Update status to 'late' if they arrived late
+      if (isLateArrival && (enhancedStatus === 'present' || enhancedStatus === 'absent')) {
+        enhancedStatus = 'late';
+      }
+    }
+
+    if (employee.clockOut && scheduledEndMinutes > 0 && actualClockOutMinutes > 0) {
+      isEarlyDeparture = actualClockOutMinutes < (scheduledEndMinutes - 15); // 15 min before scheduled end
+      isLateDeparture = actualClockOutMinutes > scheduledEndMinutes;
+    }
+
+    return {
+      ...employee,
+      status: enhancedStatus,
+      scheduledStartTime: schedule.startTime,
+      scheduledEndTime: schedule.endTime, 
+      isScheduled: true,
+      isEarlyArrival,
+      isLateArrival,
+      isEarlyDeparture,
+      isLateDeparture
+    };
+  });
+
+  const getStatusIcon = (status: any): React.ReactNode => {
     switch (status) {
       case 'present': return <CheckCircle className="w-4 h-4 text-green-500" />;
       case 'absent': return <XCircle className="w-4 h-4 text-red-500" />;
       case 'late': return <AlertCircle className="w-4 h-4 text-yellow-500" />;
       case 'work-from-home': return <Home className="w-4 h-4 text-blue-500" />;
       case 'half-day': return <Clock className="w-4 h-4 text-orange-500" />;
+      case 'not-logged': return <Clock className="w-4 h-4 text-gray-500" />;
       default: return null;
     }
   };
 
-  const getStatusColor = (status: StatusType): string => {
+  const getStatusColor = (status: any): string => {
     switch (status) {
       case 'present': return 'bg-green-100 text-green-800';
       case 'absent': return 'bg-red-100 text-red-800';
       case 'late': return 'bg-yellow-100 text-yellow-800';
       case 'work-from-home': return 'bg-blue-100 text-blue-800';
       case 'half-day': return 'bg-orange-100 text-orange-800';
+      case 'not-logged': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -133,7 +392,7 @@ const Attendance: React.FC = () => {
     return `${employee.userId.firstName || ''} ${employee.userId.lastName || ''}`.trim() || 'Unknown';
   };
 
-  const filteredData: Employee[] = attendanceData.filter(employee => {
+  const filteredData: Employee[] = enhancedAttendanceData.filter(employee => {
     const fullName = getFullName(employee);
     const matchesSearch = fullName.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          employee.userId?.email?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -141,33 +400,22 @@ const Attendance: React.FC = () => {
   });
 
   const getAttendanceStats = (): AttendanceStats => {
-    // Use API summary if available, otherwise calculate from filtered data
-    if (apiSummary.totalRecords !== undefined) {
-      return {
-        total: apiSummary.totalRecords || 0,
-        present: apiSummary.statusBreakdown?.present || 0,
-        absent: apiSummary.statusBreakdown?.absent || 0,
-        late: apiSummary.statusBreakdown?.late || 0,
-        wfh: apiSummary.statusBreakdown?.['work-from-home'] || 0,
-        halfDay: apiSummary.statusBreakdown?.['half-day'] || 0,
-      };
-    }
-
-    // Fallback to manual calculation
-    const total = attendanceData.length;
-    const present = attendanceData.filter(emp => emp.status === 'present').length;
-    const absent = attendanceData.filter(emp => emp.status === 'absent').length;
-    const late = attendanceData.filter(emp => emp.status === 'late').length;
-    const wfh = attendanceData.filter(emp => emp.status === 'work-from-home').length;
-    const halfDay = attendanceData.filter(emp => emp.status === 'half-day').length;
+    // Recalculate stats based on enhanced data
+    const total = enhancedAttendanceData.length;
+    const present = enhancedAttendanceData.filter(emp => emp.status === 'present').length;
+    const absent = enhancedAttendanceData.filter(emp => emp.status === 'absent').length;
+    const late = enhancedAttendanceData.filter(emp => emp.status === 'late').length;
+    const wfh = enhancedAttendanceData.filter(emp => emp.status === 'work-from-home').length;
+    const halfDay = enhancedAttendanceData.filter(emp => emp.status === 'half-day').length;
+    // const notLogged = enhancedAttendanceData.filter(emp => emp.status === 'not-logged').length;
     
     return { total, present, absent, late, wfh, halfDay };
   };
 
   const stats: AttendanceStats = getAttendanceStats();
 
-  const StatCard: React.FC<StatCardProps> = ({ title, value, color, icon,bgcolor }) => (
-    <div className={`bg-white p-6 rounded-lg shadow-lg border border-gray-100 ${bgcolor}`}>
+  const StatCard: React.FC<StatCardProps> = ({ title, value, color, icon, bgcolor }) => (
+    <div className={`p-6 rounded-lg shadow-lg border border-gray-100 ${bgcolor}`}>
       <div className="flex items-center justify-between">
         <div>
           <p className="text-lg font-medium text-white">{title}</p>
@@ -189,7 +437,7 @@ const Attendance: React.FC = () => {
       .slice(0, 2);
   };
 
-  const formatStatus = (status: StatusType): string => {
+  const formatStatus = (status:any): string => {
     switch (status) {
       case 'work-from-home': return 'Work from Home';
       case 'half-day': return 'Half Day';
@@ -203,11 +451,11 @@ const Attendance: React.FC = () => {
         <div className="flex justify-between items-center">
           <div>
             <h3 className="text-lg font-semibold">Employee Attendance Details</h3>
-            {/* <p className="text-sm text-gray-500 mt-1">
-              Showing data for {formatDateToPST(selectedDate)} (PST)
-            </p> */}
+            <p className="text-sm text-gray-500 mt-1">
+              Showing attendance with roster-based calculations for {formatDateToPST(selectedDate)} (PST)
+            </p>
           </div>
-          {isLoading && (
+          {(isLoading || rosterLoading) && (
             <div className="flex items-center gap-2 text-blue-600">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
               <span className="text-sm">Loading...</span>
@@ -239,16 +487,14 @@ const Attendance: React.FC = () => {
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-[#fff] uppercase tracking-wider">Employee</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-[#fff] uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[#fff] uppercase tracking-wider">Check In (PST)</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-[#fff] uppercase tracking-wider">Check Out (PST)</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-[#fff] uppercase tracking-wider">Scheduled Time</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-[#fff] uppercase tracking-wider">Actual In/Out</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-[#fff] uppercase tracking-wider">Hours</th>
-              {/* {attendanceData.some(emp => emp.location) && (
-                <th className="px-6 py-3 text-left text-xs font-medium text-[#fff] uppercase tracking-wider">Location</th>
-              )} */}
+              {/* <th className="px-6 py-3 text-left text-xs font-medium text-[#fff] uppercase tracking-wider">Variance</th> */}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {isLoading ? (
+            {(isLoading || rosterLoading) ? (
               // Loading skeleton rows
               Array.from({ length: 5 }, (_, index) => (
                 <tr key={index} className="animate-pulse">
@@ -259,14 +505,15 @@ const Attendance: React.FC = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap"><div className="h-6 bg-gray-200 rounded w-16"></div></td>
-                  <td className="px-6 py-4 whitespace-nowrap"><div className="h-4 bg-gray-200 rounded w-12"></div></td>
-                  <td className="px-6 py-4 whitespace-nowrap"><div className="h-4 bg-gray-200 rounded w-12"></div></td>
-                  <td className="px-6 py-4 whitespace-nowrap"><div className="h-4 bg-gray-200 rounded w-4"></div></td>
+                  <td className="px-6 py-4 whitespace-nowrap"><div className="h-4 bg-gray-200 rounded w-20"></div></td>
+                  <td className="px-6 py-4 whitespace-nowrap"><div className="h-4 bg-gray-200 rounded w-20"></div></td>
+                  <td className="px-6 py-4 whitespace-nowrap"><div className="h-4 bg-gray-200 rounded w-8"></div></td>
+                  <td className="px-6 py-4 whitespace-nowrap"><div className="h-4 bg-gray-200 rounded w-16"></div></td>
                 </tr>
               ))
             ) : filteredData.length === 0 ? (
               <tr>
-                <td colSpan={attendanceData.some(emp => emp.location) ? 6 : 5} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                   <div className="flex flex-col items-center gap-2">
                     <Users className="w-8 h-8 text-gray-300" />
                     <span>No attendance records found for {formatDateToPST(selectedDate)} (PST)</span>
@@ -299,19 +546,73 @@ const Attendance: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {formatTimeToPST(employee.clockIn)}
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-1">
+                        {employee.scheduledStartTime !== '--' ? (
+                          <span>{employee.scheduledStartTime} - {employee.scheduledEndTime}</span>
+                        ) : (
+                          <span className="text-gray-500 italic">No roster schedule</span>
+                        )}
+                      </div>
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {formatTimeToPST(employee.clockOut)}
+                    <div className="flex flex-col">
+                      <span className={employee.isLateArrival ? 'text-red-600' : employee.isEarlyArrival ? 'text-green-600' : ''}>
+                        In: {formatTimeToPST(employee.clockIn)}
+                      </span>
+                      <span className={employee.isEarlyDeparture ? 'text-red-600' : employee.isLateDeparture ? 'text-green-600' : ''}>
+                        Out: {formatTimeToPST(employee.clockOut)}
+                      </span>
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {employee.totalHours ? `${employee.totalHours}h` : '--'}
                   </td>
-                  {/* {attendanceData.some(emp => emp.location) && (
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {JSON.parse(employee?.location||"").city}
-                    </td>
-                  )} */}
+                  {/* <td className="px-6 py-4 whitespace-nowrap text-xs">
+                    <div className="flex flex-col gap-1">
+                      {!employee.isScheduled ? (
+                        <span className="text-gray-600 bg-gray-50 px-2 py-1 rounded flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          No Roster
+                        </span>
+                      ) : (
+                        <>
+                          {employee.isEarlyArrival && (
+                            <span className="text-green-600 bg-green-50 px-2 py-1 rounded flex items-center gap-1">
+                              <CheckCircle className="w-3 h-3" />
+                              Early In
+                            </span>
+                          )}
+                          {employee.isLateArrival && (
+                            <span className="text-red-600 bg-red-50 px-2 py-1 rounded flex items-center gap-1">
+                              <XCircle className="w-3 h-3" />
+                              Late In
+                            </span>
+                          )}
+                          {employee.isEarlyDeparture && (
+                            <span className="text-red-600 bg-red-50 px-2 py-1 rounded flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              Early Out
+                            </span>
+                          )}
+                          {employee.isLateDeparture && (
+                            <span className="text-green-600 bg-green-50 px-2 py-1 rounded flex items-center gap-1">
+                              <CheckCircle className="w-3 h-3" />
+                              Overtime
+                            </span>
+                          )}
+                          {!employee.isEarlyArrival && !employee.isLateArrival && 
+                           !employee.isEarlyDeparture && !employee.isLateDeparture && employee.clockIn && (
+                            <span className="text-green-600 bg-green-50 px-2 py-1 rounded flex items-center gap-1">
+                              <CheckCircle className="w-3 h-3" />
+                              On Time
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </td> */}
                 </tr>
               ))
             )}
@@ -334,25 +635,50 @@ const Attendance: React.FC = () => {
   };
 
   const handleExport = (): void => {
-    if (!attendanceData.length) {
+    if (!enhancedAttendanceData.length) {
       alert('No data to export');
       return;
     }
 
-    // Create CSV content with PST timestamps
-    const headers = ['Employee Name', 'Email', 'Status', 'Check In (PST)', 'Check Out (PST)', 'Hours', 'Location', 'Date (PST)'];
+    // Create CSV content with roster information
+    const headers = [
+      'Employee Name', 
+      'Email', 
+      'Status', 
+      'Scheduled Start', 
+      'Scheduled End', 
+      'Actual Check In (PST)', 
+      'Actual Check Out (PST)', 
+      'Hours', 
+      'Has Roster Schedule',
+      'Attendance Variance',
+      'Date (PST)'
+    ];
     const csvContent = [
       headers.join(','),
-      ...filteredData.map(emp => [
-        `"${getFullName(emp)}"`,
-        `"${emp.userId?.email || '--'}"`,
-        `"${formatStatus(emp.status)}"`,
-        `"${formatTimeToPST(emp.clockIn)}"`,
-        `"${formatTimeToPST(emp.clockOut)}"`,
-        `"${emp.totalHours || 0}"`,
-        `"${emp.location || '--'}"`,
-        `"${formatDateToPST(emp.date)}"`
-      ].join(','))
+      ...filteredData.map(emp => {
+        const varianceNotes = [
+          emp.isEarlyArrival ? 'Early Arrival' : '',
+          emp.isLateArrival ? 'Late Arrival' : '',
+          emp.isEarlyDeparture ? 'Early Departure' : '',
+          emp.isLateDeparture ? 'Overtime' : '',
+          !emp.isScheduled ? 'No Roster Schedule' : ''
+        ].filter(Boolean).join('; ');
+        
+        return [
+          `"${getFullName(emp)}"`,
+          `"${emp.userId?.email || '--'}"`,
+          `"${formatStatus(emp.status)}"`,
+          `"${emp.scheduledStartTime}"`,
+          `"${emp.scheduledEndTime}"`,
+          `"${formatTimeToPST(emp.clockIn)}"`,
+          `"${formatTimeToPST(emp.clockOut)}"`,
+          `"${emp.totalHours || 0}"`,
+          `"${emp.isScheduled ? 'Yes' : 'No (Default 10AM-7PM)'}"`,
+          `"${varianceNotes || 'On Time'}"`,
+          `"${formatDateToPST(emp.date)}"`
+        ].join(',');
+      })
     ].join('\n');
 
     // Download CSV
@@ -360,7 +686,7 @@ const Attendance: React.FC = () => {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `attendance-${selectedDate}-PST.csv`;
+    link.download = `attendance-roster-analysis-${selectedDate}-PST.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -373,7 +699,7 @@ const Attendance: React.FC = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Attendance Management</h1>
-          <p className="text-gray-600">Track and manage employee attendance efficiently (PST)</p>
+          <p className="text-gray-600">Track and manage employee attendance with roster integration (PST)</p>
         </div>
 
         {/* Stats Cards */}
@@ -383,8 +709,7 @@ const Attendance: React.FC = () => {
             value={stats.total}
             color="bg-[#fff] shadow-lg"
             bgcolor="bg-[#4fd1c5] shadow-lg"
-            icon={<Users className="w-6 h-6 text-[#000]"
-              />}
+            icon={<Users className="w-6 h-6 text-[#000]" />}
           />
           <StatCard
             title="Present"
@@ -397,14 +722,14 @@ const Attendance: React.FC = () => {
             title="Absent"
             value={stats.absent}
             color="bg-[#fff]"
-              bgcolor="bg-[#34bebd]"
+            bgcolor="bg-[#34bebd]"
             icon={<XCircle className="w-6 h-6 text-[#000]" />}
           />
           <StatCard
             title="Late/WFH"
             value={stats.late + stats.wfh}
-               color="bg-[#fff]"
-               bgcolor="bg-[#202c74] shadow-lg"
+            color="bg-[#fff]"
+            bgcolor="bg-[#202c74] shadow-lg"
             icon={<AlertCircle className="w-6 h-6 text-[#000]" />}
           />
         </div>
@@ -413,24 +738,20 @@ const Attendance: React.FC = () => {
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
           <div className="flex flex-col lg:flex-row gap-4 justify-end">
             <div className="flex flex-wrap gap-4 items-center">
-              {/* View Toggle */}
-              
-
               {/* Date Picker */}
               <div className="flex items-center gap-2 w-[500px]">
-                <Calendar className="absolute left-3 h-4 text-gray-400  " />
+                <Calendar className="absolute left-3 h-4 text-gray-400" />
                 <input
                   type="date"
                   value={selectedDate}
                   onChange={handleDateChange}
                   className="w-[500px] border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-          
               </div>
 
               {/* Search */}
               <div className="relative w-[500px] flex items-center">
-                <Search className="absolute left-3 h-4 text-gray-400  " />
+                <Search className="absolute left-3 h-4 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Search employees..."
@@ -444,11 +765,11 @@ const Attendance: React.FC = () => {
             {/* Export Button */}
             <button 
               onClick={handleExport}
-              disabled={isLoading || !attendanceData.length}
-              className="bg-[#129990] text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-[#1dbfb4] transition-colors "
+              disabled={isLoading || rosterLoading || !enhancedAttendanceData.length}
+              className="bg-[#129990] text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-[#1dbfb4] transition-colors disabled:opacity-50"
             >
               <Download className="w-4 h-4" />
-              Export (PST)
+              Export with Roster (PST)
             </button>
           </div>
         </div>
