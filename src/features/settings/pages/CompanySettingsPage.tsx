@@ -23,6 +23,13 @@ interface CompanyData {
         country: string;
         zipCode: string;
     };
+    ceo: {
+        name: any,
+        email: any,
+        signature: any,
+        bio: any,
+        profileImage: any
+    };
     settings: {
         gracePeriod?: number; // in minutes
         ceoTalk: {
@@ -265,28 +272,106 @@ const CompanySettingsPage = ({
                     </div>
                 </div>
 
-
-                {/* CEO Talk Message */}
+                {/* CEO Information */}
                 <div className="pb-6 border-b border-gray-200">
                     <h3 className="text-base font-semibold text-gray-900 mb-4">
-                        <MessageSquare className="w-4 h-4 inline mr-1" />
-                        CEO Talk Message
+                        CEO Information
                     </h3>
 
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Name</label>
+                            <input
+                                type="text"
+                                value={companyData.ceo?.name || ""}
+                                onChange={(e) => handleCompanyDataChange("ceo.name", e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
+                                placeholder="CEO Name"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                            <input
+                                type="email"
+                                value={companyData.ceo?.email || ""}
+                                onChange={(e) => handleCompanyDataChange("ceo.email", e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
+                                placeholder="ceo@example.com"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="mb-4">
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Profile Image</label>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                                if (e.target.files && e.target.files[0]) {
+                                    handleCompanyDataChange("profileImage", e.target.files[0]); // store file in state
+                                }
+                            }}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                        />
+                        {/* {companyData.ceo?.profileImage && (
+                            <img
+                                src={companyData.ceo.profileImage}
+                                alt="CEO"
+                                className="mt-2 w-20 h-20 rounded-lg object-cover border"
+                            />
+                        )} */}
+                    </div>
+
+
+                    <div className="mb-4">
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Signature</label>
+                        <input
+                            type="text"
+                            value={companyData.ceo?.signature || ""}
+                            onChange={(e) => handleCompanyDataChange("ceo.signature", e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
+                            placeholder="CEO Signature"
+                        />
+                    </div>
+
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Default Message
-                        </label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Bio</label>
                         <textarea
-                            value={companyData.settings.ceoTalk.Message}
-                            onChange={(e) => handleCompanyDataChange('settings.ceoTalk.Message', e.target.value)}
+                            value={companyData.ceo?.bio || ""}
+                            onChange={(e) => handleCompanyDataChange("ceo.bio", e.target.value)}
                             rows={4}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                            placeholder="Enter the default CEO talk message..."
+                            placeholder="Short biography about the CEO..."
                         />
-                        <p className="text-xs text-gray-500 mt-1">This message will be displayed when users contact through CEO Talk feature.</p>
+                    </div>
+
+
+
+                    {/* CEO Talk Message */}
+                    <div className="pb-6 border-gray-200">
+                        <h3 className="text-base font-semibold text-gray-900 mb-4">
+                            <MessageSquare className="w-4 h-4 inline mr-1" />
+                            CEO Talk Message
+                        </h3>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Default Message
+                            </label>
+                            <textarea
+                                value={companyData.settings.ceoTalk.Message}
+                                onChange={(e) => handleCompanyDataChange('settings.ceoTalk.Message', e.target.value)}
+                                rows={4}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
+                                placeholder="Enter the default CEO talk message..."
+                            />
+                            <p className="text-xs text-gray-500 mt-1">This message will be displayed when users contact through CEO Talk feature.</p>
+                        </div>
                     </div>
                 </div>
+
+
+
 
                 {/* Email Recipients */}
                 <div className="pb-6 border-b border-gray-200">
