@@ -13,6 +13,7 @@ export interface LeaveType {
 export interface LeaveTypeFormData {
   name: string;
   leaveCount: number;
+  monthlyDays: number;
   ispaidLeave: boolean;
   carryforward: boolean;
 }

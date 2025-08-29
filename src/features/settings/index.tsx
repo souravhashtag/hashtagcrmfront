@@ -1,21 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
     Shield,
-    Save,
-    Plus,
-    Edit3,
-    Trash2,
     X,
     Calendar,
-    Eye,
-    EyeOff,
     CheckCircle,
-    Loader2,
     AlertCircle,
-    RefreshCw
+    Building2,
+    ChartColumnDecreasing
 } from 'lucide-react';
 
-// Import the actual Redux services
 import {
     useGetLeaveTypesQuery,
     useCreateLeaveTypeMutation,
@@ -24,6 +17,18 @@ import {
     LeaveType,
     LeaveTypeFormData
 } from '../../services/leaveTypesServices';
+import {
+    useAddRecipientMutation,
+    useGetCompanyDetailsQuery,
+    useInitializeCompanyMutation,
+    useUpdateCompanyInfoMutation
+} from '../../services/companyDetailsServices';
+import DeductionRulesPage from './pages/DeductionRulesPage';
+import LeaveTypeModal from './components/LeaveTypeModal';
+import RecipientModal from './components/RecipientModal';
+import CompanySettingsPage from './pages/CompanySettingsPage';
+import LeaveTypesManagementPage from './pages/LeaveTypesManagementPage';
+import SecuritySettingsPage from './pages/SecuritySettingsPage';
 
 interface SettingsSection {
     id: string;
@@ -31,13 +36,69 @@ interface SettingsSection {
     icon: React.ComponentType<any>;
     description: string;
 }
+interface Recipient {
+    id: string;
+    email: string;
+    name: string;
+}
 
+interface CompanyData {
+    name: string;
+    domain: string;
+    logo: string;
+    address: {
+        street: string;
+        city: string;
+        state: string;
+        country: string;
+        zipCode: string;
+    };
+    contactInfo: {
+        phone: string;
+        email: string;
+        website: string;
+    };
+    ceo: {
+        userId: string;
+        signature: string;
+        bio: string;
+        profileImage: string;
+    };
+    settings: {
+        gracePeriod: number; // in minutes
+        ceoTalk: {
+            Message: string;
+        };
+        recipients: {
+            to: Array<{ id: string, email: string, name: string }>;
+            cc: Array<{ id: string, email: string, name: string }>;
+            bcc: Array<{ id: string, email: string, name: string }>;
+        };
+        sender: {
+            userId: string;
+            email: string;
+            name: string;
+        };
+    };
+}
 const settingsSections: SettingsSection[] = [
     {
         id: 'leave-types',
         name: 'Leave Type Management',
         icon: Calendar,
         description: 'Manage leave types, policies, and configurations'
+    },
+    {
+        id: 'company',
+        name: 'Company Settings',
+        icon: Building2,
+        description: 'Company information, contact details, and business settings'
+    },
+    {
+        id: 'deductions',
+        name: 'Deductions Settings',
+        icon: ChartColumnDecreasing,
+        description: 'Salary Deduction information'
     },
     {
         id: 'security',
@@ -48,6 +109,53 @@ const settingsSections: SettingsSection[] = [
 ];
 
 const CorrectedLeaveManagementSettings: React.FC = () => {
+    const [companyData, setCompanyData] = useState<CompanyData>({
+        name: '',
+        domain: '',
+        logo: '',
+        address: {
+            street: '',
+            city: '',
+            state: '',
+            country: '',
+            zipCode: ''
+        },
+        contactInfo: {
+            phone: '',
+            email: '',
+            website: ''
+        },
+        ceo: {
+            userId: '',
+            signature: '',
+            bio: '',
+            profileImage: ''
+        },
+        settings: {
+            gracePeriod: 15, // default value in minutes
+            ceoTalk: {
+                Message: "Thank you for reaching out. Your success is our priority. We will get back to you soon."
+            },
+            recipients: {
+                to: [],
+                cc: [],
+                bcc: []
+            },
+            sender: {
+                userId: '',
+                email: '',
+                name: ''
+            }
+        }
+    });
+
+    const [showRecipientModal, setShowRecipientModal] = useState(false);
+    const [recipientType, setRecipientType] = useState<'to' | 'cc' | 'bcc'>('to');
+    const [newRecipient, setNewRecipient] = useState<Recipient>({
+        id: '',
+        email: '',
+        name: ''
+    });
     const [activeSection, setActiveSection] = useState('leave-types'); // Start with leave types
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
@@ -63,6 +171,7 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
     const [leaveTypeForm, setLeaveTypeForm] = useState<LeaveTypeFormData>({
         name: '',
         leaveCount: 0,
+        monthlyDays: 0,
         ispaidLeave: true,
         carryforward: false
     });
@@ -77,11 +186,19 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
         sortOrder: 'asc'
     });
 
-    const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
     const [notification, setNotification] = useState<{
         type: 'success' | 'error' | 'info';
         message: string;
     } | null>(null);
+
+    // Redux hooks
+    const {
+        data: companyResponse,
+        error: companyError,
+    } = useGetCompanyDetailsQuery();
+    const [updateCompanyInfo] = useUpdateCompanyInfoMutation();
+    const [addRecipient] = useAddRecipientMutation();
+    const [initializeCompany] = useInitializeCompanyMutation();
 
     // RTK Query hooks with correct refetch options placement
     const {
@@ -166,13 +283,6 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
         setTimeout(() => setNotification(null), 5000);
     };
 
-    const handleInputChange = (field: string, value: any) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: value
-        }));
-    };
-
     const handleLeaveTypeFormChange = (field: keyof LeaveTypeFormData, value: any) => {
         setLeaveTypeForm(prev => ({
             ...prev,
@@ -180,81 +290,56 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
         }));
     };
 
-    const handleSave = async (section: string) => {
-        setSaveStatus('saving');
-        try {
-            // Here you would implement actual security settings API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            setSaveStatus('saved');
-            showNotification('success', 'Settings saved successfully!');
-            setTimeout(() => setSaveStatus('idle'), 2000);
-        } catch (error) {
-            setSaveStatus('error');
-            showNotification('error', 'Failed to save settings. Please try again.');
-            setTimeout(() => setSaveStatus('idle'), 2000);
-        }
-    };
-
     const openLeaveTypeModal = (leaveType?: LeaveType) => {
         if (leaveType) {
             setEditingLeaveType(leaveType);
             setLeaveTypeForm({
                 name: leaveType.name,
+                monthlyDays: (leaveType.leaveCount || 0) / 12,  // 👈 keep decimals
                 leaveCount: leaveType.leaveCount,
                 ispaidLeave: leaveType.ispaidLeave,
-                carryforward: leaveType.carryforward
+                carryforward: leaveType.carryforward,
             });
         } else {
             setEditingLeaveType(null);
             setLeaveTypeForm({
                 name: '',
+                monthlyDays: 0,
                 leaveCount: 0,
                 ispaidLeave: true,
-                carryforward: false
+                carryforward: false,
             });
         }
         setShowLeaveTypeModal(true);
     };
 
+
+
     const handleSaveLeaveType = async () => {
         try {
+            const payload = {
+                ...leaveTypeForm,
+                leaveCount: (leaveTypeForm.monthlyDays || 0) * 12, // 👈 decimals preserved
+            };
+
             let result;
-
             if (editingLeaveType) {
-                // Update existing leave type
-                result = await updateLeaveType({
-                    id: editingLeaveType._id,
-                    data: leaveTypeForm
-                }).unwrap();
-
+                result = await updateLeaveType({ id: editingLeaveType._id, data: payload }).unwrap();
                 showNotification('success', result.message || 'Leave type updated successfully!');
             } else {
-                // Create new leave type
-                result = await createLeaveType(leaveTypeForm).unwrap();
-
+                result = await createLeaveType(payload).unwrap();
                 showNotification('success', result.message || 'Leave type created successfully!');
             }
 
             setShowLeaveTypeModal(false);
             setEditingLeaveType(null);
-
-            // The cache will automatically invalidate and refetch due to invalidatesTags
-
         } catch (error: any) {
             console.error('Error saving leave type:', error);
-
-            // Handle specific backend validation errors
-            let errorMessage = 'Failed to save leave type. Please try again.';
-
-            if (error?.data?.message) {
-                errorMessage = error.data.message;
-            } else if (error?.message) {
-                errorMessage = error.message;
-            }
-
+            let errorMessage = error?.data?.message || error?.message || 'Failed to save leave type. Please try again.';
             showNotification('error', errorMessage);
         }
     };
+
 
     const handleDeleteLeaveType = async (id: string, name: string) => {
         if (window.confirm(`Are you sure you want to delete "${name}" leave type?`)) {
@@ -294,30 +379,134 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
         refetchLeaveTypes();
         showNotification('info', 'Refreshing leave types...');
     };
+    // Check if company exists and needs initialization
+    const needsInitialization = companyError && (companyError as any)?.status === 404;
 
-    // Toggle Switch Component
-    const ToggleSwitch: React.FC<{
-        checked: boolean;
-        onChange: (checked: boolean) => void;
-        label: string;
-        description: string;
-    }> = ({ checked, onChange, label, description }) => (
-        <div className="flex items-center justify-between py-4 border-b border-gray-200 last:border-b-0">
-            <div className="flex-1">
-                <span className="block font-semibold text-gray-700 mb-1">{label}</span>
-                <p className="text-sm text-gray-500 m-0">{description}</p>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer ml-4">
-                <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={(e) => onChange(e.target.checked)}
-                    className="sr-only peer"
-                />
-                <div className="w-12 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-6 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#129990]"></div>
-            </label>
-        </div>
-    );
+    // Update local state when Redux data changes
+    useEffect(() => {
+        if (companyResponse?.success && companyResponse.data) {
+            setCompanyData(companyResponse.data);
+        }
+    }, [companyResponse]);
+
+    // Initialize company if it doesn't exist
+    const handleInitializeCompany = async () => {
+        try {
+            const initData = {
+                ...companyData,
+                ceo: {
+                    userId: "686ba39694a7d69724c00846"
+                },
+                settings: {
+                    sender: {
+                        userId: "6889f63d0a09308db5b5b4b2",
+                        email: "anubrati@hashtagbizsolutions.com",
+                        name: "Anubrati Mitra"
+                    }
+                }
+            };
+            const result = await initializeCompany(initData).unwrap();
+            // After successful initialization, the query will automatically refetch
+            console.log('Company initialized successfully:', result);
+        } catch (error) {
+            console.error('Error initializing company:', error);
+        }
+    };
+
+    const handleInputChange = (field: string, value: any) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
+
+    const handleCompanyDataChange = (field: string, value: any) => {
+        const fieldParts = field.split('.');
+
+        if (fieldParts.length === 1) {
+            setCompanyData(prev => ({
+                ...prev,
+                [field]: value
+            }));
+        } else if (fieldParts.length === 2) {
+            setCompanyData(prev => {
+                const [parentKey, childKey] = fieldParts;
+                return {
+                    ...prev,
+                    [parentKey]: {
+                        ...(prev[parentKey as keyof CompanyData] as Record<string, any>),
+                        [childKey]: value
+                    }
+                };
+            });
+        } else if (fieldParts.length === 3) {
+            setCompanyData(prev => {
+                const [parentKey, middleKey, childKey] = fieldParts;
+                const parentObj = prev[parentKey as keyof CompanyData] as Record<string, any>;
+                const middleObj = parentObj[middleKey] as Record<string, any>;
+
+                return {
+                    ...prev,
+                    [parentKey]: {
+                        ...parentObj,
+                        [middleKey]: {
+                            ...middleObj,
+                            [childKey]: value
+                        }
+                    }
+                };
+            });
+        }
+    };
+
+    const handleSave = async (section: string) => {
+        try {
+            switch (section) {
+                case 'security':
+                    // Handle security settings (implement your security update logic)
+                    console.log('Saving security settings:', formData);
+                    break;
+
+                case 'company':
+                    if (needsInitialization) {
+                        await handleInitializeCompany();
+                    } else {
+                        await updateCompanyInfo(companyData).unwrap();
+                    }
+                    break;
+
+                case 'leave-types':
+                    // Handle leave types save
+                    console.log('Saving leave types:', leaveTypes);
+                    break;
+            }
+        } catch (error) {
+            console.error('Save error:', error);
+        }
+    };
+
+    const handleAddRecipient = async () => {
+        try {
+            const result = await addRecipient({
+                type: recipientType,
+                recipientData: newRecipient
+            }).unwrap();
+
+            // Update local state with the response
+            setCompanyData(prev => ({
+                ...prev,
+                settings: {
+                    ...prev.settings,
+                    recipients: result.data
+                }
+            }));
+
+            setShowRecipientModal(false);
+            setNewRecipient({ id: '', email: '', name: '' });
+        } catch (error) {
+            console.error('Error adding recipient:', error);
+        }
+    };
 
     // Notification Component
     const NotificationBanner = () => {
@@ -348,363 +537,62 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
     };
 
     const renderSecuritySettings = () => (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 bg-[#129990]">
-                <h2 className="text-xl font-bold text-white mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>Security & Privacy</h2>
-                <p className="text-sm text-teal-100">Manage your password, two-factor authentication, and privacy settings</p>
-            </div>
+        <SecuritySettingsPage
+            formData={formData}
+            handleInputChange={handleInputChange}
+            showPassword={showPassword}
+            setShowPassword={setShowPassword}
+            handleSave={handleSave}
+        />
+    );
 
-            <div className="p-6">
-                <div className="mb-8 pb-6 border-b border-gray-200">
-                    <h3 className="text-base font-semibold text-gray-900 mb-4">Change Password</h3>
 
-                    <div className="mb-4">
-                        <label htmlFor="currentPassword" className="block text-sm font-semibold text-gray-700 mb-2">
-                            Current Password
-                        </label>
-                        <div className="relative">
-                            <input
-                                type={showPassword ? 'text' : 'password'}
-                                id="currentPassword"
-                                value={formData.currentPassword}
-                                onChange={(e) => handleInputChange('currentPassword', e.target.value)}
-                                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
-                            >
-                                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label htmlFor="newPassword" className="block text-sm font-semibold text-gray-700 mb-2">
-                                New Password
-                            </label>
-                            <input
-                                type={showPassword ? 'text' : 'password'}
-                                id="newPassword"
-                                value={formData.newPassword}
-                                onChange={(e) => handleInputChange('newPassword', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 mb-2">
-                                Confirm New Password
-                            </label>
-                            <input
-                                type={showPassword ? 'text' : 'password'}
-                                id="confirmPassword"
-                                value={formData.confirmPassword}
-                                onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="mb-6">
-                    <h3 className="text-base font-semibold text-gray-900 mb-4">Two-Factor Authentication</h3>
-                    <ToggleSwitch
-                        checked={formData.twoFactorEnabled}
-                        onChange={(checked) => handleInputChange('twoFactorEnabled', checked)}
-                        label="Enable Two-Factor Authentication"
-                        description="Add an extra layer of security to your account"
-                    />
-                </div>
-
-                <div className="pt-6 border-t border-gray-200">
-                    <button
-                        onClick={() => handleSave('security')}
-                        disabled={saveStatus === 'saving'}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-[#129990] text-white text-sm font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                    >
-                        {saveStatus === 'saving' ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                            <Save className="w-4 h-4" />
-                        )}
-                        {saveStatus === 'saving' ? 'Saving...' : 'Save Security Settings'}
-                    </button>
-                </div>
-            </div>
-        </div>
+    const renderCompanySettings = () => (
+        <CompanySettingsPage
+            companyData={companyData}
+            handleSave={handleSave}
+            handleCompanyDataChange={handleCompanyDataChange}
+            setRecipientType={setRecipientType}
+            setShowRecipientModal={setShowRecipientModal}
+        />
     );
 
     const renderLeaveTypesManagement = () => (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 bg-[#129990]">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h2 className="text-xl font-bold text-white mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>Leave Types Management</h2>
-                        <p className="text-sm text-teal-100">Configure and manage leave types for your organization</p>
-                    </div>
-                    <button
-                        onClick={handleManualRefresh}
-                        disabled={isLoadingLeaveTypes || isFetchingLeaveTypes}
-                        className="p-2 text-white hover:bg-teal-600 rounded-md transition-colors disabled:opacity-50"
-                        title="Refresh"
-                    >
-                        <RefreshCw className={`w-5 h-5 ${isLoadingLeaveTypes || isFetchingLeaveTypes ? 'animate-spin' : ''}`} />
-                    </button>
-                </div>
-            </div>
+        <LeaveTypesManagementPage
+            leaveTypes={leaveTypes}
+            statistics={statistics}
+            pagination={pagination}
+            handleQueryParamsChange={handleQueryParamsChange}
+            openLeaveTypeModal={openLeaveTypeModal}
+            handleDeleteLeaveType={handleDeleteLeaveType}
+            isLoadingLeaveTypes={isLoadingLeaveTypes}
+            isFetchingLeaveTypes={isFetchingLeaveTypes}
+            leaveTypesError={leaveTypesError}
+            handleManualRefresh={handleManualRefresh}
+            isCreating={isCreating}
+            isUpdating={isUpdating}
+            isDeleting={isDeleting}
+            queryParams={queryParams}
+        />
+    );
 
-            <div className="p-6">
-                {/* Error State */}
-                {leaveTypesError && (
-                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                        <div className="flex items-center gap-2 text-red-700">
-                            <AlertCircle className="w-5 h-5" />
-                            <span className="font-medium">Error loading leave types</span>
-                        </div>
-                        <p className="text-sm text-red-600 mt-1">
-                            {(leaveTypesError as any)?.data?.message || 'Please try again or contact support if the problem persists.'}
-                        </p>
-                        <button
-                            onClick={handleManualRefresh}
-                            className="mt-2 text-sm text-red-700 hover:text-red-800 underline"
-                        >
-                            Try again
-                        </button>
-                    </div>
-                )}
 
-                {/* Filters */}
-                {/* <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
-                            <input
-                                type="text"
-                                value={queryParams.search}
-                                onChange={(e) => handleQueryParamsChange('search', e.target.value)}
-                                placeholder="Search leave types..."
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                            <select
-                                value={queryParams.isPaid}
-                                onChange={(e) => handleQueryParamsChange('isPaid', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                            >
-                                <option value="">All Types</option>
-                                <option value="true">Paid Leave</option>
-                                <option value="false">Unpaid Leave</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
-                            <select
-                                value={queryParams.sortBy}
-                                onChange={(e) => handleQueryParamsChange('sortBy', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                            >
-                                <option value="name">Name</option>
-                                <option value="leaveCount">Leave Count</option>
-                                <option value="createdAt">Created Date</option>
-                                <option value="updatedAt">Modified Date</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Order</label>
-                            <select
-                                value={queryParams.sortOrder}
-                                onChange={(e) => handleQueryParamsChange('sortOrder', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                            >
-                                <option value="asc">Ascending</option>
-                                <option value="desc">Descending</option>
-                            </select>
-                        </div>
-                    </div>
-                </div> */}
-
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
-                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 text-center">
-                        <div className="text-2xl font-bold text-[#129990] mb-2">{statistics.total}</div>
-                        <div className="text-sm text-gray-600 font-medium">Total Leave Types</div>
-                    </div>
-                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 text-center">
-                        <div className="text-2xl font-bold text-[#129990] mb-2">{statistics.paidLeaveTypes}</div>
-                        <div className="text-sm text-gray-600 font-medium">Paid Types</div>
-                    </div>
-                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 text-center">
-                        <div className="text-2xl font-bold text-[#129990] mb-2">{statistics.unpaidLeaveTypes}</div>
-                        <div className="text-sm text-gray-600 font-medium">Unpaid Types</div>
-                    </div>
-                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 text-center">
-                        <div className="text-2xl font-bold text-[#129990] mb-2">{statistics.averageLeaveCount}</div>
-                        <div className="text-sm text-gray-600 font-medium">Avg Days/Year</div>
-                    </div>
-                </div>
-
-                {/* Add New Leave Type Button */}
-                <div className="mb-8">
-                    <button
-                        onClick={() => openLeaveTypeModal()}
-                        disabled={isCreating}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-[#129990] text-white text-sm font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                    >
-                        {isCreating ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                            <Plus className="w-4 h-4" />
-                        )}
-                        Add New Leave Type
-                    </button>
-                </div>
-
-                {/* Loading State */}
-                {isLoadingLeaveTypes && (
-                    <div className="flex items-center justify-center py-12">
-                        <Loader2 className="w-8 h-8 animate-spin text-[#129990]" />
-                        <span className="ml-2 text-gray-600">Loading leave types...</span>
-                    </div>
-                )}
-
-                {/* Leave Types List */}
-                {!isLoadingLeaveTypes && (
-                    <div className="space-y-4">
-                        {leaveTypes.map((leaveType: any) => (
-                            <div key={leaveType._id} className="border border-gray-200 rounded-lg p-6 hover:shadow-sm transition-shadow bg-white">
-                                <div className="flex items-start justify-between">
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-3 mb-3">
-                                            <h3 className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                                                {leaveType.name}
-                                            </h3>
-                                            <span className={`px-3 py-1 text-xs font-semibold rounded-full ${leaveType.ispaidLeave
-                                                ? 'bg-green-100 text-green-800'
-                                                : 'bg-orange-100 text-orange-800'
-                                                }`}>
-                                                {leaveType.ispaidLeave ? 'Paid' : 'Unpaid'}
-                                            </span>
-                                            <span className={`px-3 py-1 text-xs font-semibold rounded-full ${leaveType.carryforward
-                                                ? 'bg-blue-100 text-blue-800'
-                                                : 'bg-gray-100 text-gray-800'
-                                                }`}>
-                                                {leaveType.carryforward ? 'Carry Forward' : 'No Carry'}
-                                            </span>
-                                        </div>
-                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                            <div className="bg-gray-50 p-3 rounded-md">
-                                                <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Max Days/Year</span>
-                                                <span className="text-lg font-bold text-[#129990]">{leaveType.leaveCount}</span>
-                                            </div>
-                                            <div className="bg-gray-50 p-3 rounded-md">
-                                                <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Type</span>
-                                                <span className="text-lg font-bold text-[#129990]">{leaveType.ispaidLeave ? 'Paid' : 'Unpaid'}</span>
-                                            </div>
-                                            <div className="bg-gray-50 p-3 rounded-md">
-                                                <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Carry Forward</span>
-                                                <span className="text-lg font-bold text-[#129990]">{leaveType.carryforward ? 'Yes' : 'No'}</span>
-                                            </div>
-                                        </div>
-                                        <div className="mt-3 text-sm text-gray-500">
-                                            Created: {new Date(leaveType.createdAt).toLocaleDateString()}
-                                            {leaveType.updatedAt !== leaveType.createdAt && (
-                                                <span className="ml-4">
-                                                    Updated: {new Date(leaveType.updatedAt).toLocaleDateString()}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-2 ml-6">
-                                        <button
-                                            onClick={() => openLeaveTypeModal(leaveType)}
-                                            disabled={isUpdating}
-                                            className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded-md transition-colors disabled:opacity-50"
-                                            title="Edit"
-                                        >
-                                            <Edit3 className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDeleteLeaveType(leaveType._id, leaveType.name)}
-                                            disabled={isDeleting}
-                                            className="text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded-md transition-colors disabled:opacity-50"
-                                            title="Delete"
-                                        >
-                                            {isDeleting ? (
-                                                <Loader2 className="w-4 h-4 animate-spin" />
-                                            ) : (
-                                                <Trash2 className="w-4 h-4" />
-                                            )}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {/* Empty State */}
-                {!isLoadingLeaveTypes && leaveTypes.length === 0 && (
-                    <div className="text-center py-12">
-                        <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-gray-600 mb-2">No leave types found</h3>
-                        <p className="text-gray-500 mb-6">
-                            {queryParams.search || queryParams.isPaid
-                                ? 'No leave types match your current filters.'
-                                : 'Add your first leave type to get started with leave management.'}
-                        </p>
-                        {(!queryParams.search && !queryParams.isPaid) && (
-                            <button
-                                onClick={() => openLeaveTypeModal()}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-[#129990] text-white text-sm font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 transition-colors"
-                            >
-                                <Plus className="w-4 h-4" />
-                                Add First Leave Type
-                            </button>
-                        )}
-                    </div>
-                )}
-
-                {/* Pagination */}
-                {!isLoadingLeaveTypes && pagination.totalPages > 1 && (
-                    <div className="mt-8 flex items-center justify-between">
-                        <div className="text-sm text-gray-700">
-                            Showing {((pagination.currentPage - 1) * pagination.itemsPerPage) + 1} to {Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems)} of {pagination.totalItems} results
-                        </div>
-                        <div className="flex gap-2">
-                            <button
-                                onClick={() => handleQueryParamsChange('page', Math.max(1, pagination.currentPage - 1))}
-                                disabled={!pagination.hasPrevPage}
-                                className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                Previous
-                            </button>
-                            <span className="px-3 py-2 text-sm">
-                                Page {pagination.currentPage} of {pagination.totalPages}
-                            </span>
-                            <button
-                                onClick={() => handleQueryParamsChange('page', Math.min(pagination.totalPages, pagination.currentPage + 1))}
-                                disabled={!pagination.hasNextPage}
-                                className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                Next
-                            </button>
-                        </div>
-                    </div>
-                )}
-            </div>
-        </div>
+    const renderDeductionsSettings = () => (
+        <>
+            <DeductionRulesPage />
+        </>
     );
 
     const renderContent = () => {
         switch (activeSection) {
-            case 'security':
-                return renderSecuritySettings();
             case 'leave-types':
                 return renderLeaveTypesManagement();
+            case 'company':
+                return renderCompanySettings();
+            case 'deductions':
+                return renderDeductionsSettings();
+            case 'security':
+                return renderSecuritySettings();
             default:
                 return renderSecuritySettings();
         }
@@ -752,14 +640,6 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
                                 );
                             })}
                         </nav>
-
-                        {/* Save Status Indicator */}
-                        {saveStatus === 'saved' && (
-                            <div className="flex items-center gap-2 p-3 mt-4 bg-green-50 text-green-700 rounded-lg border border-green-200">
-                                <CheckCircle className="w-4 h-4" />
-                                <span className="text-sm font-medium">Settings saved successfully!</span>
-                            </div>
-                        )}
                     </div>
                 </div>
 
@@ -769,99 +649,31 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
                 </div>
             </div>
 
+
+            {/* Recipient Modal */}
+            {showRecipientModal && (
+                <RecipientModal
+                    recipientType={recipientType}
+                    setRecipientType={setRecipientType}
+                    newRecipient={newRecipient}
+                    setNewRecipient={setNewRecipient}
+                    setShowRecipientModal={setShowRecipientModal}
+                    handleAddRecipient={handleAddRecipient}
+                />
+            )}
+
             {/* Leave Type Modal */}
             {showLeaveTypeModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-xl w-full max-w-lg">
-                        <div className="px-6 py-4 border-b border-gray-200 bg-[#129990] relative">
-                            <h3 className="text-lg font-bold text-white" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                                {editingLeaveType ? 'Edit Leave Type' : 'Add New Leave Type'}
-                            </h3>
-                            <p className="text-sm text-teal-100 mt-1">
-                                {editingLeaveType ? 'Update leave type details' : 'Create a new leave type for your organization'}
-                            </p>
-                            <button
-                                onClick={() => { setShowLeaveTypeModal(false); }}
-                                disabled={isCreating || isUpdating}
-                                className="text-white hover:text-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed absolute right-2 top-2 m-2"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-
-
-
-                        <div className="p-6 space-y-4 max-h-96 overflow-y-auto">
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Leave Type Name *</label>
-                                <input
-                                    type="text"
-                                    value={leaveTypeForm.name}
-                                    onChange={(e) => handleLeaveTypeFormChange('name', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                                    placeholder="e.g., Annual Leave"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Maximum Days Per Year *</label>
-                                <input
-                                    type="number"
-                                    value={leaveTypeForm.leaveCount}
-                                    onChange={(e) => handleLeaveTypeFormChange('leaveCount', parseInt(e.target.value) || 0)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                                    min="0"
-                                    placeholder="25"
-                                    required
-                                />
-                            </div>
-
-                            <div className="space-y-3 pt-4 border-t border-gray-200">
-                                <h4 className="text-sm font-semibold text-gray-700">Policy Settings</h4>
-
-                                <ToggleSwitch
-                                    checked={leaveTypeForm.ispaidLeave}
-                                    onChange={(checked) => handleLeaveTypeFormChange('ispaidLeave', checked)}
-                                    label="Paid Leave"
-                                    description="Employees receive salary during this leave type"
-                                />
-
-                                <ToggleSwitch
-                                    checked={leaveTypeForm.carryforward}
-                                    onChange={(checked) => handleLeaveTypeFormChange('carryforward', checked)}
-                                    label="Allow Carry Forward"
-                                    description="Unused days can be carried to next year"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3 bg-gray-50">
-                            <button
-                                onClick={() => {
-                                    setShowLeaveTypeModal(false);
-                                    setEditingLeaveType(null);
-                                }}
-                                disabled={isCreating || isUpdating}
-                                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 text-sm font-semibold transition-colors disabled:opacity-50"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleSaveLeaveType}
-                                disabled={!leaveTypeForm.name.trim() || leaveTypeForm.leaveCount < 0 || isCreating || isUpdating}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-[#129990] text-white text-sm font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                            >
-                                {isCreating || isUpdating ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                    <Save className="w-4 h-4" />
-                                )}
-                                {editingLeaveType ? 'Update Leave Type' : 'Create Leave Type'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <LeaveTypeModal
+                    editingLeaveType={editingLeaveType}
+                    setShowLeaveTypeModal={setShowLeaveTypeModal}
+                    isCreating={isCreating}
+                    isUpdating={isUpdating}
+                    leaveTypeForm={leaveTypeForm}
+                    handleLeaveTypeFormChange={handleLeaveTypeFormChange}
+                    setEditingLeaveType={setEditingLeaveType}
+                    handleSaveLeaveType={handleSaveLeaveType}
+                />
             )}
         </div>
     );
