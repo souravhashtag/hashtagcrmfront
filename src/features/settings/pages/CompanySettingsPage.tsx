@@ -28,7 +28,7 @@ interface CompanyData {
         email: any,
         signature: any,
         bio: any,
-        profileImage: any
+        profileImage: string
     };
     settings: {
         considerableLateCount?: number;
