@@ -31,6 +31,7 @@ interface CompanyData {
         profileImage: any
     };
     settings: {
+        considerableLateCount?: number;
         gracePeriod?: number; // in minutes
         ceoTalk: {
             Message: string;
@@ -245,32 +246,61 @@ const CompanySettingsPage = ({
                 {/* Grace Period */}
                 <div className="pb-6 border-b border-gray-200">
                     <h3 className="text-base font-semibold text-gray-900 mb-4">
-                        Grace Period
+                        Grace Period Settings
                     </h3>
 
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Allowed Grace Period (minutes)
-                        </label>
-                        <input
-                            type="text"
-                            min={0}
-                            value={companyData.settings.gracePeriod ?? 15}
-                            onChange={(e) =>
-                                handleCompanyDataChange('settings', {
-                                    ...companyData.settings,
-                                    gracePeriod: Number(e.target.value),
-                                })
-                            }
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Grace Period */}
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Allowed Grace Period (minutes)
+                            </label>
+                            <input
+                                type="text"
+                                min={0}
+                                value={companyData.settings.gracePeriod ?? 15}
+                                onChange={(e) =>
+                                    handleCompanyDataChange("settings", {
+                                        ...companyData.settings,
+                                        gracePeriod: Number(e.target.value),
+                                    })
+                                }
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
+                                placeholder="e.g., 15"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                                Set the grace period (in minutes) before late arrival/absence is marked.
+                            </p>
+                        </div>
 
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
-                            placeholder="e.g., 15"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">
-                            Set the grace period (in minutes) before late arrival/absence is marked.
-                        </p>
+                        {/* Considerable Late Count */}
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                Considerable Late Count (days)
+                            </label>
+                            <input
+                                type="text"
+                                min={0}
+                                value={companyData.settings.considerableLateCount ?? 3}
+                                onChange={(e) =>
+                                    handleCompanyDataChange("settings", {
+                                        ...companyData.settings,
+                                        considerableLateCount: Number(e.target.value),
+                                    })
+                                }
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-[#129990] text-sm"
+                                placeholder="e.g., 3"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                                Number of late arrivals after which it will be considered a violation.
+                            </p>
+                        </div>
                     </div>
                 </div>
+
+
+
+
 
                 {/* CEO Information */}
                 <div className="pb-6 border-b border-gray-200">
@@ -349,14 +379,9 @@ const CompanySettingsPage = ({
 
                     {/* CEO Talk Message */}
                     <div className="pb-6 border-gray-200">
-                        <h3 className="text-base font-semibold text-gray-900 mb-4">
-                            <MessageSquare className="w-4 h-4 inline mr-1" />
-                            CEO Talk Message
-                        </h3>
-
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                Default Message
+                                CEO Talk Message
                             </label>
                             <textarea
                                 value={companyData.settings.ceoTalk.Message}
