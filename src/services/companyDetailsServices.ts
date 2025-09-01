@@ -26,6 +26,7 @@ export interface CompanyData {
         bio: string,
         profileImage: string
     };
+    profileImage: any
     settings: {
         gracePeriod: number; // in minutes
         ceoTalk: {
@@ -166,7 +167,7 @@ export const companyServices = api.injectEndpoints({
         }),
 
         // Update company information
-        updateCompanyInfo: builder.mutation<{ success: boolean; data: CompanyData; message: string }, CompanyFormData>({
+        updateCompanyInfo: builder.mutation<{ success: boolean; data: CompanyData; message: string }, any>({
             query: (body) => ({
                 url: '/company',
                 method: 'PUT',
