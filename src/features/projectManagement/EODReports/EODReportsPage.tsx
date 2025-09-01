@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useGetEmployeeEODReportsQuery } from "../../../services/eodReportServices";
 import EODReportModal from "./components/EODReportModal";
+import { getUserData } from "../../../services/authService";
 
 interface Activity {
     activity: string;
@@ -22,28 +24,40 @@ interface EODReport {
 }
 
 export default function EODReportsPage() {
-    const [reports, setReports] = useState<EODReport[]>([]);
-    const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
-
-
-    // Fetch all reports from backend
-    const fetchReports = async () => {
-        try {
-            setLoading(true);
-            const res = await fetch("/api/eod-reports"); // 👈 adjust endpoint
-            const data = await res.json();
-            setReports(data);
-        } catch (err) {
-            console.error("Error fetching reports:", err);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const [user, setUser] = useState<any>(null);
 
     useEffect(() => {
-        fetchReports();
+        const fetchUser = async () => {
+            try {
+                const res = await getUserData();
+
+                if (!res.user) {
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("refreshToken");
+                    window.location.href = "/";
+                    return;
+                }
+
+                setUser(res.user);
+            } catch (err) {
+                console.error("Error fetching user data:", err);
+                localStorage.removeItem("token");
+                localStorage.removeItem("refreshToken");
+                window.location.href = "/";
+            }
+        };
+
+        fetchUser();
     }, []);
+
+    // ✅ Skip query until we have a user
+    const { data, isLoading, refetch } = useGetEmployeeEODReportsQuery(
+        { employeeId: `${user?.firstName} ${user?.lastName}` },
+        { skip: !user }
+    );
+
+    const reports: EODReport[] = data?.data || [];
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen rounded-lg">
@@ -51,7 +65,9 @@ export default function EODReportsPage() {
             <div className="mb-6 flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900">My EOD Reports</h1>
-                    <p className="text-gray-600 mt-1">Track your daily activities and challenges</p>
+                    <p className="text-gray-600 mt-1">
+                        Track your daily activities and challenges
+                    </p>
                 </div>
                 <button
                     onClick={() => setShowForm(true)}
@@ -63,7 +79,10 @@ export default function EODReportsPage() {
 
             {/* Filters */}
             <div className="bg-white p-4 rounded-lg shadow-sm border mb-6 grid grid-cols-1 md:grid-cols-5 gap-3">
-                <input className="border rounded-lg px-3 py-2" placeholder="Search by activity or plan" />
+                <input
+                    className="border rounded-lg px-3 py-2"
+                    placeholder="Search by activity or plan"
+                />
                 <input type="date" className="border rounded-lg px-3 py-2" />
                 <select className="border rounded-lg px-3 py-2">
                     <option value="">All Status</option>
@@ -71,8 +90,15 @@ export default function EODReportsPage() {
                     <option value="Ongoing">Ongoing</option>
                     <option value="Completed">Completed</option>
                 </select>
-                <button className="px-4 py-2 border rounded-lg hover:bg-gray-50">Refresh</button>
-                <button className="px-4 py-2 bg-[#129990] text-white rounded-lg hover:bg-[#1dbfb4]">Export</button>
+                <button
+                    className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                    onClick={() => refetch()}
+                >
+                    Refresh
+                </button>
+                <button className="px-4 py-2 bg-[#129990] text-white rounded-lg hover:bg-[#1dbfb4]">
+                    Export
+                </button>
             </div>
 
             {/* Reports Table */}
@@ -80,14 +106,31 @@ export default function EODReportsPage() {
                 <table className="w-full">
                     <thead className="bg-gray-50">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase">Date</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase">Activities</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase">Plans</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase">Issues</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium uppercase">
+                                Date
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium uppercase">
+                                Activities
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium uppercase">
+                                Plans
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium uppercase">
+                                Issues
+                            </th>
                         </tr>
                     </thead>
                     <tbody className="divide-y">
-                        {reports.length === 0 ? (
+                        {isLoading || !user ? (
+                            <tr>
+                                <td
+                                    colSpan={4}
+                                    className="px-6 py-10 text-center text-gray-500"
+                                >
+                                    Loading reports...
+                                </td>
+                            </tr>
+                        ) : reports.length === 0 ? (
                             <tr>
                                 <td
                                     colSpan={4}
@@ -120,7 +163,7 @@ export default function EODReportsPage() {
                                                 <span
                                                     key={i}
                                                     className={`inline-block mr-1 mb-1 px-2 py-1 text-xs rounded-full border
-                                                            ${a.status === "Pending"
+                          ${a.status === "Pending"
                                                             ? "bg-yellow-100 text-yellow-800 border-yellow-300"
                                                             : a.status === "Ongoing"
                                                                 ? "bg-blue-100 text-blue-800 border-blue-300"
@@ -151,16 +194,14 @@ export default function EODReportsPage() {
                 </table>
             </div>
 
-
-            {/* Report Form Modal (similar to LeaveApplyModal) */}
+            {/* Report Form Modal */}
             {showForm && (
                 <EODReportModal
                     isOpen={showForm}
                     onClose={() => setShowForm(false)}
-                    onSuccess={fetchReports}
+                    onSuccess={refetch}
                 />
             )}
         </div>
-
     );
 }
