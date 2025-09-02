@@ -20,7 +20,7 @@ import {
 import {
     useAddRecipientMutation,
     useGetCompanyDetailsQuery,
-    useInitializeCompanyMutation,
+    // useInitializeCompanyMutation,
     useUpdateCompanyInfoMutation
 } from '../../services/companyDetailsServices';
 import DeductionRulesPage from './pages/DeductionRulesPage';
@@ -30,59 +30,8 @@ import CompanySettingsPage from './pages/CompanySettingsPage';
 import LeaveTypesManagementPage from './pages/LeaveTypesManagementPage';
 import SecuritySettingsPage from './pages/SecuritySettingsPage';
 
-interface SettingsSection {
-    id: string;
-    name: string;
-    icon: React.ComponentType<any>;
-    description: string;
-}
-interface Recipient {
-    id: string;
-    email: string;
-    name: string;
-}
 
-interface CompanyData {
-    name: string;
-    domain: string;
-    logo: string;
-    address: {
-        street: string;
-        city: string;
-        state: string;
-        country: string;
-        zipCode: string;
-    };
-    contactInfo: {
-        phone: string;
-        email: string;
-        website: string;
-    };
-    ceo: {
-        name: string,
-        email: string,
-        signature: string,
-        bio: string,
-        profileImage: any
-    };        
-    profileImage: any;
-    settings: {
-        gracePeriod: number; // in minutes
-        ceoTalk: {
-            Message: string;
-        };
-        recipients: {
-            to: Array<{ id: string, email: string, name: string }>;
-            cc: Array<{ id: string, email: string, name: string }>;
-            bcc: Array<{ id: string, email: string, name: string }>;
-        };
-        sender: {
-            userId: string;
-            email: string;
-            name: string;
-        };
-    };
-}
+
 const settingsSections: SettingsSection[] = [
     {
         id: 'leave-types',
@@ -136,7 +85,7 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
         },
         profileImage: '',
         settings: {
-            gracePeriod: 15, // default value in minutes
+            gracePeriod: 15,
             ceoTalk: {
                 Message: "Thank you for reaching out. Your success is our priority. We will get back to you soon."
             },
@@ -202,7 +151,7 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
     } = useGetCompanyDetailsQuery();
     const [updateCompanyInfo] = useUpdateCompanyInfoMutation();
     const [addRecipient] = useAddRecipientMutation();
-    const [initializeCompany] = useInitializeCompanyMutation();
+    // const [initializeCompany] = useInitializeCompanyMutation();
 
     // RTK Query hooks with correct refetch options placement
     const {
@@ -269,14 +218,21 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
             refetchLeaveTypes();
             resetDelete();
         }
-    }, [isCreateSuccess, isUpdateSuccess, isDeleteSuccess, refetchLeaveTypes, resetCreate, resetUpdate, resetDelete]);
+    }, [
+        isCreateSuccess,
+        isUpdateSuccess,
+        isDeleteSuccess,
+        refetchLeaveTypes,
+        resetCreate,
+        resetUpdate,
+        resetDelete
+    ]);
 
     // Debounce search to avoid too many API calls
     useEffect(() => {
         const timer = setTimeout(() => {
-            // No need to check for empty string, just reset page when search changes
             setQueryParams(prev => ({ ...prev, page: 1 }));
-        }, 300); // Reduced debounce time for better UX
+        }, 300);
 
         return () => clearTimeout(timer);
     }, [queryParams.search]);
@@ -299,7 +255,7 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
             setEditingLeaveType(leaveType);
             setLeaveTypeForm({
                 name: leaveType.name,
-                monthlyDays: (leaveType.leaveCount || 0) / 12,  // 👈 keep decimals
+                monthlyDays: (leaveType.leaveCount || 0) / 12,  
                 leaveCount: leaveType.leaveCount,
                 ispaidLeave: leaveType.ispaidLeave,
                 carryforward: leaveType.carryforward,
@@ -323,7 +279,7 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
         try {
             const payload = {
                 ...leaveTypeForm,
-                leaveCount: (leaveTypeForm.monthlyDays || 0) * 12, // 👈 decimals preserved
+                leaveCount: (leaveTypeForm.monthlyDays || 0) * 12, 
             };
 
             let result;
@@ -352,8 +308,6 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
 
                 showNotification('success', result.message || 'Leave type deleted successfully!');
 
-                // The cache will automatically invalidate and refetch due to invalidatesTags
-
             } catch (error: any) {
                 console.error('Error deleting leave type:', error);
 
@@ -374,7 +328,7 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
         setQueryParams(prev => ({
             ...prev,
             [field]: value,
-            ...(field !== 'page' && { page: 1 }) // Reset page when other filters change
+            ...(field !== 'page' && { page: 1 })
         }));
     };
 
@@ -394,28 +348,28 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
     }, [companyResponse]);
 
     // Initialize company if it doesn't exist
-    const handleInitializeCompany = async () => {
-        try {
-            const initData = {
-                ...companyData,
-                // ceo: {
-                //     userId: "686ba39694a7d69724c00846"
-                // },
-                settings: {
-                    sender: {
-                        userId: "6889f63d0a09308db5b5b4b2",
-                        email: "anubrati@hashtagbizsolutions.com",
-                        name: "Anubrati Mitra"
-                    }
-                }
-            };
-            const result = await initializeCompany(initData).unwrap();
-            // After successful initialization, the query will automatically refetch
-            console.log('Company initialized successfully:', result);
-        } catch (error) {
-            console.error('Error initializing company:', error);
-        }
-    };
+    // const handleInitializeCompany = async () => {
+    //     try {
+    //         const initData = {
+    //             ...companyData,
+    //             // ceo: {
+    //             //     userId: "686ba39694a7d69724c00846"
+    //             // },
+    //             settings: {
+    //                 sender: {
+    //                     userId: "6889f63d0a09308db5b5b4b2",
+    //                     email: "anubrati@hashtagbizsolutions.com",
+    //                     name: "Anubrati Mitra"
+    //                 }
+    //             }
+    //         };
+    //         const result = await initializeCompany(initData).unwrap();
+    //         // After successful initialization, the query will automatically refetch
+    //         console.log('Company initialized successfully:', result);
+    //     } catch (error) {
+    //         console.error('Error initializing company:', error);
+    //     }
+    // };
 
     const handleInputChange = (field: string, value: any) => {
         setFormData(prev => ({
@@ -472,53 +426,27 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
 
                 case 'company':
                     if (needsInitialization) {
-                        await handleInitializeCompany();
+                        // await handleInitializeCompany();
                     } else {
-                        // Check if there's a profile image file to upload
-                        console.log('Saving company settings:', companyData);
-                        if (companyData.profileImage) {
-                            const reader = new FileReader();
-                            const file = companyData.profileImage;
-                            reader.readAsDataURL(file);
-                            const formDataToSend = new FormData();
-                            
-                            formDataToSend.append('profilePicture', file);
+                        const formDataToSend = new FormData();
 
-                            formDataToSend.append('name', companyData.name);
-                            formDataToSend.append('domain', companyData.domain);
-                            formDataToSend.append('logo', companyData.logo);
-
-                            // Contact Info - flatten the object
-                            formDataToSend.append('contactInfo.phone', companyData.contactInfo?.phone || '');
-                            formDataToSend.append('contactInfo.email', companyData.contactInfo?.email || '');
-                            formDataToSend.append('contactInfo.website', companyData.contactInfo?.website || '');
-
-                            // Address - flatten the object
-                            formDataToSend.append('address.street', companyData.address?.street || '');
-                            formDataToSend.append('address.city', companyData.address?.city || '');
-                            formDataToSend.append('address.state', companyData.address?.state || '');
-                            formDataToSend.append('address.country', companyData.address?.country || '');
-                            formDataToSend.append('address.zipCode', companyData.address?.zipCode || '');
-
-                            // CEO Info
-                            formDataToSend.append('ceo.name', companyData.ceo?.name || '');
-                            formDataToSend.append('ceo.email', companyData.ceo?.email || '');
-                            formDataToSend.append('ceo.signature', companyData.ceo?.signature || '');
-                            formDataToSend.append('ceo.bio', companyData.ceo?.bio || '');
-
-                            // Settings
-                            formDataToSend.append('settings.sender.userId', companyData.settings?.sender?.userId || '');
-                            
-                            // Add settings
-                            // formDataToSend.append('settings', companyData.settings);
-                                formDataToSend.forEach((value, key) => {
-                                console.log(key, value);
-                                });
-                            await updateCompanyInfo(formDataToSend).unwrap();
-                        } else {
-                            // No file to upload, send regular JSON data
-                            await updateCompanyInfo(companyData).unwrap();
+                        // Profile image
+                        if (companyData.profileImage instanceof File) {
+                            formDataToSend.append('profilePicture', companyData.profileImage);
                         }
+
+                        // Flat fields
+                        formDataToSend.append('name', companyData.name || '');
+                        formDataToSend.append('domain', companyData.domain || '');
+                        formDataToSend.append('logo', companyData.logo || '');
+
+                        //  stringify nested objects
+                        formDataToSend.append('contactInfo', JSON.stringify(companyData.contactInfo || {}));
+                        formDataToSend.append('address', JSON.stringify(companyData.address || {}));
+                        formDataToSend.append('ceo', JSON.stringify(companyData.ceo || {}));
+                        formDataToSend.append('settings', JSON.stringify(companyData.settings || {}));
+
+                        await updateCompanyInfo(formDataToSend).unwrap();
                     }
                     break;
 

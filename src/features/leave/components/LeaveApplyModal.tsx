@@ -8,22 +8,6 @@ import {
   useGetLeaveBalanceQuery
 } from '../../../services/leaveServices';
 
-interface LeaveFormData {
-  type: string;
-  startDate: string;
-  endDate: string;
-  reason: string;
-  isHalfDay: boolean;
-  attachments: File[];
-}
-
-interface LeaveApplyModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  editLeaveId?: string;
-  onSuccess?: () => void;
-  leavesData?: any;
-}
 
 const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
   isOpen,
@@ -59,12 +43,6 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
   });
   const [createLeave] = useCreateLeaveMutation();
   const [updateLeave] = useUpdateLeaveMutation();
-
-
-
-
-
-
 
   const getMinDate = () => {
     const today = new Date();
@@ -365,13 +343,6 @@ const LeaveApplyModal: React.FC<LeaveApplyModalProps> = ({
 
   const disabledDates = getDisabledDates();
 
-
-  // NEW – detect when all allocated balances are 0
-  const allAllocatedZero = useMemo(() => {
-    const casual = Number(leaveBalance?.data?.casualLeaves?.remaining ?? 0);
-    const medical = Number(leaveBalance?.data?.medicalLeaves?.remaining ?? 0);
-    return casual <= 0 && medical <= 0;
-  }, [leaveBalance]);
 
   // NEW – group disabled dates into readable ranges
   const toLocalMidnight = (s: string) => new Date(`${s}T00:00:00`);
