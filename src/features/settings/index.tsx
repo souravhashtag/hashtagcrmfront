@@ -64,7 +64,7 @@ interface CompanyData {
         signature: string,
         bio: string,
         profileImage: any
-    };        
+    };
     profileImage: any;
     settings: {
         gracePeriod: number; // in minutes
@@ -476,49 +476,52 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
                     } else {
                         // Check if there's a profile image file to upload
                         console.log('Saving company settings:', companyData);
+                        // if (companyData.profileImage) {
+
+                        const formDataToSend = new FormData();
+
                         if (companyData.profileImage) {
                             const reader = new FileReader();
                             const file = companyData.profileImage;
                             reader.readAsDataURL(file);
-                            const formDataToSend = new FormData();
-                            
                             formDataToSend.append('profilePicture', file);
-
-                            formDataToSend.append('name', companyData.name);
-                            formDataToSend.append('domain', companyData.domain);
-                            formDataToSend.append('logo', companyData.logo);
-
-                            // Contact Info - flatten the object
-                            formDataToSend.append('contactInfo.phone', companyData.contactInfo?.phone || '');
-                            formDataToSend.append('contactInfo.email', companyData.contactInfo?.email || '');
-                            formDataToSend.append('contactInfo.website', companyData.contactInfo?.website || '');
-
-                            // Address - flatten the object
-                            formDataToSend.append('address.street', companyData.address?.street || '');
-                            formDataToSend.append('address.city', companyData.address?.city || '');
-                            formDataToSend.append('address.state', companyData.address?.state || '');
-                            formDataToSend.append('address.country', companyData.address?.country || '');
-                            formDataToSend.append('address.zipCode', companyData.address?.zipCode || '');
-
-                            // CEO Info
-                            formDataToSend.append('ceo.name', companyData.ceo?.name || '');
-                            formDataToSend.append('ceo.email', companyData.ceo?.email || '');
-                            formDataToSend.append('ceo.signature', companyData.ceo?.signature || '');
-                            formDataToSend.append('ceo.bio', companyData.ceo?.bio || '');
-
-                            // Settings
-                            formDataToSend.append('settings.sender.userId', companyData.settings?.sender?.userId || '');
-                            
-                            // Add settings
-                            // formDataToSend.append('settings', companyData.settings);
-                                formDataToSend.forEach((value, key) => {
-                                console.log(key, value);
-                                });
-                            await updateCompanyInfo(formDataToSend).unwrap();
-                        } else {
-                            // No file to upload, send regular JSON data
-                            await updateCompanyInfo(companyData).unwrap();
                         }
+
+                        formDataToSend.append('name', companyData.name);
+                        formDataToSend.append('domain', companyData.domain);
+                        formDataToSend.append('logo', companyData.logo);
+
+                        // Contact Info - flatten the object
+                        formDataToSend.append('contactInfo.phone', companyData.contactInfo?.phone || '');
+                        formDataToSend.append('contactInfo.email', companyData.contactInfo?.email || '');
+                        formDataToSend.append('contactInfo.website', companyData.contactInfo?.website || '');
+
+                        // Address - flatten the object
+                        formDataToSend.append('address.street', companyData.address?.street || '');
+                        formDataToSend.append('address.city', companyData.address?.city || '');
+                        formDataToSend.append('address.state', companyData.address?.state || '');
+                        formDataToSend.append('address.country', companyData.address?.country || '');
+                        formDataToSend.append('address.zipCode', companyData.address?.zipCode || '');
+
+                        // CEO Info
+                        formDataToSend.append('ceo.name', companyData.ceo?.name || '');
+                        formDataToSend.append('ceo.email', companyData.ceo?.email || '');
+                        formDataToSend.append('ceo.signature', companyData.ceo?.signature || '');
+                        formDataToSend.append('ceo.bio', companyData.ceo?.bio || '');
+
+                        // Settings
+                        formDataToSend.append('settings.sender.userId', companyData.settings?.sender?.userId || '');
+
+                        // Add settings
+                        // formDataToSend.append('settings', companyData.settings);
+                        formDataToSend.forEach((value, key) => {
+                            console.log(key, value);
+                        });
+                        await updateCompanyInfo(formDataToSend).unwrap();
+                        // } else {
+                        // No file to upload, send regular JSON data
+                        // await updateCompanyInfo(companyData).unwrap();
+                        // }
                     }
                     break;
 

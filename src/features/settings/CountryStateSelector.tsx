@@ -2,20 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { ChevronDown, MapPin, Search, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { useGetCountriesQuery } from '../../services/CountryServices';
 
-interface CountryStateSelectorProps {
-  selectedCountry?: string;
-  selectedState?: string;
-  onCountryChange: (countryCode: string, countryName: string) => void;
-  onStateChange: (stateKey: string, stateName: string) => void;
-  disabled?: boolean;
-  required?: boolean;
-  className?: string;
-  label?: {
-    country?: string;
-    state?: string;
-  };
-}
-
 const CountryStateSelector: React.FC<CountryStateSelectorProps> = ({
   selectedCountry,
   selectedState,

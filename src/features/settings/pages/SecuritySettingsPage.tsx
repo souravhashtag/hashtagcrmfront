@@ -1,22 +1,6 @@
 import { Eye, EyeOff, Save } from 'lucide-react';
 import React from 'react';
 
-
-interface SecurityFormData {
-    currentPassword: string;
-    newPassword: string;
-    confirmPassword: string;
-    twoFactorEnabled: boolean;
-}
-
-interface SecuritySettingsPageProps {
-    handleSave: (section: 'security') => void;
-    showPassword: boolean;
-    formData: SecurityFormData;
-    handleInputChange: (field: keyof SecurityFormData, value: string | boolean) => void;
-    setShowPassword: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
 const SecuritySettingsPage = ({
     handleSave,
     showPassword,

@@ -1,46 +1,5 @@
 import { AlertCircle, Calendar, Edit3, Loader2, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import React from 'react';
-import { LeaveType } from '../../../services/leaveTypesServices';
-
-
-interface Pagination {
-    currentPage: number;
-    totalPages: number;
-    itemsPerPage: number;
-    totalItems: number;
-    hasPrevPage: boolean;
-    hasNextPage: boolean;
-}
-
-
-interface QueryParams {
-    search?: string;
-    isPaid?: boolean;
-    page: any;
-}
-interface LeaveTypesStatistics {
-    total: number;
-    paidLeaveTypes: number;
-    unpaidLeaveTypes: number;
-    averageLeaveCount: number;
-}
-
-interface LeaveTypesManagementPageProps {
-    handleManualRefresh: () => void;
-    isLoadingLeaveTypes: boolean;
-    isFetchingLeaveTypes: boolean;
-    leaveTypesError: any;
-    statistics: LeaveTypesStatistics;
-    openLeaveTypeModal: (leaveType?: LeaveType) => void;
-    isCreating: boolean;
-    leaveTypes: LeaveType[];
-    isUpdating: boolean;
-    handleDeleteLeaveType: (id: string, name: string) => void;
-    isDeleting: boolean;
-    pagination: Pagination;
-    queryParams: any;
-    handleQueryParamsChange: (field: keyof QueryParams, value: any) => void;
-}
 
 
 const LeaveTypesManagementPage = ({

@@ -19,56 +19,6 @@ import {
 } from '../../../services/leaveServices';
 import { useUser } from '../../dashboard/context/DashboardContext';
 
-// TypeScript interfaces for populated data
-interface PopulatedUser {
-    _id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    role?: {
-        _id: string;
-        name: string;
-    };
-}
-
-interface PopulatedEmployee {
-    _id: string;
-    employeeId: string;
-    userId: PopulatedUser;
-}
-
-interface PopulatedLeave {
-    _id: string;
-    employeeId: PopulatedEmployee | string;
-    type: string;
-    startDate: string;
-    endDate: string;
-    totalDays: number;
-    reason: string;
-    status: 'pending' | 'approved' | 'rejected' | 'cancelled';
-    approvedBy?: PopulatedUser | string;
-    approvalDate?: string;
-    rejectionReason?: string;
-    attachments?: Array<{
-        name: string;
-        url: string;
-        uploadedAt: string;
-    }>;
-    createdAt: string;
-    updatedAt: string;
-}
-
-interface User {
-    _id: string;
-    role: {
-        name: string;
-    };
-}
-
-interface LeaveViewProps {
-    user?: User;
-}
-
 const LeaveView: React.FC<LeaveViewProps> = () => {
     const { user } = useUser();
     const { id } = useParams<{ id: string }>();

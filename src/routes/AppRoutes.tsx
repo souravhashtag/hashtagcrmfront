@@ -33,6 +33,7 @@ import PayrollManagement from '../features/payroll/PayrollManagement';
 import PayrollView from '../features/payroll/PayrollView';
 import MyPayrolls from '../features/payroll/MyPayrolls';
 import EODReportsPage from '../features/projectManagement/EODReports/EODReportsPage';
+import AdminEODReportsPage from '../features/projectManagement/EODReports/AdminEODReportsPage';
 
 
 
@@ -130,6 +131,7 @@ const AppRoutes = () => {
             <Route path='/project-management'>
             </Route>
             <Route path='/daily-report' element={<EODReportsPage />} />
+            <Route path='/daily-report-management' element={<AdminEODReportsPage />} />
           </Route>
         </Route>
 
