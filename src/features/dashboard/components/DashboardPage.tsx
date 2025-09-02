@@ -13,19 +13,19 @@ const DashboardPage: React.FC = () => {
   const [TakeaBreak, setTakeaBreak] = useState(false);
   const [isTimmerReady, setIsTimmerReady] = useState(false);
   //console.log("isClockedIn rendered===>",isClockedIn);
-   
+
 
   return (
     <>
-    <div className="p-6 grid grid-cols-12 gap-6">     
+      <div className="p-6 grid grid-cols-12 gap-6">
 
-      <Timmer setIsClockedIn={setIsClockedIn} isClockedIn={isClockedIn} TakeaBreak={TakeaBreak} setTakeaBreak={setTakeaBreak} setIsTimmerReady={setIsTimmerReady} />
-      <BirthDay />
+        <Timmer setIsClockedIn={setIsClockedIn} isClockedIn={isClockedIn} TakeaBreak={TakeaBreak} setTakeaBreak={setTakeaBreak} setIsTimmerReady={setIsTimmerReady} />
+        <BirthDay />
 
 
-    </div>
-          <Graph />
-          </>
+      </div>
+      <Graph />
+    </>
   );
 };
 

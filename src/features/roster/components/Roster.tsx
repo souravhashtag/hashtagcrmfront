@@ -365,14 +365,15 @@ const Roster = () => {
   // Get current week info
   const getCurrentWeekInfo = () => {
     const baseDate = selectedDate || new Date();
+    // console.log("selectedDate",baseDate)
     const sunday = new Date(baseDate);
     sunday.setDate(baseDate.getDate() - baseDate.getDay());
 
     const year = sunday.getFullYear();
     const weekNumber = Math.ceil(
       ((sunday.getTime() - new Date(year, 0, 1).getTime()) / 86400000 + 1) / 7
-    );
-
+    )+1;
+    // console.log("Current Week Info:", { year, weekNumber });
     return { year, weekNumber };
   };
   
@@ -586,6 +587,7 @@ const Roster = () => {
         } else {
           // Create new roster for employee
           const weekDates = getWeekDates(selectedDate);
+          // console.log("Creating roster with data:", weekDates);return false
           await createRoster({
             employee_id: employee?.employee._id,
             year,

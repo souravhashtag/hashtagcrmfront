@@ -120,10 +120,8 @@ export default function PayrollManagement() {
                     <select value={query.status} onChange={(e) => setQuery((p) => ({ ...p, status: e.target.value }))}
                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
                         <option value="">All Status</option>
-                        <option value="unpaid">Unpaid</option>
-                        <option value="processing">Processing</option>
+                        <option value="pending">Pending</option>
                         <option value="paid">Paid</option>
-                        <option value="failed">Failed</option>
                     </select>
                     <div className="flex gap-2">
                         <button onClick={() => { setPage(1); refetch(); }} className="px-4 py-2 border rounded-lg hover:bg-gray-50">Refresh</button>
@@ -173,7 +171,9 @@ export default function PayrollManagement() {
                                     <td className="px-6 py-3 whitespace-nowrap text-sm">
                                         <div className="flex items-center gap-2">
                                             <button onClick={() => navigate(`/payroll/view/${p._id}`)} className="p-1 text-blue-600 hover:text-blue-800" title="View"><Eye className="w-4 h-4" /></button>
-                                            <button onClick={() => navigate(`/payroll/view/${p._id}?edit=1`)} className="p-1 text-emerald-600 hover:text-emerald-800" title="Edit"><Edit className="w-4 h-4" /></button>
+                                            {p.paymentStatus !== 'paid' && (
+                                                <button onClick={() => navigate(`/payroll/view/${p._id}?edit=1`)} className="p-1 text-emerald-600 hover:text-emerald-800" title="Edit"><Edit className="w-4 h-4" /></button>
+                                            )}
                                             <button onClick={() => {
                                                 handleDelete(p._id);
                                             }} className="p-1 text-red-600 hover:text-red-800" title="Delete"><Trash2 className="w-4 h-4" /></button>
@@ -200,11 +200,50 @@ export default function PayrollManagement() {
                     <div className="flex items-center justify-between p-4 border-t">
                         <div className="text-sm text-gray-600">Page {page} of {pages}</div>
                         <div className="flex gap-2">
-                            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1 border rounded disabled:opacity-50">Prev</button>
-                            <button onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={page === pages} className="px-3 py-1 border rounded disabled:opacity-50">Next</button>
+                            {/* Prev button */}
+                            <button
+                                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                                className="px-3 py-1 border rounded disabled:opacity-50"
+                            >
+                                Prev
+                            </button>
+
+                            {/* Page number buttons */}
+                            {Array.from({ length: pages }, (_, i) => i + 1)
+                                .filter(p =>
+                                    // Show first page, last page, current page and 2 pages around current
+                                    p === 1 ||
+                                    p === pages ||
+                                    (p >= page - 2 && p <= page + 2)
+                                )
+                                .map((p, idx, arr) => (
+                                    <React.Fragment key={p}>
+                                        {/* Add ellipsis between non-consecutive pages */}
+                                        {idx > 0 && arr[idx] !== arr[idx - 1] + 1 && (
+                                            <span className="px-2">...</span>
+                                        )}
+                                        <button
+                                            onClick={() => setPage(p)}
+                                            className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${p === page ? "z-10 bg-blue-50 border-blue-500 text-blue-600" : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"}`}
+                                        >
+                                            {p}
+                                        </button>
+                                    </React.Fragment>
+                                ))}
+
+                            {/* Next button */}
+                            <button
+                                onClick={() => setPage((p) => Math.min(pages, p + 1))}
+                                disabled={page === pages}
+                                className="px-3 py-1 border rounded disabled:opacity-50"
+                            >
+                                Next
+                            </button>
                         </div>
                     </div>
                 )}
+
             </div>
 
             {/* Create/Edit Modal */}

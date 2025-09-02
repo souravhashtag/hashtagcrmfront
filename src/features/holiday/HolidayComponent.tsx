@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Plus, Edit3, Trash2, X, Search, ChevronLeft, ChevronRight, Loader2, AlertCircle } from 'lucide-react';
+import { Calendar, Plus, Search, Loader2, AlertCircle } from 'lucide-react';
 import {
     useGetHolidaysQuery,
     useCreateHolidayMutation,
@@ -8,6 +8,9 @@ import {
     Holiday,
     HolidayFormData
 } from '../../services/holidayServices';
+import HolidayModal from './components/HolidayModal';
+import Pagination from './components/Pagination';
+import HolidayTable from './components/HolidayTable';
 
 const HolidayComponent: React.FC = () => {
     // State for filters and UI
@@ -169,6 +172,12 @@ const HolidayComponent: React.FC = () => {
     };
 
     const handleDelete = async (holidayId: string) => {
+        const confirmed = window.confirm(
+            'Are you sure you want to delete this holiday? This action cannot be undone.'
+        );
+
+        if (!confirmed) return; // exit if user cancels
+
         try {
             setDeletingId(holidayId);
             await deleteHoliday({ id: holidayId, permanent: false }).unwrap();
@@ -180,6 +189,7 @@ const HolidayComponent: React.FC = () => {
             setDeletingId(null);
         }
     };
+
 
 
     const getTypeBadge = (type: string) => {
@@ -338,139 +348,26 @@ const HolidayComponent: React.FC = () => {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 {holidays.length > 0 ? (
                     <>
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                                            Date
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                                            Day
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                                            Holiday Name
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                                            Type
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                                            Status
-                                        </th>
-                                        <th className="px-6 py-3 text-right text-xs font-medium text-white uppercase tracking-wider">
-                                            Actions
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {holidays.map((holiday: any) => (
-                                        <tr
-                                            key={holiday._id}
-                                            className={`hover:bg-gray-50 ${isToday(holiday.date)
-                                                ? 'border-l-4 border-orange-500 bg-orange-50'
-                                                : isUpcoming(holiday.date)
-                                                    ? 'border-l-4 border-[#129990]'
-                                                    : ''
-                                                }`}
-                                        >
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {formatDate(holiday.date)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {holiday.day || getDayFromYMD(holiday.date)}
-                                            </td>
-
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div>
-                                                    <div className="text-sm font-medium text-gray-900">
-                                                        {holiday.name}
-                                                    </div>
-                                                    {holiday.description && (
-                                                        <div className="text-sm text-gray-500">
-                                                            {holiday.description}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                {getTypeBadge(holiday.type)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                {getStatusBadge(holiday.date)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <button
-                                                        onClick={() => openModal(holiday)}
-                                                        disabled={isDeleting && deletingId === holiday._id}
-                                                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                                        title="Edit"
-                                                    >
-                                                        <Edit3 className="w-4 h-4" />
-                                                    </button>
-
-                                                    <button
-                                                        onClick={() => handleDelete(holiday._id)}
-                                                        disabled={isDeleting && deletingId === holiday._id}
-                                                        className="text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                                        title="Delete"
-                                                    >
-                                                        {isDeleting && deletingId === holiday._id
-                                                            ? <Loader2 className="w-4 h-4 animate-spin" />
-                                                            : <Trash2 className="w-4 h-4" />
-                                                        }
-                                                    </button>
-
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                        <HolidayTable
+                            holidays={holidays}
+                            isUpcoming={isUpcoming}
+                            formatDate={formatDate}
+                            isToday={isToday}
+                            getDayFromYMD={getDayFromYMD}
+                            getTypeBadge={getTypeBadge}
+                            getStatusBadge={getStatusBadge}
+                            openModal={openModal}
+                            isDeleting={isDeleting}
+                            deletingId={deletingId}
+                            handleDelete={handleDelete}
+                        />
 
                         {/* Pagination */}
-                        {pagination.totalPages > 1 && (
-                            <div className="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
-                                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between w-full">
-                                    <p className="text-sm text-gray-700">
-                                        Showing <span className="font-medium">
-                                            {(pagination.currentPage - 1) * itemsPerPage + 1}
-                                        </span> to <span className="font-medium">
-                                            {Math.min(pagination.currentPage * itemsPerPage, pagination.totalItems)}
-                                        </span> of <span className="font-medium">{pagination.totalItems}</span> results
-                                    </p>
-                                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                                        <button
-                                            onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
-                                            disabled={pagination.currentPage === 1}
-                                            className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <ChevronLeft className="h-5 w-5" />
-                                        </button>
-                                        {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(pageNum => (
-                                            <button
-                                                key={pageNum}
-                                                onClick={() => setCurrentPage(pageNum)}
-                                                className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${pagination.currentPage === pageNum
-                                                    ? 'z-10 bg-[#129990] border-[#129990] text-white'
-                                                    : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                                                    }`}
-                                            >
-                                                {pageNum}
-                                            </button>
-                                        ))}
-                                        <button
-                                            onClick={() => setCurrentPage(p => Math.min(p + 1, pagination.totalPages))}
-                                            disabled={pagination.currentPage === pagination.totalPages}
-                                            className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <ChevronRight className="h-5 w-5" />
-                                        </button>
-                                    </nav>
-                                </div>
-                            </div>
-                        )}
+                        <Pagination
+                            pagination={pagination}
+                            itemsPerPage={itemsPerPage}
+                            setCurrentPage={setCurrentPage}
+                        />
 
                     </>
                 ) : (
@@ -507,152 +404,15 @@ const HolidayComponent: React.FC = () => {
 
             {/* Add/Edit Holiday Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-                        {/* Modal Header */}
-                        <div className="px-6 py-4 border-b border-gray-200 bg-[#129990]">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-lg font-bold text-white" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                                    {editingHoliday ? 'Edit Holiday' : 'Add New Holiday'}
-                                </h3>
-                                <button
-                                    onClick={closeModal}
-                                    className="text-white hover:text-gray-200 transition-colors"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-                            <p className="text-sm text-teal-100 mt-1">
-                                {editingHoliday ? 'Update holiday information' : 'Create a new holiday entry'}
-                            </p>
-                        </div>
-
-                        {/* Modal Body */}
-                        <div className="px-6 py-4 space-y-6">
-                            {isSaving && (
-                                <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center">
-                                    <span className="inline-flex items-center gap-2 text-[#129990]">
-                                        <Loader2 className="w-5 h-5 animate-spin" />
-                                        {editingHoliday ? 'Updating...' : 'Saving...'}
-                                    </span>
-                                </div>
-                            )}
-
-                            {/* Holiday Name */}
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Holiday Name *
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="Holiday Name"
-                                    disabled={isSaving}
-                                    value={formData.name}
-                                    onChange={(e) => handleInputChange('name', e.target.value)}
-                                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#129990] focus:border-transparent ${errors.name ? 'border-red-300' : 'border-gray-300'
-                                        }`}
-                                />
-                                {errors.name && (
-                                    <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-                                )}
-                            </div>
-
-                            {/* Date */}
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Select Date *
-                                </label>
-                                <div className="relative">
-                                    <input
-                                        type="date"
-                                        disabled={isSaving}
-                                        value={formData.date}
-                                        onChange={(e) => handleInputChange('date', e.target.value)}
-                                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#129990] focus:border-transparent ${errors.date ? 'border-red-300' : 'border-gray-300'
-                                            }`}
-                                    />
-                                    <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
-                                </div>
-                                {errors.date && (
-                                    <p className="mt-1 text-sm text-red-600">{errors.date}</p>
-                                )}
-                            </div>
-
-                            {/* Type */}
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Holiday Type
-                                </label>
-                                <select
-                                    value={formData.type}
-                                    disabled={isSaving}
-                                    onChange={(e) => handleInputChange('type', e.target.value as 'national' | 'religious' | 'company')}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#129990] focus:border-transparent"
-                                >
-                                    <option value="company">Company</option>
-                                    <option value="national">National</option>
-                                    <option value="religious">Religious</option>
-                                </select>
-                            </div>
-
-                            {/* Description */}
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Description
-                                </label>
-                                <textarea
-                                    placeholder="Holiday description (optional)"
-                                    disabled={isSaving}
-                                    value={formData.description}
-                                    onChange={(e) => handleInputChange('description', e.target.value)}
-                                    rows={3}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#129990] focus:border-transparent resize-none"
-                                />
-                            </div>
-
-                            {/* Recurring Checkbox */}
-                            <div className="flex items-center gap-3">
-                                <input
-                                    type="checkbox"
-                                    id="isRecurring"
-                                    checked={formData.isRecurring}
-                                    onChange={(e) => handleInputChange('isRecurring', e.target.checked)}
-                                    className="w-4 h-4 text-[#129990] border-gray-300 rounded focus:ring-[#129990]"
-                                />
-                                <label htmlFor="isRecurring" className="text-sm font-medium text-gray-700">
-                                    Recurring Holiday (occurs annually)
-                                </label>
-                            </div>
-                        </div>
-
-                        {/* Modal Footer */}
-                        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3">
-                            <button
-                                onClick={closeModal}
-                                disabled={isSaving}
-                                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                Cancel
-                            </button>
-
-                            <button
-                                onClick={handleSubmit}
-                                disabled={isSaving}
-                                className="px-4 py-2 bg-[#129990] text-white rounded-md hover:bg-[#0f7a73] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {isSaving ? (
-                                    <span className="inline-flex items-center gap-2">
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                        {editingHoliday ? 'Updating...' : 'Saving...'}
-                                    </span>
-                                ) : (
-                                    editingHoliday ? 'Update' : 'Add'
-                                )}
-                            </button>
-
-                        </div>
-                    </div>
-                </div>
+                <HolidayModal
+                    editingHoliday={editingHoliday}
+                    closeModal={closeModal}
+                    isSaving={isSaving}
+                    formData={formData}
+                    handleInputChange={handleInputChange}
+                    errors={errors}
+                    handleSubmit={handleSubmit}
+                />
             )}
         </div>
     );

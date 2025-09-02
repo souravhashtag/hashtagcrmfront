@@ -32,6 +32,7 @@ import NoticeList from '../features/notice/components/NoticeList';
 import PayrollManagement from '../features/payroll/PayrollManagement';
 import PayrollView from '../features/payroll/PayrollView';
 import MyPayrolls from '../features/payroll/MyPayrolls';
+import EODReportsPage from '../features/projectManagement/EODReports/EODReportsPage';
 
 
 
@@ -124,6 +125,11 @@ const AppRoutes = () => {
               <Route path="view/:id" element={<PayrollView />} />
             </Route>
             <Route path='/self-payroll' element={<MyPayrolls />} />
+
+
+            <Route path='/project-management'>
+            </Route>
+            <Route path='/daily-report' element={<EODReportsPage />} />
           </Route>
         </Route>
 

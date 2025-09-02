@@ -20,12 +20,15 @@ export interface CompanyData {
         website: string;
     };
     ceo: {
-        userId: string;
-        signature: string;
-        bio: string;
-        profileImage: string;
+        name: string,
+        email: string,
+        signature: string,
+        bio: string,
+        profileImage: string
     };
+    profileImage: any
     settings: {
+        gracePeriod: number; // in minutes
         ceoTalk: {
             Message: string;
         };
@@ -147,6 +150,12 @@ export const companyServices = api.injectEndpoints({
             providesTags: ['Company'],
         }),
 
+        // Get company details
+        getCompanyPartOfSalary: builder.query<{ success: any; data: any }, void>({
+            query: () => '/company/payroll/components',
+            providesTags: ['Company'],
+        }),
+
         // Initialize company (first-time setup)
         initializeCompany: builder.mutation<{ success: boolean; data: CompanyData; message: string }, CompanyFormData>({
             query: (body) => ({
@@ -158,7 +167,7 @@ export const companyServices = api.injectEndpoints({
         }),
 
         // Update company information
-        updateCompanyInfo: builder.mutation<{ success: boolean; data: CompanyData; message: string }, CompanyFormData>({
+        updateCompanyInfo: builder.mutation<{ success: boolean; data: CompanyData; message: string }, any>({
             query: (body) => ({
                 url: '/company',
                 method: 'PUT',
@@ -265,6 +274,7 @@ export const companyServices = api.injectEndpoints({
 
 export const {
     useGetCompanyDetailsQuery,
+    useGetCompanyPartOfSalaryQuery,
     useInitializeCompanyMutation,
     useUpdateCompanyInfoMutation,
     useUpdateCeoTalkMessageMutation,

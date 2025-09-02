@@ -76,12 +76,17 @@ export default function PayrollView() {
                 </div>
                 {!readOnly && (
                     <div className="flex gap-2">
-                        <button onClick={() => setShowEdit(true)} className="px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
-                            <Edit className="w-4 h-4 inline mr-1" /> Edit
-                        </button>
-                        <button onClick={handleRecalc} disabled={recalcing} className="px-3 py-2 border rounded-lg hover:bg-gray-50">
-                            <RefreshCw className="w-4 h-4 inline mr-1" /> Recalculate
-                        </button>
+                        {payroll.paymentStatus !== 'paid' && (
+                            <>
+                                <button onClick={() => setShowEdit(true)} className="px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
+                                    <Edit className="w-4 h-4 inline mr-1" /> Edit
+                                </button>
+
+                                <button onClick={handleRecalc} disabled={recalcing} className="px-3 py-2 border rounded-lg hover:bg-gray-50">
+                                    <RefreshCw className="w-4 h-4 inline mr-1" /> Recalculate
+                                </button>
+                            </>
+                        )}
                         {payroll.paymentStatus !== 'paid' && (
                             <button
                                 onClick={() => { setSelectedPayrollId(payroll._id); setOpen(true); }}
