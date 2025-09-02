@@ -1,33 +1,5 @@
 import { Loader2, Save, X } from 'lucide-react';
 import React from 'react';
-import { LeaveType, LeaveTypeFormData } from '../../../services/leaveTypesServices';
-
-
-interface Props {
-    editingLeaveType: LeaveType | null;
-    setShowLeaveTypeModal: (show: boolean) => void;
-    isCreating: boolean;
-    isUpdating: boolean;
-    leaveTypeForm: {
-        name: string;
-        leaveCount: number;
-        monthlyDays: number;
-        ispaidLeave: boolean;
-        carryforward: boolean;
-    };
-    handleLeaveTypeFormChange: (field: keyof LeaveTypeFormData, value: any) => void;
-    setEditingLeaveType: (leaveType: null | {
-        _id: string;
-        name: string;
-        leaveCount: number;
-        monthlyDays: number;
-        ispaidLeave: boolean;
-        carryforward: boolean;
-        createdAt: string;
-        updatedAt: string;
-    }) => void;
-    handleSaveLeaveType: () => void;
-}
 
 const LeaveTypeModal = ({
     editingLeaveType,

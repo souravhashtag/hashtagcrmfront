@@ -1,23 +1,6 @@
 import { Plus } from 'lucide-react';
 import React from 'react';
 
-type RecipientType = 'to' | 'cc' | 'bcc';
-
-interface Recipient {
-    id: string;
-    name: string;
-    email: string;
-}
-
-interface RecipientModalProps {
-    recipientType: RecipientType;
-    setRecipientType: React.Dispatch<React.SetStateAction<RecipientType>>;
-    newRecipient: Recipient;
-    setNewRecipient: React.Dispatch<React.SetStateAction<Recipient>>;
-    setShowRecipientModal: React.Dispatch<React.SetStateAction<boolean>>;
-    handleAddRecipient: () => void;
-}
-
 const RecipientModal = ({
     recipientType,
     setRecipientType,

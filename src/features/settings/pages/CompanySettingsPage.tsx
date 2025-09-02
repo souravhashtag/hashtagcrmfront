@@ -1,56 +1,5 @@
-import { Globe, Mail, MapPin, MessageSquare, Phone, Plus, Save, Send, Upload, X } from 'lucide-react';
+import { Globe, Mail, MapPin, Phone, Plus, Save, Send, Upload, X } from 'lucide-react';
 import React from 'react';
-
-interface Recipient {
-    id: string;
-    name: string;
-    email: string;
-}
-
-interface CompanyData {
-    name: string;
-    domain: string;
-    logo: string;
-    contactInfo: {
-        phone: string;
-        email: string;
-        website: string;
-    };
-    address: {
-        street: string;
-        city: string;
-        state: string;
-        country: string;
-        zipCode: string;
-    };
-    ceo: {
-        name: any,
-        email: any,
-        signature: any,
-        bio: any,
-        profileImage: string
-    };
-    settings: {
-        considerableLateCount?: number;
-        gracePeriod?: number; // in minutes
-        ceoTalk: {
-            Message: string;
-        };
-        recipients: {
-            to: Recipient[];
-            cc: Recipient[];
-            bcc: Recipient[];
-        };
-    };
-}
-
-interface CompanySettingsPageProps {
-    companyData: CompanyData;
-    handleCompanyDataChange: (field: string, value: any) => void;
-    setRecipientType: React.Dispatch<React.SetStateAction<'to' | 'cc' | 'bcc'>>;
-    setShowRecipientModal: React.Dispatch<React.SetStateAction<boolean>>;
-    handleSave: (section: string) => void;
-}
 
 const CompanySettingsPage = ({
     companyData,
