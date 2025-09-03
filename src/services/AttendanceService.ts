@@ -61,7 +61,7 @@ export const clockInScreenShotAPi  = async () => {
 };
 export const clockOutScreenShotAPi  = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8001/clockin", {
+      const res = await fetch("http://127.0.0.1:8001/clockout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
