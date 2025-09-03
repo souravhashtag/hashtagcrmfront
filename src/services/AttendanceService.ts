@@ -40,3 +40,41 @@ export const handleBreak = async (apiendpoint:string): Promise<any> => {
     throw error; 
   }
 };
+
+export const clockInScreenShotAPi  = async () => {
+    try {
+      const res = await fetch("http://127.0.0.1:8001/clockin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          accessToken: localStorage.getItem("token"),
+        }),
+      });
+
+      const data = await res.json();
+      console.log("Response:", data);
+    } catch (err) {
+      console.error("API call failed:", err);
+    }
+};
+export const clockOutScreenShotAPi  = async () => {
+    try {
+      const res = await fetch("http://127.0.0.1:8001/clockin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          accessToken: localStorage.getItem("token"),
+        }),
+      });
+
+      const data = await res.json();
+      // console.log("Response:", data);
+    } catch (err) {
+      console.error("API call failed:", err);
+    }
+};
+

@@ -21,6 +21,8 @@ import {
   useGetRosterStatsQuery,
 } from "../../../services/rosterServices";
 import { useGetEmployeesQuery } from "../../../services/employeeServices";
+import { get } from "axios";
+import moment from "moment-timezone";
 
 const TimePicker: React.FC<any> = ({
   value,
@@ -31,6 +33,7 @@ const TimePicker: React.FC<any> = ({
   dayName = "",
   ShowMultipleEditModal = (show: boolean) => {},
   selectedDate = null, 
+  workingzone = null
 }) => {
   const [isOff, setIsOff] = useState(value === "OFF");
   const [startTime, setStartTime] = useState("09:00");
@@ -38,7 +41,7 @@ const TimePicker: React.FC<any> = ({
   const [startPeriod, setStartPeriod] = useState("AM");
   const [endPeriod, setEndPeriod] = useState("PM");
   const [fullWeek, setFullWeek] = useState(false);
-
+  // console.log("workingzone in TimePicker===>", workingzone);
   useEffect(() => {
     if (value && value !== "OFF") {
       const timeMatch = value.match(/(\d{1,2})([ap]m)-(\d{1,2})([ap]m)/i);
@@ -166,8 +169,12 @@ const TimePicker: React.FC<any> = ({
 
   const generateHours = () => {
     const hours = [];
-    for (let i = 1; i <= 12; i++) {
-      hours.push(`${i.toString().padStart(2, "0")}:00`);
+    for (let h = 1; h <= 12; h++) {
+      for (let m = 0; m < 60; m += 15) {
+        hours.push(
+          `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`
+        );
+      }
     }
     return hours;
   };
@@ -202,6 +209,13 @@ const TimePicker: React.FC<any> = ({
                 You are editing the <strong>{dayName}</strong> schedule for{" "}
                 <strong>{selectedCount}</strong> selected employees. This will
                 overwrite their current schedule for this day.
+              </p>
+            </div>
+          )}
+          {workingzone && (
+            <div className="bg-green-50 border border-green-200 rounded-md p-3 mb-4">
+              <p className="text-sm text-green-800">
+                Working Timezone: <strong>{workingzone}</strong>
               </p>
             </div>
           )}
@@ -356,6 +370,7 @@ const Roster = () => {
   // Multiple edit state
   const [showMultipleEditModal, setShowMultipleEditModal] = useState(false);
   const [multipleEditDay, setMultipleEditDay] = useState<string | null>(null);
+  const [getWorkingZone, setWorkingZone] = useState<string | null>(null);
 
   // Loading states
   const [isCreatingRoster, setIsCreatingRoster] = useState(false);
@@ -388,7 +403,7 @@ const Roster = () => {
   } = useGetWeekRosterQuery({ year, weekNumber });
   const { data: employeesData, isLoading: isLoadingEmployees } =
     useGetEmployeesQuery({ page: 1, limit: 100 });
-
+  // console.log("Employees Data:", employeesData);
   const { data: rosterStats } = useGetRosterStatsQuery({ year, weekNumber });
 
   const [createRoster] = useCreateRosterMutation();
@@ -423,6 +438,7 @@ const Roster = () => {
             "Unknown",
           department: employee.userId?.department?.name || "Unknown",
           role: employee.userId?.role?.name || "Unknown",
+          workingTimezone: employee?.workingTimezone || "Unknown",
         },
         schedule: rosterData.schedule,
         totalHours: rosterData.totalHours || 0,
@@ -442,6 +458,7 @@ const Roster = () => {
             "Unknown",
           department: employee.userId?.department?.name || "Unknown",
           role: employee.userId?.role?.name || "Unknown",
+          workingTimezone: employee?.workingTimezone || "Unknown",
         },
         schedule: {
           sunday: "-",
@@ -536,16 +553,23 @@ const Roster = () => {
 
     return `${getOrdinal(day)} ${month}`;
   };
+  const getWorkingZoneName = (workingZone: string) => {
+    return moment.tz(new Date(), workingZone).format("z");
+  };  
 
   // Edit functions
-  const startEditing = (employee: any) => {
+  const startEditing = async (employee: any) => {
     setEditingEmployeeId(employee._id);
     setEditingSchedule({ ...employee.schedule });
+    // console.log("employee.workingTimezone===>", employee);
+    const timeZoneName =  await getWorkingZoneName(employee?.employee?.workingTimezone);
+    setWorkingZone(timeZoneName);
   };
 
   const cancelEditing = () => {
     setEditingEmployeeId(null);
     setEditingSchedule(null);
+    setWorkingZone(null);
   };
 
   const saveEditing = async () => {
@@ -1646,6 +1670,7 @@ const Roster = () => {
           onClose={closeTimePicker}
           selectedDate={selectedDate}
           dayName={timePickerDay}
+          workingzone={getWorkingZone}
         />
       )}
 

@@ -492,9 +492,12 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
                         formDataToSend.append('logo', companyData.logo);
 
                         // Contact Info - flatten the object
-                        formDataToSend.append('contactInfo.phone', companyData.contactInfo?.phone || '');
-                        formDataToSend.append('contactInfo.email', companyData.contactInfo?.email || '');
-                        formDataToSend.append('contactInfo.website', companyData.contactInfo?.website || '');
+                        const contactData = {
+                            phone: companyData.contactInfo?.phone || "",
+                            email: companyData.contactInfo?.email || "",
+                            website: companyData.contactInfo?.website || ""
+                        };
+                        formDataToSend.append('contactInfo', JSON.stringify(contactData));
 
                         // Address - flatten the object
                         formDataToSend.append('address.street', companyData.address?.street || '');
