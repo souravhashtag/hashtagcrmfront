@@ -164,7 +164,7 @@ const DesignationList: React.FC = () => {
   const pagination = designationsData?.pagination;
 
   return (
-    <div className="p-6 bg-white">
+    <div className="p-6 bg-gray-50 min-h-fit rounded-lg">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
@@ -173,30 +173,12 @@ const DesignationList: React.FC = () => {
             Manage job designations and positions
           </p>
         </div>
-        
-        <div className="flex gap-2">
-          <button
-            onClick={() => refetch()}
-            disabled={isFetching}
-            className="flex items-center gap-2 px-3 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition duration-200"
-          >
-            <RefreshCw size={16} className={isFetching ? 'animate-spin' : ''} />
-            Refresh
-          </button>
-          
-          <Link
-            to="/designations/create"
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
-          >
-            <Plus size={16} />
-            Add Designation
-          </Link>
-        </div>
+
       </div>
 
       {/* Filters */}
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div className="flex flex-col lg:flex-row gap-4 justify-end">
           {/* Search */}
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
@@ -217,6 +199,25 @@ const DesignationList: React.FC = () => {
             <Filter size={16} />
             Filters
           </button>
+                  
+        <div className="flex gap-2">
+          <button
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="flex items-center gap-2 px-3 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition duration-200"
+          >
+            <RefreshCw size={16} className={isFetching ? 'animate-spin' : ''} />
+            Refresh
+          </button>
+          
+          <Link
+            to="/designations/create"
+            className="flex items-center gap-2 px-4 py-2 bg-[#129990] text-white rounded-md hover:bg-[#1dbfb4] transition duration-200"
+          >
+            <Plus size={16} />
+            Add Designation
+          </Link>
+        </div>
         </div>
 
         {/* Advanced Filters */}

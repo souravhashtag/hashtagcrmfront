@@ -1121,33 +1121,33 @@ const Roster = () => {
   return (
     <div className="p-4 w-full">
       <div className="w-full mx-auto bg-white shadow-sm rounded-lg p-6 mb-6">
-        <div className="text-[20px] font-semibold">Roster</div>
+        <div className="text-3xl font-bold text-gray-900">Roster</div>
         <p className="text-[#A2A1A8] text-[14px]">All Employee Roster List</p>
 
         {/* Roster Stats */}
         {rosterStats?.data && (
           <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-blue-50 rounded-lg p-3">
-              <div className="text-sm text-blue-600">Total Employees</div>
-              <div className="text-xl font-semibold text-blue-800">
+            <div className="p-6 rounded-lg shadow-lg border border-gray-100 bg-[#4fd1c5] shadow-lg">
+              <div className="text-lg font-medium text-white">Total Employees</div>
+              <div className="text-4xl font-bold text-white">
                 {rosterStats.data.totalEmployees}
               </div>
             </div>
-            <div className="bg-green-50 rounded-lg p-3">
-              <div className="text-sm text-green-600">Total Hours</div>
-              <div className="text-xl font-semibold text-green-800">
+            <div className="p-6 rounded-lg shadow-lg border border-gray-100 bg-[#007170]">
+              <div className="text-lg font-medium text-white">Total Hours</div>
+              <div className="text-4xl font-bold text-white">
                 {rosterStats.data.totalHours}
               </div>
             </div>
-            <div className="bg-yellow-50 rounded-lg p-3">
-              <div className="text-sm text-yellow-600">Average Hours</div>
-              <div className="text-xl font-semibold text-yellow-800">
+            <div className="p-6 rounded-lg shadow-lg border border-gray-100 bg-[#34bebd]">
+              <div className="text-lg font-medium text-white">Average Hours</div>
+              <div className="text-4xl font-bold text-white">
                 {rosterStats.data.averageHours?.toFixed(1) || 0}
               </div>
             </div>
-            <div className="bg-purple-50 rounded-lg p-3">
-              <div className="text-sm text-purple-600">Overnight Shifts</div>
-              <div className="text-xl font-semibold text-purple-800">
+            <div className="p-6 rounded-lg shadow-lg border border-gray-100 bg-[#202c74] shadow-lg">
+              <div className="text-lg font-medium text-white">Overnight Shifts</div>
+              <div className="text-4xl font-bold text-white">
                 {rosterStats.data.overnightShifts}
               </div>
             </div>

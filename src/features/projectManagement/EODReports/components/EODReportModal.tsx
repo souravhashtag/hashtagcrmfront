@@ -142,8 +142,8 @@ export default function EODReportModal({ isOpen, onClose, onSuccess }: Props) {
     <div className="fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center z-50">
       <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b bg-gradient-to-r from-[#129990] to-[#117ca7] text-white">
-          <h2 className="text-xl font-bold">Create Today&apos;s Report</h2>
+        <div className="flex items-center justify-between px-6 py-6 border-b ">
+          <h2 className="text-2xl font-bold text-gray-900">Create Today&apos;s Report</h2>
           <button
             onClick={onClose}
             className="p-2 rounded-full hover:bg-white/20 transition"
@@ -162,7 +162,7 @@ export default function EODReportModal({ isOpen, onClose, onSuccess }: Props) {
           </div>
 
           {/* Date */}
-          <div className="bg-white border rounded-lg p-4 shadow-sm">
+          <div className="rounded-lg p-1">
             <label className="block text-sm font-semibold mb-1">Date</label>
             <input
               type="date"
@@ -173,8 +173,8 @@ export default function EODReportModal({ isOpen, onClose, onSuccess }: Props) {
           </div>
 
           {/* Activities */}
-          <div className="bg-white border rounded-lg p-4 shadow-sm">
-            <h3 className="font-semibold mb-3 text-lg">Activities</h3>
+          <div className="bg-white p-1">
+            <h3 className="block text-sm font-semibold mb-1">Activities</h3>
             {report.activities.map((a, idx) => (
               <div key={idx} className="grid grid-cols-5 gap-2 mb-3">
                 <input
@@ -216,15 +216,15 @@ export default function EODReportModal({ isOpen, onClose, onSuccess }: Props) {
             ))}
             <button
               onClick={addActivity}
-              className="mt-2 px-4 py-2 flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg"
+              className="mt-2 px-4 py-3 flex items-center gap-2 bg-[#202c74] hover:bg-[#2b3b99] rounded-lg px-4 py-2 text-white text-center"
             >
               <Plus className="w-4 h-4" /> Add Activity
             </button>
           </div>
 
           {/* Breaks */}
-          <div className="bg-white border rounded-lg p-4 shadow-sm">
-            <h3 className="font-semibold mb-3 text-lg">Breaks</h3>
+          <div className="bg-white p-1">
+            <h3 className="block text-sm font-semibold mb-1">Breaks</h3>
             {report.breaks.map((b, idx) => (
               <div key={idx} className="grid grid-cols-4 gap-2 mb-3">
                 <input
@@ -260,14 +260,14 @@ export default function EODReportModal({ isOpen, onClose, onSuccess }: Props) {
             ))}
             <button
               onClick={addBreak}
-              className="mt-2 px-4 py-2 flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg"
+              className="mt-2 px-4 py-3 flex items-center gap-2 bg-[#202c74] hover:bg-[#2b3b99] rounded-lg px-4 py-2 text-white text-center"
             >
               <Plus className="w-4 h-4" /> Add Break
             </button>
           </div>
 
           {/* Plans */}
-          <div className="bg-white border rounded-lg p-4 shadow-sm">
+          <div className="bg-white p-1">
             <label className="block text-sm font-semibold mb-1">Plans for Tomorrow</label>
             <textarea
               className="w-full border p-2 rounded"
@@ -278,7 +278,7 @@ export default function EODReportModal({ isOpen, onClose, onSuccess }: Props) {
           </div>
 
           {/* Issues */}
-          <div className="bg-white border rounded-lg p-4 shadow-sm">
+          <div className="bg-white">
             <label className="block text-sm font-semibold mb-1">Issues / Challenges</label>
             <textarea
               className="w-full border p-2 rounded"
@@ -289,7 +289,7 @@ export default function EODReportModal({ isOpen, onClose, onSuccess }: Props) {
           </div>
 
           {/* Comments */}
-          <div className="bg-white border rounded-lg p-4 shadow-sm">
+          <div className="bg-white">
             <label className="block text-sm font-semibold mb-1">Comments to Management</label>
             <textarea
               className="w-full border p-2 rounded"
@@ -301,17 +301,17 @@ export default function EODReportModal({ isOpen, onClose, onSuccess }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="flex gap-3 p-4 border-t bg-gray-50">
+        <div className="flex gap-3 p-4 w-[400px] mb-10">
           <button
             onClick={onClose}
-            className="flex-1 border rounded-lg px-4 py-2 hover:bg-gray-100 transition"
+            className="bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={submitReport}
             disabled={isLoading}
-            className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-lg px-4 py-2 font-medium transition disabled:opacity-50"
+            className="bg-[#129990] text-white px-4 py-3 rounded-md flex items-center gap-2 hover:bg-[#1dbfb4] transition-colors"
           >
             {isLoading ? "Submitting..." : "Submit Report"}
           </button>

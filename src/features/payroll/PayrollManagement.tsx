@@ -97,35 +97,33 @@ export default function PayrollManagement() {
                     <h1 className="text-3xl font-bold text-gray-900">Payroll Management</h1>
                     <p className="text-gray-600">Track, create, and manage monthly payrolls</p>
                 </div>
-                <button onClick={() => setShowForm(true)} className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
-                    <Plus className="w-4 h-4" /> New Payroll
-                </button>
+           
             </div>
 
             {/* Filters */}
             <div className="bg-white p-4 rounded-lg border mb-4">
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                <div className="flex flex-col lg:flex-row gap-4 justify-end">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <input value={query.q} onChange={(e) => setQuery((p) => ({ ...p, q: e.target.value }))}
                             placeholder="Search by employee/transaction id"
-                            className="w-full pl-9 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" />
+                            className=" w-[400px] pl-9 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" />
                     </div>
                     <input type="number" placeholder="Month" min={1} max={12} value={query.month}
                         onChange={(e) => setQuery((p) => ({ ...p, month: e.target.value }))}
-                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" />
+                        className="w-[300px] px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" />
                     <input type="number" placeholder="Year" value={query.year}
                         onChange={(e) => setQuery((p) => ({ ...p, year: e.target.value }))}
-                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" />
+                        className="w-[300px] px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" />
                     <select value={query.status} onChange={(e) => setQuery((p) => ({ ...p, status: e.target.value }))}
-                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                        className="w-[300px] px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
                         <option value="">All Status</option>
                         <option value="pending">Pending</option>
                         <option value="paid">Paid</option>
                     </select>
                     <div className="flex gap-2">
                         <button onClick={() => { setPage(1); refetch(); }} className="px-4 py-2 border rounded-lg hover:bg-gray-50">Refresh</button>
-                        <button onClick={exportExcel} className="px-4 py-2 bg-[#129990] text-white rounded-lg hover:bg-[#1dbfb4]"><Download className="w-4 h-4 inline mr-1" />Export</button>
+                        <button onClick={exportExcel} className=" w-[150px] px-4 py-2 bg-[#129990] text-white rounded-lg hover:bg-[#1dbfb4]"><Download className="w-4 h-4 inline mr-1" />Export</button>
                     </div>
                 </div>
             </div>

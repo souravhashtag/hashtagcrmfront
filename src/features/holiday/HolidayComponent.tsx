@@ -280,7 +280,7 @@ const HolidayComponent: React.FC = () => {
 
 
     return (
-        <div className="p-6 bg-gray-50 min-h-fit">
+        <div className="p-6 bg-gray-50 min-h-fit rounded-lg">
             {/* Header */}
             <div className="mb-6">
                 <div className="flex justify-between items-start mb-4">
@@ -294,7 +294,7 @@ const HolidayComponent: React.FC = () => {
                     </div>
                     <button
                         onClick={() => openModal()}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-[#129990] text-white text-sm font-semibold rounded-md hover:bg-[#0f7a73] focus:outline-none focus:ring-2 focus:ring-[#129990] focus:ring-offset-2 transition-colors"
+                        className="inline-flex items-center gap-2 px-4 py-4 bg-[#129990] text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-[#1dbfb4] transition-colors"
                     >
                         <Plus className="w-4 h-4" />
                         Add New Holiday
@@ -305,14 +305,14 @@ const HolidayComponent: React.FC = () => {
                 <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-gray-200">
                     <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
                         {/* Search */}
-                        <div className="relative">
-                            <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+                        <div className="relative w-[400px]">
+                            <Search className="absolute left-3 top-4 w-4 h-4 text-gray-400" />
                             <input
                                 type="text"
                                 placeholder="Search holidays..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-transparent w-64"
+                                className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-transparent w-64"
                             />
                         </div>
 
@@ -320,7 +320,7 @@ const HolidayComponent: React.FC = () => {
                         <select
                             value={filterType}
                             onChange={(e) => setFilterType(e.target.value)}
-                            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-transparent"
+                            className="w-[600px]border border-gray-300 rounded-md px-6 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#129990] focus:border-transparent"
                         >
                             <option value="all">All Types</option>
                             <option value="national">National</option>

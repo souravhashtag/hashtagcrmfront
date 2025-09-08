@@ -718,7 +718,7 @@ const EmployeeCreate: React.FC = () => {
             </div>
 
             {/* Password Section */}
-            <div className="border-t pt-6">
+            <div className="pt-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
                 <Lock className="h-5 w-5" />
                 Account Security
@@ -809,7 +809,7 @@ const EmployeeCreate: React.FC = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Phone
@@ -861,7 +861,7 @@ const EmployeeCreate: React.FC = () => {
             </div>
 
             {/* Emergency Contact */}
-            <div className="border-t pt-6">
+            <div className="pt-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">
                 Emergency Contact
               </h3>
@@ -1161,7 +1161,7 @@ const EmployeeCreate: React.FC = () => {
             </div>
 
             {/* {console.log("formData===>",formData)}} */}
-            <div className="border-t pt-6">
+            <div className="pt-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">
                 Didaction Applicable
               </h3>
@@ -1203,7 +1203,7 @@ const EmployeeCreate: React.FC = () => {
                   ))}
                 </div>
               </div>
-              <div className="border-t pt-6">
+              <div className="pt-6">
                 <h3 className="text-lg font-medium text-gray-900 mb-4">
                   Tax Information
                 </h3>
@@ -1239,7 +1239,7 @@ const EmployeeCreate: React.FC = () => {
               </div>
 
               {/* Bank Details */}
-              <div className="border-t pt-6">
+              <div className="pt-6">
                 <h3 className="text-lg font-medium text-gray-900 mb-4">
                   Bank Details
                 </h3>
@@ -1315,7 +1315,7 @@ const EmployeeCreate: React.FC = () => {
               <button
                 type="button"
                 onClick={addDocument}
-                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                className="bg-[#129990] text-white px-4 py-3 rounded-md flex items-center gap-2 hover:bg-[#1dbfb4] transition-colors"
               >
                 <Plus size={16} /> Add Document
               </button>
@@ -1396,7 +1396,7 @@ const EmployeeCreate: React.FC = () => {
                                 e.target.files?.[0] || null
                               )
                             }
-                            className="flex-1"
+                            className="flex-1 p-2"
                             accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                           />
                           {doc.file && (
@@ -1464,8 +1464,8 @@ const EmployeeCreate: React.FC = () => {
                 onClick={() => setActiveTab(tab.key as any)}
                 className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition ${
                   activeTab === tab.key
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    ? "border-[#129990] text-[#129990]"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-[#129990]"
                 }`}
               >
                 <Icon size={16} />
@@ -1481,12 +1481,12 @@ const EmployeeCreate: React.FC = () => {
         {renderTabContent()}
 
         {/* Actions */}
-        <div className="flex items-center justify-between pt-6 border-t border-gray-200 mt-8">
+        <div className="flex items-center justify-between pt-6 border-gray-200 mt-8">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={handleCancel}
-              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
+              className="bg-red-500 px-4 py-2 text-white bg-gray-100 rounded-lg transition"
             >
               Cancel
             </button>
@@ -1532,7 +1532,7 @@ const EmployeeCreate: React.FC = () => {
               <button
                 type="submit"
                 disabled={isLoading || (isEditMode && !hasChanges)}
-                className="flex items-center gap-2 px-6 py-2  bg-[#284084] text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-6 py-3  bg-[#284084] text-white rounded-md hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <>

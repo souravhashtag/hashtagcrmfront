@@ -100,6 +100,7 @@ textarea{
 th{
     background-color: #34BCBB;
     color: #fff;
+    font-weight: 500;
 }
 
   tr:nth-child(odd) {

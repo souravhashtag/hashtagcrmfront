@@ -208,16 +208,12 @@ const EmployeeList: React.FC = () => {
           <h2 className="text-2xl font-bold text-gray-900">Employee Management</h2>
           <p className="text-sm text-gray-600 mt-1">Manage your organization's workforce</p>
         </div>
-        <button
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-          onClick={() => navigate('/employee/create')}
-        >
-          <Plus size={18} /> Add Employee
-        </button>
+       
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
+              <div className="flex flex-col lg:flex-row gap-4 justify-end">
         {/* Search */}
         <form onSubmit={handleSearch} className="relative flex-1">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -253,8 +249,14 @@ const EmployeeList: React.FC = () => {
           <option value="suspended">Suspended</option>
           <option value="pending">Pending</option>
         </select>
+         <button
+          className="flex items-center gap-2 bg-[#129990] text-white px-4 py-2 rounded-lg hover:bg-[#1dbfb4] transition"
+          onClick={() => navigate('/employee/create')}
+        >
+          <Plus size={18} /> Add Employee
+        </button>
       </div>
-
+</div>
       {/* Table */}
       {isLoading || isFetching ? (
         <div className="flex items-center justify-center py-12">
@@ -442,21 +444,21 @@ const EmployeeList: React.FC = () => {
                       <div className="flex justify-end items-center gap-2">
                         <button
                           onClick={() => navigate(`/employee/${employee._id}`)}
-                          className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded transition"
+                          className="text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded transition"
                           title="View Details"
                         >
                           <Eye size={16} />
                         </button>
                         <button
                           onClick={() => handleAssign(employee)}
-                          className="p-2 text-purple-600 hover:text-purple-900 hover:bg-purple-50 rounded transition"
+                          className="text-purple-600 hover:text-purple-900 hover:bg-purple-50 rounded transition"
                           title="Assign Task/Role"
                         >
                           <UserPlus size={16} />
                         </button>
                         <button
                           onClick={() => navigate(`/employee/edit/${employee._id}`)}
-                          className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded transition"
+                          className="text-green-600 hover:text-green-900 hover:bg-green-50 rounded transition"
                           title="Edit"
                         >
                           <Edit size={16} />
@@ -467,7 +469,7 @@ const EmployeeList: React.FC = () => {
                             employee.employeeId, 
                             employee.userId?.fullName || `${employee.userId?.firstName} ${employee.userId?.lastName}`
                           )}
-                          className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded transition"
+                          className="text-red-600 hover:text-red-900 hover:bg-red-50 rounded transition"
                           title="Delete"
                         >
                           <Trash2 size={16} />

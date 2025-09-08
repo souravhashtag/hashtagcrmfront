@@ -65,23 +65,20 @@ const DepartmentList: React.FC = () => {
   const pagination = data?.pagination;
   console.log("departments===",departments)
   return (
-    <div className="w-full mx-auto bg-white shadow-lg rounded-lg p-6">
+    <div className="p-6 bg-gray-50 min-h-fit rounded-lg ">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Department Management</h2>
-          <p className="text-sm text-gray-600 mt-1">Manage organizational departments</p>
+          <h2 className="text-3xl font-bold text-gray-900">Department Management</h2>
+          <p className="text-gray-600 mt-1">Manage organizational departments</p>
         </div>
-        <button
-          className="flex items-center gap-2 bg-[#05445E] text-white px-4 py-2 rounded-lg hover:bg-[#D4F1F4] hover:text-black transition"
-          onClick={() => navigate('/department/create')}
-        >
-          <Plus size={18} /> Create Department
-        </button>
+     
       </div>
 
       {/* Search */}
-      <form onSubmit={handleSearch} className="relative mb-6">
+      <div className='bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6'>
+        <div className='flex flex-col lg:flex-row gap-4 justify-end'>
+      <form onSubmit={handleSearch} className="relative">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <Search className="h-5 w-5 text-gray-400" />
         </div>
@@ -90,7 +87,7 @@ const DepartmentList: React.FC = () => {
           placeholder="Search departments by name or description"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="block w-full pl-10 pr-10 py-3 border border-[#14b8a6] rounded-lg"
+          className="block w-[500px] pl-10 pr-10 py-3 border border-[#14b8a6] rounded-lg"
         />
         {search && (
           <button
@@ -100,9 +97,17 @@ const DepartmentList: React.FC = () => {
           >
             <X className="h-5 w-5 text-gray-400 hover:text-gray-600" />
           </button>
+          
         )}
       </form>
-
+         <button
+          className="flex items-center gap-2 bg-[#129990] text-white px-4 py-2 rounded-lg hover:bg-[#1dbfb4] hover:text-white transition"
+          onClick={() => navigate('/department/create')}
+        >
+          <Plus size={18} /> Create Department
+        </button>
+</div>
+</div>
       {/* Table */}
       {isLoading || isFetching ? (
         <div className="flex items-center justify-center py-12">
@@ -122,19 +127,19 @@ const DepartmentList: React.FC = () => {
           <table className="min-w-full divide-y divide-gray-200 bg-[#096B68]">
             <thead className="bg-[#096B68]">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-bold text-black-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs text-black-500 uppercase tracking-wider">
                   Department Info
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-bold text-black-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs text-black-500 uppercase tracking-wider">
                   Description
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-bold text-black-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs text-black-500 uppercase tracking-wider">
                   Employee Count
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-bold text-black-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs text-black-500 uppercase tracking-wider">
                   Created Date
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-bold text-black-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs text-black-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>

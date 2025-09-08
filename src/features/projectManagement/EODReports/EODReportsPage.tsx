@@ -78,9 +78,10 @@ export default function EODReportsPage() {
             </div>
 
             {/* Filters */}
-            <div className="bg-white p-4 rounded-lg shadow-sm border mb-6 grid grid-cols-1 md:grid-cols-5 gap-3">
+            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
+                <div className="flex flex-col lg:flex-row gap-4 justify-end">
                 <input
-                    className="border rounded-lg px-3 py-2"
+                    className="border rounded-lg px-3 py-2 w-[300px]"
                     placeholder="Search by activity or plan"
                 />
                 <input type="date" className="border rounded-lg px-3 py-2" />
@@ -91,7 +92,7 @@ export default function EODReportsPage() {
                     <option value="Completed">Completed</option>
                 </select>
                 <button
-                    className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                    className="w-[100px] px-4 py-2 border rounded-lg hover:bg-gray-50"
                     onClick={() => refetch()}
                 >
                     Refresh
@@ -99,7 +100,7 @@ export default function EODReportsPage() {
                 <button className="px-4 py-2 bg-[#129990] text-white rounded-lg hover:bg-[#1dbfb4]">
                     Export
                 </button>
-            </div>
+            </div></div>
 
             {/* Reports Table */}
             <div className="bg-white rounded-lg border overflow-hidden">

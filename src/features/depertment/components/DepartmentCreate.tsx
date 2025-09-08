@@ -211,7 +211,6 @@ const DepartmentForm: React.FC = () => {
             </button>
             <div>
               <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <Building className="h-6 w-6 text-blue-600" />
                 {isEditMode ? 'Update Department' : 'Create New Department'}
               </h1>
               <p className="text-sm text-gray-600">
@@ -314,7 +313,7 @@ const DepartmentForm: React.FC = () => {
             <button
               type="button"
               onClick={handleCancel}
-              className="px-4 py-2 text-white bg-[#6366f1] rounded-md hover:bg-[#5355d5] transition"
+              className="px-4 py-2 text-white bg-red-500 rounded-md hover:bg-red-700 transition"
             >
               Cancel
             </button>
@@ -333,7 +332,7 @@ const DepartmentForm: React.FC = () => {
           <button
             type="submit"
             disabled={isLoading || !formData.name.trim() || (isEditMode && !hasChanges)}
-            className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-6 py-2 bg-[#202c74] text-white rounded-md hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>
