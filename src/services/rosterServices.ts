@@ -34,6 +34,23 @@ export const rosterServices = api.injectEndpoints({
         'Roster' as const,
       ],
     }),
+    GetRosterForallEmployee: builder.query<any, {
+      employeeId: string;
+      startDate?: string;
+      endDate?: string;
+    }>({
+      query: ({ employeeId, startDate, endDate }) => {
+        const params = new URLSearchParams();
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+        
+        return `/roster/rosterforallemployee/${employeeId}?${params.toString()}`;
+      },
+      providesTags: (result, error, { employeeId }) => [
+        { type: 'Roster' as const, id: `employee-${employeeId}` },
+        'Roster' as const,
+      ],
+    }),
 
     // Get roster statistics
     getRosterStats: builder.query<any, {
@@ -143,7 +160,7 @@ export const {
   useGetEmployeeRosterQuery,
   useGetRosterStatsQuery,
   useGetEmployeesForRosterQuery,
-
+  useGetRosterForallEmployeeQuery,
   // Roster mutations
   useCreateRosterMutation,
   useBulkCreateRosterMutation,

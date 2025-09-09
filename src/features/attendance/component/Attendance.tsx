@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, Users, Filter, Search, Download, ChevronDown, CheckCircle, XCircle, AlertCircle, Home, User, MapPin } from 'lucide-react';
+import { Calendar, Clock, Users, Search, Download, CheckCircle, XCircle, AlertCircle, Home, Eye } from 'lucide-react';
 import { useGetAttendanceByDateQuery } from '../../../services/AttendanceRedxService';
 import { useGetWeekRosterQuery } from '../../../services/rosterServices';
-import {
-  useGetEmployeesQuery,
-} from '../../../services/employeeServices';
+import { useGetEmployeesQuery } from '../../../services/employeeServices';
+import AttendanceMonthlyView from './AttendanceMonthlyView';
 
 // Type definitions
 interface Employee {
@@ -85,7 +84,7 @@ interface AttendanceRecord {
   workingHours?: number;
 }
 
-type ViewType = 'table' | 'attendance-sheet';
+type ViewType = 'daily' | 'monthly';
 type StatusType = '';
 
 // Helper function to get current date in employee's timezone
@@ -208,13 +207,14 @@ const getCurrentTimeInTimezone = (timezone: string) => {
   }).format(new Date());
 };
 
-
-
 const Attendance: React.FC = () => {
-  const [selectedView, setSelectedView] = useState<ViewType>('table');
+  const [selectedView, setSelectedView] = useState<ViewType>('daily');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split("T")[0] // Format: YYYY-MM-DD
+  );
+  const [selectedMonth, setSelectedMonth] = useState<string>(
+    new Date().toISOString().slice(0, 7) // YYYY-MM format
   );
 
   const [search, setSearch] = useState('');
@@ -293,7 +293,7 @@ const Attendance: React.FC = () => {
   const apiSummary = attendanceResponse?.data?.summary || {};
 
   const getEmployeeSchedule = (employeeId: string, date: string) => {
-    const dayName = getDayName(date);
+    const dayName = getDayName(date) as 'sunday' | 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday';
     
     const employeeRoster = rosterData.find((roster: any) => {
       return roster.employee?._id == employeeId;
@@ -488,7 +488,7 @@ const Attendance: React.FC = () => {
     }
   };
 
-  const TableView: React.FC = () => (
+  const DailyTableView: React.FC = () => (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
       <div className="p-6 border-b border-gray-200">
         <div className="flex justify-between items-center">
@@ -533,7 +533,7 @@ const Attendance: React.FC = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scheduled Time</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actual In/Out</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hours</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timezone</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -613,7 +613,8 @@ const Attendance: React.FC = () => {
                     {employee.totalHours ? `${employee.totalHours}h` : '--'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {employee.workingTimezone}
+                    {/* {employee.workingTimezone} */}
+                    <Eye size={18} />
                   </td>
                 </tr>
               ))
@@ -637,6 +638,11 @@ const Attendance: React.FC = () => {
   };
 
   const handleExport = (): void => {
+    if (selectedView === 'monthly') {
+      // Let the monthly component handle its own export
+      return;
+    }
+
     if (!enhancedAttendanceData.length) {
       alert('No data to export');
       return;
@@ -706,66 +712,48 @@ const Attendance: React.FC = () => {
           <p className="text-gray-600">Track and manage employee attendance with timezone support</p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <StatCard
-            title="Total Employees"
-            value={stats.total}
-            color="bg-[#fff] shadow-lg"
-            bgcolor="bg-[#4fd1c5] shadow-lg"
-            icon={<Users className="w-6 h-6 text-[#000]" />}
-          />
-          <StatCard
-            title="Present"
-            value={stats.present}
-            color="bg-[#fff]" 
-            bgcolor="bg-[#007170]"
-            icon={<CheckCircle className="w-6 h-6 text-[#000]" />}
-          />
-          <StatCard
-            title="Absent"
-            value={stats.absent}
-            color="bg-[#fff]"
-            bgcolor="bg-[#34bebd]"
-            icon={<XCircle className="w-6 h-6 text-[#000]" />}
-          />
-          <StatCard
-            title="Late/WFH"
-            value={stats.late + stats.wfh}
-            color="bg-[#fff]"
-            bgcolor="bg-[#202c74] shadow-lg"
-            icon={<AlertCircle className="w-6 h-6 text-[#000]" />}
-          />
-        </div>
-
-        {/* Controls */}
+        {/* View Tabs */}
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
-          <div className="flex flex-col lg:flex-row gap-4 justify-end">
-            <div className="flex flex-wrap gap-4 items-center">
-              {/* View Toggle */}
-              <div className="flex gap-2">
-                {/* <button
-                  onClick={() => handleViewChange('table')}
-                  className={`px-4 py-2 rounded-lg ${selectedView === 'table' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
-                >
-                  Table View
-                </button> */}
-                
-              </div>
+          <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center">
+            {/* Tab Navigation */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setSelectedView('daily')}
+                className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                  selectedView === 'daily' 
+                    ? 'bg-[#129990] text-white shadow-lg' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                Daily View
+              </button>
+              <button
+                onClick={() => setSelectedView('monthly')}
+                className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                  selectedView === 'monthly' 
+                    ? 'bg-[#129990] text-white shadow-lg' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                Monthly View
+              </button>
+            </div>
 
-              {/* Date Picker */}
-              <div className="flex items-center gap-2 w-[200px]">
-                <Calendar className="absolute left-3 h-4 text-gray-400" />
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={handleDateChange}
-                  className="w-[200px] border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+            {/* Controls - Only show for daily view since monthly has its own controls */}
+            {selectedView === 'daily' && (
+              <div className="flex flex-wrap gap-4 items-center">
+                {/* Date Picker */}
+                <div className="flex items-center gap-2 w-[200px]">
+                  <Calendar className="absolute left-3 h-4 text-gray-400" />
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={handleDateChange}
+                    className="w-[200px] border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
 
-              {/* Search */}
-              {selectedView === 'table' && (
+                {/* Search */}
                 <div className="relative w-[300px] flex items-center">
                   <Search className="absolute left-3 h-4 text-gray-400" />
                   <input
@@ -776,26 +764,69 @@ const Attendance: React.FC = () => {
                     className="w-[300px] border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-              )}
-            </div>
 
-            {/* Export Button */}
-            {selectedView === 'table' && (
-              <button 
-                onClick={handleExport}
-                disabled={isLoading || rosterLoading || !enhancedAttendanceData.length}
-                className="bg-[#129990] text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-[#1dbfb4] transition-colors disabled:opacity-50"
-              >
-                <Download className="w-4 h-4" />
-                Export with Timezone
-              </button>
+                {/* Export Button */}
+                <button 
+                  onClick={handleExport}
+                  disabled={isLoading || rosterLoading || !enhancedAttendanceData.length}
+                  className="bg-[#129990] text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-[#1dbfb4] transition-colors disabled:opacity-50"
+                >
+                  <Download className="w-4 h-4" />
+                  Export Daily
+                </button>
+              </div>
             )}
           </div>
         </div>
 
+        {/* Stats Cards - Only show for daily view */}
+        {selectedView === 'daily' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <StatCard
+              title="Total Employees"
+              value={stats.total}
+              color="bg-[#fff] shadow-lg"
+              bgcolor="bg-[#4fd1c5] shadow-lg"
+              icon={<Users className="w-6 h-6 text-[#000]" />}
+            />
+            <StatCard
+              title="Present"
+              value={stats.present}
+              color="bg-[#fff]" 
+              bgcolor="bg-[#007170]"
+              icon={<CheckCircle className="w-6 h-6 text-[#000]" />}
+            />
+            <StatCard
+              title="Absent"
+              value={stats.absent}
+              color="bg-[#fff]"
+              bgcolor="bg-[#34bebd]"
+              icon={<XCircle className="w-6 h-6 text-[#000]" />}
+            />
+            <StatCard
+              title="Late/WFH"
+              value={stats.late + stats.wfh}
+              color="bg-[#fff]"
+              bgcolor="bg-[#202c74] shadow-lg"
+              icon={<AlertCircle className="w-6 h-6 text-[#000]" />}
+            />
+          </div>
+        )}
+
         {/* Content */}
-          <TableView />
-       
+        {selectedView === 'daily' ? (
+          <DailyTableView />
+        ) : (
+          <AttendanceMonthlyView 
+            selectedMonth={selectedMonth}
+            onMonthChange={setSelectedMonth}
+            employeesData={employeeData}
+            // rosterData={rosterData}
+            attendanceData={attendanceData}
+            isLoading={isLoading || rosterLoading || employeesLoading}
+            formatTimeInTimezone={formatTimeInTimezone}
+          />
+        )}
       </div>
     </div>
   );
