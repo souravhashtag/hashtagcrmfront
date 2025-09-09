@@ -297,7 +297,7 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
                             )}
 
                             {/* Employee Actions - Edit/Cancel own pending leaves */}
-                            {isOwnLeave() && leave.status === 'pending' && (
+                            {!isOwnLeave() && !['cancelled', 'rejected'].includes(leave.status) && (
                                 <>
                                     {/* <button
                                         onClick={() => navigate(`/leave/edit/${leave._id}`)}

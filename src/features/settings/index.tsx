@@ -30,59 +30,7 @@ import CompanySettingsPage from './pages/CompanySettingsPage';
 import LeaveTypesManagementPage from './pages/LeaveTypesManagementPage';
 import SecuritySettingsPage from './pages/SecuritySettingsPage';
 
-interface SettingsSection {
-    id: string;
-    name: string;
-    icon: React.ComponentType<any>;
-    description: string;
-}
-interface Recipient {
-    id: string;
-    email: string;
-    name: string;
-}
 
-interface CompanyData {
-    name: string;
-    domain: string;
-    logo: string;
-    address: {
-        street: string;
-        city: string;
-        state: string;
-        country: string;
-        zipCode: string;
-    };
-    contactInfo: {
-        phone: string;
-        email: string;
-        website: string;
-    };
-    ceo: {
-        name: string,
-        email: string,
-        signature: string,
-        bio: string,
-        profileImage: any
-    };
-    profileImage: any;
-    settings: {
-        gracePeriod: number; // in minutes
-        ceoTalk: {
-            Message: string;
-        };
-        recipients: {
-            to: Array<{ id: string, email: string, name: string }>;
-            cc: Array<{ id: string, email: string, name: string }>;
-            bcc: Array<{ id: string, email: string, name: string }>;
-        };
-        sender: {
-            userId: string;
-            email: string;
-            name: string;
-        };
-    };
-}
 const settingsSections: SettingsSection[] = [
     {
         id: 'leave-types',
@@ -212,7 +160,7 @@ const CorrectedLeaveManagementSettings: React.FC = () => {
         refetch: refetchLeaveTypes,
         isFetching: isFetchingLeaveTypes
     } = useGetLeaveTypesQuery(queryParams, {
-        // ✅ Refetch options go here in the component, not in the service
+        //  Refetch options go here in the component, not in the service
         refetchOnMountOrArgChange: true,
         refetchOnFocus: true,
         refetchOnReconnect: true,
