@@ -39,6 +39,7 @@ interface FormData {
   email: string;
   password: string;
   confirmPassword: string;
+  workingTimezone: string;
   phone: string;
   roleId: string;
   departmentId: string;
@@ -127,6 +128,7 @@ const EmployeeCreate: React.FC = () => {
     phone: "",
     roleId: "",
     deduction: [""],
+    workingTimezone: "Asia/Kolkata",
     departmentId: "",
     position: "",
     status: "active",
@@ -175,6 +177,7 @@ const EmployeeCreate: React.FC = () => {
         isrotationroster: emp?.issetrosterauto || false,
         confirmPassword: "",
         phone: user?.phone || "",
+        workingTimezone: emp.workingTimezone || "Asia/Kolkata",
         roleId: user?.role?._id || user?.role || "",
         departmentId: user?.department?._id || user?.department || "",
         position: user?.position || "",
@@ -246,10 +249,21 @@ const EmployeeCreate: React.FC = () => {
   ) => {
     const { name, value } = e.target;
     // console.log(`Input changed: ${name} = ${value}`);
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    // setFormData((prev) => ({
+    //   ...prev,
+    //   [name]: value,
+    // }));
+    if (name === 'isrotationroster') {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value === 'yes' ? true : false,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({
@@ -316,6 +330,10 @@ const EmployeeCreate: React.FC = () => {
       newErrors.joiningDate = "Joining date is required";
     if (!formData.dob) newErrors.dob = "Date of birth is required";
     if (!formData.roleId) newErrors.roleId = "Role is required";
+    if (!formData.workingTimezone) newErrors.workingTimezone = "Working Timezone is required";
+    if (formData.isrotationroster === undefined || formData.isrotationroster === null) {
+      newErrors.isrotationroster = "Rotation Roster selection is required";
+    }
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -393,7 +411,9 @@ const EmployeeCreate: React.FC = () => {
         employeeId: formData.employeeId,
         joiningDate: formData.joiningDate,
         dob: formData.dob,
-
+        issetrosterauto: formData.isrotationroster,
+        deductionDetails: formData.deduction.filter((d) => d.trim() !== ""),
+        workingTimezone: formData.workingTimezone,  
         emergencyContact: formData.emergencyContactName
           ? {
               name: formData.emergencyContactName,
@@ -427,7 +447,6 @@ const EmployeeCreate: React.FC = () => {
             }
           : undefined,
 
-        // Only include documents metadata if there are files to upload
         documents: documentsWithFiles.map((doc) => ({
           type: doc.type,
           name: doc.name,
@@ -439,6 +458,7 @@ const EmployeeCreate: React.FC = () => {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
+        gender: formData.gender,
         phone: formData.phone,
         roleId: formData.roleId,
         departmentId: formData.departmentId,
@@ -532,7 +552,8 @@ const EmployeeCreate: React.FC = () => {
           departmentId: "",
           position: "",
           status: "active",
-          employeeId: formData.employeeId, // Keep generated ID
+          employeeId: formData.employeeId, 
+          workingTimezone: "",
           joiningDate: "",
           dob: "",
           emergencyContactName: "",
@@ -682,6 +703,7 @@ const EmployeeCreate: React.FC = () => {
                 </label>
                 <select
                   onChange={handleInputChange}
+                  value={formData.gender || ""}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   name="gender"
                 >
@@ -1036,17 +1058,40 @@ const EmployeeCreate: React.FC = () => {
               </div>
               <div className="">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Is the rotation roster?
+                  Is the rotation roster? *
                 </label>
                 <select
-                  name="position"
-                  value={formData.position}
+                  name="isrotationroster"
+                  value={(formData.isrotationroster === true) ? "yes" : "no"}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="yes">Yes</option>
                   <option value="no">No</option>
-                </select>                
+                </select>
+                {errors.isrotationroster && (
+                  <p className="text-red-500 text-xs mt-1">{errors.isrotationroster}</p>
+                )}                
+              </div>
+              <div className="">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Working Timezone *
+                </label>
+                <select
+                  name="workingTimezone"
+                  value={formData.workingTimezone}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">select Working Timezone</option>
+                  <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+                  <option value="America/New_York">America/New_York (EST/EDT)</option>
+                  <option value="America/Los_Angeles">America/Los_Angeles (PST/PDT)</option>
+                  {/* <option value="UTC">UTC</option> */}
+                </select>
+                {errors.workingTimezone && (
+                  <p className="text-red-500 text-xs mt-1">{errors.workingTimezone}</p>
+                )}                
               </div>
             </div>
           </div>
