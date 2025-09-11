@@ -108,7 +108,7 @@ const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBr
         setSessionStartTime(now);
         setTotalBreakTime(0);
         setDisplayTime(0);
-        await clockInScreenShotAPi();
+        // await clockInScreenShotAPi();
         await getIndividualClockInData();
         console.log("Clock-in successful");
       } else {
@@ -190,7 +190,7 @@ const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBr
         setTotalBreakTime(0);
         setCurrentBreakStart(null);
         await getIndividualClockInData();
-        await clockOutScreenShotAPi();
+        // await clockOutScreenShotAPi();
         console.log("Clock-out successful");
       } else {
         console.error("Clock-out failed:", response);
