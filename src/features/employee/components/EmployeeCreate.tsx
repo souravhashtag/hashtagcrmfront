@@ -582,16 +582,20 @@ const EmployeeCreate: React.FC = () => {
     limit: 100,
   });
   const [getDesignation, setDesignation] = useState([]);
+  // console.log("designationData===>",designationData)
   const GetDesignation = (departmentId: any) => {
     // console.log(departmentId)
 
-    //console.log("designationData===>",designationData)
+    // console.log("designationData===>",designationData)
     const filterData = designationData?.data?.filter(
       (val: any) => val?.department?._id === departmentId
     );
-    console.log("designationData===>", filterData);
+    // console.log("designationData===>", filterData);
     setDesignation(filterData);
   };
+  useEffect(() => {
+    GetDesignation(formData.departmentId);
+  }, [isEditMode,formData.departmentId]);
   // Loading state for edit mode
   if (isEditMode && isLoadingEmployee) {
     return (

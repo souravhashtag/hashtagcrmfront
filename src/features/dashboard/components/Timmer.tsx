@@ -9,6 +9,8 @@ import {
   ClockOut,
   getIndividualAttendanceData,
   handleBreak,
+  clockInScreenShotAPi,
+  clockOutScreenShotAPi
 } from "../../../services/AttendanceService";
 import { useUser } from "../context/DashboardContext";
 import WorkingHours from './WorkingHours';
@@ -48,7 +50,7 @@ const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBr
   };
 
   useEffect(() => {
-    console.log("isClockedIn",isClockedIn);
+    // console.log("isClockedIn",isClockedIn);
     if (isClockedIn) {
       intervalRef.current = setInterval(() => {
         const actualTime = calculateWorkingTime();
@@ -99,13 +101,14 @@ const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBr
     if (!confirmClockIn) return;
     try {
       const response = await ClockIn();
-      console.log("ClockIn response:", response);
+      // console.log("ClockIn response:", response);
       if (response?.status === 200) {
         const now = new Date();
         setIsClockedIn(true);
         setSessionStartTime(now);
         setTotalBreakTime(0);
         setDisplayTime(0);
+        // await clockInScreenShotAPi();
         await getIndividualClockInData();
         console.log("Clock-in successful");
       } else {
@@ -187,6 +190,7 @@ const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBr
         setTotalBreakTime(0);
         setCurrentBreakStart(null);
         await getIndividualClockInData();
+        // await clockOutScreenShotAPi();
         console.log("Clock-out successful");
       } else {
         console.error("Clock-out failed:", response);
