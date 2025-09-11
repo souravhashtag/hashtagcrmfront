@@ -223,20 +223,20 @@ interface Props {
 }
 
 interface LeaveFormData {
-  type: string;
-  startDate: string;
-  endDate: string;
-  reason: string;
-  isHalfDay: boolean;
-  attachments: File[];
+    type: string;
+    startDate: string;
+    endDate: string;
+    reason: string;
+    isHalfDay: boolean;
+    attachments: File[];
 }
 
 interface LeaveApplyModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  editLeaveId?: string;
-  onSuccess?: () => void;
-  leavesData?: any;
+    isOpen: boolean;
+    onClose: () => void;
+    editLeaveId?: string;
+    onSuccess?: () => void;
+    leavesData?: any;
 }
 
 // TypeScript interfaces for populated data
