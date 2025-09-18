@@ -218,14 +218,22 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
 
         const chosen = activeRules.filter(r => selectedRuleIds.includes(r._id));
 
-
         // build fresh rule deductions (tag each with _fromRule)
-        const ruleDeductions = chosen.map((r) => ({
-            type: r.type,
-            amount: Number(computeAmountForRule(r, bases).toFixed(2)),
-            description: r.name,
-            _fromRule: r._id,
-        }));
+        const ruleDeductions = chosen.map((r) => {
+            let amount = computeAmountForRule(r, bases);
+
+            // Special case: ESI should be 0 if gross >= 21k
+            if (r.code?.toLowerCase() === "esi" && bases.gross >= 21000) {
+                amount = 0;
+            }
+
+            return {
+                type: r.type,
+                amount: Number(amount.toFixed(2)),
+                description: r.name,
+                _fromRule: r._id,
+            };
+        });
 
 
         // Add standard deductions (disabled - using custom rules only)
@@ -400,7 +408,7 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                 {/* Body */}
                 <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
                     {/* Row: Employee / Period */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-semibold mb-1">Employee *</label>
                             {isEdit ? (
@@ -463,18 +471,24 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" />
                             {errors.month && <p className="text-sm text-red-600 mt-1">{errors.month}</p>}
                         </div>
-                        <div>
-                            <label className="block text-sm font-semibold mb-1">Year *</label>
-                            <input type="text"
-                                value={(form as any).year}
-                                onChange={(e) => handle('year', Number(e.target.value))}
-                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" />
-                            {errors.year && <p className="text-sm text-red-600 mt-1">{errors.year}</p>}
-                        </div>
                     </div>
 
                     {/* Row: Gross Salary */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        {/* Year */}
+                        <div>
+                            <label className="block text-sm font-semibold mb-1">Year *</label>
+                            <input
+                                type="number"
+                                value={(form as any).year}
+                                onChange={(e) => handle("year", Number(e.target.value))}
+                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                min="1900"
+                                max="2100"
+                            />
+                            {errors.year && <p className="text-sm text-red-600 mt-1">{errors.year}</p>}
+                        </div>
                         <div>
                             <label className="block text-sm font-semibold mb-1">Gross Salary *</label>
                             <input
@@ -537,11 +551,27 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                                 <div className="flex items-center gap-3">
                                     <button
                                         type="button"
-                                        onClick={() => setSelectedRuleIds(activeRules.map(r => r._id))}
+                                        onClick={() => {
+                                            const bases = getBases(form);
+
+                                            const selectable = activeRules.filter(r => {
+                                                let amount = computeAmountForRule(r, bases);
+
+                                                // Special case: ESI → set to 0 if gross >= 21k
+                                                if (r.code?.toLowerCase() === "esi" && bases.gross >= 21000) {
+                                                    amount = 0;
+                                                }
+
+                                                return amount > 0;
+                                            });
+
+                                            setSelectedRuleIds(selectable.map(r => r._id));
+                                        }}
                                         className="px-3 py-1.5 border rounded-lg hover:bg-gray-50"
                                     >
                                         Select all rules
                                     </button>
+
                                     <button
                                         type="button"
                                         onClick={() => setSelectedRuleIds([])}
@@ -553,12 +583,12 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                             </div>
 
                             {/* Show available rules info */}
-                            <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                            {/* <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
                                 <h4 className="font-medium text-green-800 mb-2">Custom Deduction Rules:</h4>
                                 <div className="text-sm text-green-700">
                                     Select from the available deduction rules below. All deductions are managed through your custom rule system.
                                 </div>
-                            </div>
+                            </div> */}
 
                             {/* Available active rules to choose */}
                             <div className="border rounded-lg p-3 mb-4">
@@ -570,6 +600,10 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                                             const bases = getBases(form);
                                             if (r.code?.toLowerCase() === "esi" && bases.gross >= 21000) {
                                                 return false;
+                                            }
+                                            if (r.code?.toLowerCase() === "ptax") {
+                                                const amount = computeAmountForRule(r, bases);
+                                                if (amount === 0) return false;
                                             }
                                             return true;
                                         })
