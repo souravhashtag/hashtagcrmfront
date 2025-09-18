@@ -102,9 +102,8 @@ const AttendanceMonthlyView: React.FC<AttendanceMonthlyViewProps> = ({
   
   // Get start and end dates for the selected month
   const [year, month] = selectedMonth.split('-').map(Number);
-  const startDate = new Date(year, month - 1, 1);
-  const endDate = new Date(year, month, 0); // Last day of the month
-  
+  const startDate = new Date(`${year}-${String(month).padStart(2, "0")}-01`);
+  const endDate = new Date(`${year}-${String(month).padStart(2, "0")}-31`);  
   const { 
     data: rosterResponse,
     isLoading: rosterLoading 
@@ -165,8 +164,10 @@ const AttendanceMonthlyView: React.FC<AttendanceMonthlyViewProps> = ({
     
     if (!employeeRoster) return null;
     
+    const [year, month, day] = date.split("-");
+    const formatteddate = `${day}/${month}/${year}`;
     // Check if the date exists in roster and is scheduled
-    const rosterForDate = employeeRoster.roster[date];
+    const rosterForDate = employeeRoster.roster[formatteddate];
     // console.log(`Roster for employee ${employeeId} on ${date}:`, rosterForDate);
     if (rosterForDate && 
         rosterForDate.start_time !== 'OFF' && 
@@ -187,7 +188,7 @@ const AttendanceMonthlyView: React.FC<AttendanceMonthlyViewProps> = ({
       const attendanceFilterData = attendanceResponse?.data?.find(
         (atten: any) => atten?.userId?.employeeId === emp._id
       );
-      // console.log(`Attendance data for employee ${emp.userId.firstName}:`, attendanceFilterData);
+      // console.log(`daysInMonth===>`, daysInMonth);
       daysInMonth.forEach((date, dayIndex) => {
         const rosterSchedule = getEmployeeRosterForDate(emp._id, date);
         //  console.log('Processing rosterSchedule:', date);
