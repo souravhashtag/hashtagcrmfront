@@ -125,9 +125,9 @@ export default function PayrollView() {
                     <div className="bg-white rounded-lg border p-6">
                         <h2 className="text-xl font-semibold mb-4">Earnings Breakdown</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                            <Stat label="Basic Salary" value={payroll.basicSalary} />
+                            {/* <Stat label="Basic Salary" value={payroll.basicSalary} />
                             <Stat label="Top-level Bonus" value={payroll.bonus} />
-                            <Stat label="Top-level Overtime" value={payroll.overtimePay} />
+                            <Stat label="Top-level Overtime" value={payroll.overtimePay} /> */}
                             <Stat label="Structure Basic" value={payroll.salaryStructure?.basic} />
                             <Stat label="HRA" value={payroll.salaryStructure?.hra} />
                             <Stat label="Allowances" value={payroll.salaryStructure?.allowances} />

@@ -32,6 +32,30 @@ type DeductionRule = {
 
 const numberOrEmpty = (v: any) => (v === 0 || v ? String(v) : '');
 
+// Updated salary structure calculation based on your handwritten notes
+function calculateSalaryStructure(grossSalary: number) {
+    const gross = Number(grossSalary) || 0;
+
+    // Based on your notes:
+    // 50% of Gross = Basic
+    // 30% of Gross = HRA
+    // Gross - Basic + HRA = DA (Dearness Allowance)
+    const basic = (gross * 50) / 100;
+    const hra = (gross * 30) / 100;
+    const da = gross - basic - hra; // This is the remaining 20%
+
+    return {
+        basic,
+        hra,
+        allowances: da, // Using allowances field for DA
+    };
+}
+
+// Remove automatic standard deductions - they're handled by custom rules
+function calculateStandardDeductions(grossSalary: number, basic: number) {
+    // Return empty array - no automatic deductions
+    return [];
+}
 
 function getBases(form: any) {
     const s = form?.salaryStructure || {};
@@ -75,8 +99,6 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
         month: new Date().getMonth() + 1,
         year: new Date().getFullYear(),
         grossSalary: '',
-        bonus: '',
-        overtimePay: '',
         salaryStructure: {},
         deductions: [],
     } as any));
@@ -90,16 +112,9 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
         limit: 1000,
         search: ''
     });
-    // const { data: rulesResp } = useListDeductionRulesQuery({ activeOnly: true });
-    const { data: companyPartData } = useGetCompanyPartOfSalaryQuery();
-
-
     const { data: rulesResp } = useListDeductionRulesQuery();
     const activeRules: DeductionRule[] = (rulesResp?.data || []).filter((r) => r.active);
-
-
     const [selectedRuleIds, setSelectedRuleIds] = useState<string[]>([]);
-
 
     // helper: try to find the rule that created a saved deduction
     function findRuleIdForSavedDeduction(d: any, rules: DeductionRule[]) {
@@ -118,17 +133,12 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
         return undefined;
     }
 
-
-
     const hydratedRef = React.useRef(false);
 
     useEffect(() => {
         if (!isOpen) { hydratedRef.current = false; return; }
         if (!(isEdit && initial)) return;
         if (hydratedRef.current) return;            // <-- prevents re-runs
-
-        // (optional) if you need rules to be present first:
-        // if (!rulesResp) return;
 
         const enrichedDeds = (initial.deductions ?? []).map((d: any) => {
             const fromRuleId = findRuleIdForSavedDeduction(d, activeRules);
@@ -143,8 +153,6 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
         setForm({
             ...initial,
             grossSalary: numberOrEmpty(initial.grossSalary),
-            bonus: numberOrEmpty(initial.bonus),
-            overtimePay: numberOrEmpty(initial.overtimePay),
             salaryStructure: {
                 basic: numberOrEmpty(initial.salaryStructure?.basic),
                 hra: numberOrEmpty(initial.salaryStructure?.hra),
@@ -156,6 +164,7 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
             deductions: enrichedDeds,
         } as any);
 
+
         setSelectedRuleIds(
             enrichedDeds.map((d: any) => d._fromRule).filter(Boolean) as string[]
         );
@@ -163,9 +172,6 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
         setErrors({});
         hydratedRef.current = true;                 // <-- lock it to one-time init
     }, [isOpen, isEdit, initial, activeRules, rulesResp]);
-
-
-
 
     // helper: shallow compare (type+amount+description) so we don't set state unnecessarily
     function sameDeductions(a: any[] = [], b: any[] = []) {
@@ -179,15 +185,29 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
         return true;
     }
 
-
-
-
-
+    // Auto-calculate salary structure when gross salary changes
+    useEffect(() => {
+        const gross = Number(form.grossSalary) || 0;
+        if (gross > 0 && !isEdit) {
+            const calculated = calculateSalaryStructure(gross);
+            setForm(prev => ({
+                ...prev,
+                salaryStructure: {
+                    ...prev.salaryStructure,
+                    basic: String(calculated.basic),
+                    hra: String(calculated.hra),
+                    allowances: String(calculated.allowances),
+                }
+            }));
+        }
+    }, [form.grossSalary, isEdit]);
 
     // mark rule rows so we can remove them when deselected
     useEffect(() => {
         const bases = getBases(form);
+
         const chosen = activeRules.filter(r => selectedRuleIds.includes(r._id));
+
 
         // build fresh rule deductions (tag each with _fromRule)
         const ruleDeductions = chosen.map((r) => ({
@@ -197,12 +217,16 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
             _fromRule: r._id,
         }));
 
-        // if you DON'T support manual rows, just use ruleDeductions:
-        // const next = ruleDeductions;
 
-        // if you DO want to keep manual rows, keep only ones NOT created by rules:
-        const manualKeepers = (form.deductions ?? []).filter((d: any) => d && !d._fromRule);
-        const next = [...ruleDeductions, ...manualKeepers];
+        // Add standard deductions (disabled - using custom rules only)
+        const standardDeductions: any[] = [];
+
+        // Keep existing manual rows (ones NOT created by rules)
+        const manualKeepers = (form.deductions ?? []).filter((d: any) =>
+            d && !d._fromRule
+        );
+
+        const next = [...standardDeductions, ...ruleDeductions, ...manualKeepers];
 
         if (!sameDeductions(next, form.deductions as any[])) {
             setForm(prev => ({ ...prev, deductions: next }));
@@ -211,8 +235,7 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
     }, [
         selectedRuleIds,
         activeRules,
-        form.basicSalary,
-        form.bonus, form.overtimePay,
+        form.grossSalary,
         form.salaryStructure?.basic,
         form.salaryStructure?.hra,
         form.salaryStructure?.allowances,
@@ -220,10 +243,6 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
         form.salaryStructure?.overtime,
         form.salaryStructure?.otherEarnings,
     ]);
-
-
-
-
 
     const handle = (path: string, value: any) => {
         setForm((prev: any) => {
@@ -242,18 +261,62 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
     // Client-side totals preview (mirrors backend calc)
     const totals = useMemo(() => {
         const s: any = form.salaryStructure || {};
-        const baseBasic = Number(form.grossSalary) || 0;
-        const ded = (form.deductions ?? []).reduce((acc: number, d: any) => acc + (Number(d.amount) || 0), 0);
-        const gross = Math.max(0, baseBasic);
-        const net = Math.max(0, gross - Math.max(0, ded));
-        return { earnings: gross, deductions: Math.max(0, ded), net };
-    }, [form]);
+
+        // Base salary components (Basic + HRA + DA)
+        const basic = Number(s.basic) || 0;
+        const hra = Number(s.hra) || 0;
+        const allowances = Number(s.allowances) || 0;
+        const baseSalary = basic + hra + allowances;
+
+        // Additional earnings from salary structure
+        const structureBonus = Number(s.bonus) || 0;
+        const structureOvertime = Number(s.overtime) || 0;
+        const structureOtherEarnings = Number(s.otherEarnings) || 0;
+
+        // Top-level bonus and overtime (if you want to include these as well)
+        const topLevelBonus = Number(form.bonus) || 0;
+        const topLevelOvertime = Number(form.overtimePay) || 0;
+
+        // Total earnings = base salary + all additional earnings
+        const totalEarnings = baseSalary + structureBonus + structureOvertime + structureOtherEarnings + topLevelBonus + topLevelOvertime;
+
+        // Total deductions
+        const totalDeductions = (form.deductions ?? []).reduce((acc: number, d: any) => acc + (Number(d.amount) || 0), 0);
+
+        // Net payable = total earnings - total deductions
+        const netPayable = Math.max(0, totalEarnings - totalDeductions);
+
+        return {
+            earnings: Math.max(0, baseSalary),
+            deductions: Math.max(0, totalDeductions),
+            net: netPayable,
+            // Breakdown for display
+            breakdown: {
+                basic,
+                hra,
+                allowances,
+                structureBonus,
+                structureOvertime,
+                structureOtherEarnings,
+            }
+        };
+    }, [
+        form.salaryStructure?.basic,
+        form.salaryStructure?.hra,
+        form.salaryStructure?.allowances,
+        form.salaryStructure?.bonus,
+        form.salaryStructure?.overtime,
+        form.salaryStructure?.otherEarnings,
+        form.deductions
+    ]);
+
 
     const validate = () => {
         const e: Record<string, string> = {};
         if (!form.employeeId) e.employeeId = 'Employee is required';
         if (!form.month || form.month < 1 || form.month > 12) e.month = 'Month 1-12';
         if (!form.year) e.year = 'Year is required';
+        if (!form.grossSalary) e.grossSalary = 'Gross salary is required';
 
         // require these inside salaryStructure
         const reqKeys = ['basic', 'hra', 'allowances'] as const;
@@ -270,8 +333,6 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
 
     const err = (path: string) => errors[path];
     const hasErr = (path: string) => Boolean(errors[path]);
-
-
 
     const submit = async () => {
         if (!validate()) return;
@@ -302,7 +363,6 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                 }));
         }
 
-
         try {
             if (isEdit && editId) await updatePayroll({ id: editId, data: payload }).unwrap();
             else await createPayroll(payload).unwrap();
@@ -313,7 +373,6 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
         }
     };
 
-
     if (!isOpen) return null;
 
     return (
@@ -323,7 +382,7 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                 <div className="flex items-center justify-between p-6 border-b">
                     <div>
                         <h2 className="text-2xl font-bold">{isEdit ? 'Edit Payroll' : 'Create Payroll'}</h2>
-                        <p className="text-gray-600">Enter period, earnings, and deductions. Totals preview updates live.</p>
+                        <p className="text-gray-600">Enter period and gross salary. Structure and deductions auto-calculate.</p>
                     </div>
                     <button onClick={onClose} className="p-2 text-gray-500 hover:text-gray-700"><X className="w-5 h-5" /></button>
                 </div>
@@ -334,16 +393,13 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label className="block text-sm font-semibold mb-1">Employee *</label>
-
                             {isEdit ? (
                                 <div className="w-full px-3 py-2 border rounded-lg bg-gray-100 text-gray-700">
                                     {initial?.employeeId?.userId?.firstName} {initial?.employeeId?.userId?.lastName}
                                 </div>
                             ) : (
-
-
                                 loadingEmployees ? (
-                                    <div className="w-full px-3 py-2 border rounded-lg bg-gray-100 text-gray-700" > Loading...</div>
+                                    <div className="w-full px-3 py-2 border rounded-lg bg-gray-100 text-gray-700">Loading...</div>
                                 ) : (
                                     <select
                                         value={form.employeeId || ''}
@@ -351,53 +407,27 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                                             const value = e.target.value;
                                             handle('employeeId', value);
 
-                                            // if (!isEdit) {
-                                            //     const selected = (employees?.data ?? []).find((emp: any) => emp._id === value);
-                                            //     const amt = selected?.salary?.amount;
-
-                                            //     setForm(prev => ({
-                                            //         ...prev,
-                                            //         grossSalary: amt != null ? String(amt) : '',
-                                            //         salaryStructure: {
-                                            //             ...(prev.salaryStructure ?? {}),
-                                            //             // basic: amt != null ? String(amt) : ''
-                                            //         },
-                                            //     }));
-                                            // }
-
                                             if (!isEdit) {
                                                 const selected = (employees?.data ?? []).find((emp: any) => emp._id === value);
                                                 const grossAmount = selected?.salary?.amount;
 
-                                                if (companyPartData?.data) {
-                                                    const components = companyPartData.data;
-
-                                                    const getPercent = (code: string) => {
-                                                        return components.find((c: any) => c.code === code)?.percent || 0;
-                                                    };
-
-                                                    const gross = grossAmount != null ? Number(grossAmount) : 0;
-
-                                                    const computedBasic = (gross * getPercent('basic')) / 100;
-                                                    const computedHra = (gross * getPercent('hra')) / 100;
-                                                    const computedAllowances = (gross * getPercent('allowances')) / 100;
-
+                                                if (grossAmount) {
+                                                    const calculated = calculateSalaryStructure(grossAmount);
                                                     setForm(prev => ({
                                                         ...prev,
-                                                        grossSalary: gross ? String(gross) : '',
+                                                        grossSalary: String(grossAmount),
                                                         salaryStructure: {
-                                                            ...(prev.salaryStructure ?? {}),
-                                                            basic: gross ? String(computedBasic) : '',
-                                                            hra: gross ? String(computedHra) : '',
-                                                            allowances: gross ? String(computedAllowances) : '',
+                                                            basic: String(calculated.basic),
+                                                            hra: String(calculated.hra),
+                                                            allowances: String(calculated.allowances),
+                                                            bonus: '',
+                                                            overtime: '',
+                                                            otherEarnings: '',
                                                         },
                                                     }));
                                                 }
                                             }
-
                                         }}
-
-
                                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                                     >
                                         <option value="">Select employee</option>
@@ -409,14 +439,12 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                                     </select>
                                 )
                             )}
-
                             {errors.employeeId && <p className="text-sm text-red-600 mt-1">{errors.employeeId}</p>}
                         </div>
 
-
                         <div>
                             <label className="block text-sm font-semibold mb-1">Month *</label>
-                            <input type="number" min={1} max={12}
+                            <input type="text" min={1} max={12}
                                 value={(form as any).month}
                                 onChange={(e) => handle('month', Number(e.target.value))}
                                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" />
@@ -424,7 +452,7 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                         </div>
                         <div>
                             <label className="block text-sm font-semibold mb-1">Year *</label>
-                            <input type="number"
+                            <input type="text"
                                 value={(form as any).year}
                                 onChange={(e) => handle('year', Number(e.target.value))}
                                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" />
@@ -432,52 +460,54 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                         </div>
                     </div>
 
-                    {/* Row: Base + Top-level */}
+                    {/* Row: Gross Salary */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label className="block text-sm font-semibold mb-1">Gross Salary</label>
-                            <input disabled value={numberOrEmpty((form as any).grossSalary)}
-                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-100 text-gray-600 cursor-not-allowed" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-semibold mb-1">Bonus (Top-level)</label>
-                            <input value={numberOrEmpty((form as any).bonus)} onChange={(e) => handle('bonus', e.target.value)}
-                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-semibold mb-1">Overtime Pay (Top-level)</label>
-                            <input value={numberOrEmpty((form as any).overtimePay)} onChange={(e) => handle('overtimePay', e.target.value)}
-                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" />
+                            <label className="block text-sm font-semibold mb-1">Gross Salary *</label>
+                            <input
+                                type="text"
+                                value={numberOrEmpty((form as any).grossSalary)}
+                                disabled={true}
+                                onChange={(e) => handle('grossSalary', e.target.value)}
+                                className={`w-full px-3 py-2 border rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed ${hasErr('grossSalary') ? 'border-red-500 focus:ring-red-500' : ''
+                                    }`}
+                                placeholder="Enter gross salary"
+                            />
+                            {err('grossSalary') && <p className="text-sm text-red-600 mt-1">{err('grossSalary')}</p>}
                         </div>
                     </div>
 
                     {/* Salary Structure */}
                     <div>
-                        <h3 className="text-lg font-semibold mb-2">Salary Structure</h3>
+                        <h3 className="text-lg font-semibold mb-2">
+                            Salary Structure
+                        </h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {['basic', 'hra', 'allowances', 'bonus', 'overtime', 'otherEarnings'].map((k) => {
                                 const path = `salaryStructure.${k}`;
-                                const isBasic = ['basic', 'hra', 'allowances'].includes(k);
+                                const isAutoCalculated = ['basic', 'hra', 'allowances'].includes(k);
+                                const displayName = k === 'allowances' ? 'DA (Allowances)' :
+                                    k === 'otherEarnings' ? 'Other Earnings' :
+                                        k.toUpperCase();
+
                                 return (
                                     <div key={k}>
                                         <label className="block text-sm font-semibold mb-1">
-                                            {k === 'otherEarnings' ? 'Other Earnings' : k.toUpperCase()}
+                                            {displayName}
+                                            {isAutoCalculated && <span className="text-red-500"> *</span>}
                                         </label>
-
                                         <input
                                             value={numberOrEmpty((form as any).salaryStructure?.[k as any])}
                                             onChange={(e) => handle(path, e.target.value)}
-                                            disabled={isBasic}   // <<<<<< LOCK BASIC HERE
+                                            disabled={isAutoCalculated}
                                             className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${hasErr(path) ? 'border-red-500 focus:ring-red-500' : ''
-                                                } ${isBasic ? 'bg-gray-100 text-gray-600 cursor-not-allowed' : ''}`}
+                                                } ${isAutoCalculated ? 'bg-gray-100 text-gray-600 cursor-not-allowed' : ''}`}
+                                            placeholder={isAutoCalculated ? 'Auto-calculated' : `Enter ${k}`}
                                         />
-
                                         {err(path) && <p className="text-sm text-red-600 mt-1">{err(path)}</p>}
                                     </div>
                                 );
                             })}
-
-
                         </div>
                     </div>
 
@@ -485,110 +515,167 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                     {form.employeeId && (
                         <div>
                             <div className="flex items-center justify-between mb-2">
-                                <h3 className="text-lg font-semibold">Deductions</h3>
+                                <h3 className="text-lg font-semibold">
+                                    Deductions
+                                    <span className="text-sm text-blue-600 font-normal ml-2">
+                                        (Custom rules only)
+                                    </span>
+                                </h3>
                                 <div className="flex items-center gap-3">
-                                    {/* Optional: Select All / None */}
                                     <button
                                         type="button"
                                         onClick={() => setSelectedRuleIds(activeRules.map(r => r._id))}
                                         className="px-3 py-1.5 border rounded-lg hover:bg-gray-50"
                                     >
-                                        Select all
+                                        Select all rules
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => setSelectedRuleIds([])}
                                         className="px-3 py-1.5 border rounded-lg hover:bg-gray-50"
                                     >
-                                        Clear
+                                        Clear rules
                                     </button>
                                 </div>
                             </div>
 
-                            {/* Available active rules to choose */}
+                            {/* Show available rules info */}
+                            <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                                <h4 className="font-medium text-green-800 mb-2">Custom Deduction Rules:</h4>
+                                <div className="text-sm text-green-700">
+                                    Select from the available deduction rules below. All deductions are managed through your custom rule system.
+                                </div>
+                            </div>
 
+                            {/* Available active rules to choose */}
                             <div className="border rounded-lg p-3 mb-4">
-                                {activeRules.length === 0 && form.employeeId ? (
-                                    <div className="text-sm text-gray-500">No active deduction rules available.</div>
+                                {activeRules.length === 0 ? (
+                                    <div className="text-sm text-gray-500">No additional deduction rules available.</div>
                                 ) : (
                                     <div className="grid md:grid-cols-2 gap-2">
-                                        {activeRules.map((r:any) => {
+                                        {activeRules.filter((r: any) => {
                                             const bases = getBases(form);
-                                            const amount = computeAmountForRule(r, bases);
-                                            const checked = selectedRuleIds.includes(r._id);
-
-                                            const isSlab = r.is_applicable && Array.isArray(r.tax_slab) && r.tax_slab.length > 0;
-                                            let matched: any;
-                                            if (isSlab) {
-                                                matched = r.tax_slab.find((s: any) =>
-                                                    (s.from == null || bases.gross >= Number(s.from)) &&
-                                                    (s.to == null || bases.gross <= Number(s.to))
-                                                );
+                                            if (r.code?.toLowerCase() === "esi" && bases.gross >= 21000) {
+                                                return false;
                                             }
+                                            return true;
+                                        })
+                                            .map((r: any) => {
+                                                const bases = getBases(form);
+                                                const amount = computeAmountForRule(r, bases);
+                                                const checked = selectedRuleIds.includes(r._id);
 
-                                            return (
-                                                <label
-                                                    key={r._id}
-                                                    className="flex items-center justify-between gap-3 p-2 border rounded-lg cursor-pointer hover:bg-gray-50"
-                                                >
-                                                    <div className="flex items-center gap-2">
-                                                        <input
-                                                            type="checkbox"
-                                                            className="h-4 w-4"
-                                                            checked={checked}
-                                                            onChange={(e) => {
-                                                                setSelectedRuleIds((prev) =>
-                                                                    e.target.checked ? [...prev, r._id] : prev.filter(id => id !== r._id)
-                                                                );
-                                                            }}
-                                                        />
-                                                        <div className="font-medium">{r.name}</div>
-                                                        <div className="text-xs text-gray-500">
-                                                            {isSlab ? (
-                                                                <>
-                                                                    <span className="inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 mr-1">
-                                                                        Slab-based
-                                                                    </span>
-                                                                    {matched
-                                                                        ? `(${matched.from ?? 0} - ${matched.to ?? '∞'} @ ₹${Number(matched.rate) || 0} fixed)`
-                                                                        : `(no matching slab for ₹${bases.gross})`}
-                                                                </>
-                                                            ) : r.compute.mode === 'fixed' ? (
-                                                                `Fixed ₹${Number(r.compute.fixedAmount) || 0}`
-                                                            ) : r.compute.mode === 'percent_of_basic' ? (
-                                                                `${r.compute.percent ?? 0}% of Basic`
-                                                            ) : (
-                                                                `${r.compute.percent ?? 0}% of Gross`
-                                                            )}
+                                                const isSlab = r.is_applicable && Array.isArray(r.tax_slab) && r.tax_slab.length > 0;
+                                                let matched: any;
+                                                if (isSlab) {
+                                                    matched = r.tax_slab.find((s: any) =>
+                                                        (s.from == null || bases.gross >= Number(s.from)) &&
+                                                        (s.to == null || bases.gross <= Number(s.to))
+                                                    );
+                                                }
+
+                                                return (
+                                                    <label
+                                                        key={r._id}
+                                                        className="flex items-center justify-between gap-3 p-2 border rounded-lg cursor-pointer hover:bg-gray-50"
+                                                    >
+                                                        <div className="flex items-center gap-2">
+                                                            <input
+                                                                type="checkbox"
+                                                                className="h-4 w-4"
+                                                                checked={checked}
+                                                                onChange={(e) => {
+                                                                    setSelectedRuleIds((prev) =>
+                                                                        e.target.checked ? [...prev, r._id] : prev.filter(id => id !== r._id)
+                                                                    );
+                                                                }}
+                                                            />
+                                                            <div className="font-medium">{r.name}</div>
+                                                            <div className="text-xs text-gray-500">
+                                                                {isSlab ? (
+                                                                    <>
+                                                                        <span className="inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 mr-1">
+                                                                            Slab-based
+                                                                        </span>
+                                                                        {matched
+                                                                            ? `(${matched.from ?? 0} - ${matched.to ?? '∞'} @ ₹${Number(matched.rate) || 0} fixed)`
+                                                                            : `(no matching slab for ₹${bases.gross})`}
+                                                                    </>
+                                                                ) : r.compute.mode === 'fixed' ? (
+                                                                    `Fixed ₹${Number(r.compute.fixedAmount) || 0}`
+                                                                ) : r.compute.mode === 'percent_of_basic' ? (
+                                                                    `${r.compute.percent ?? 0}% of Basic`
+                                                                ) : (
+                                                                    `${r.compute.percent ?? 0}% of Gross`
+                                                                )}
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                    <div className="text-sm font-semibold">₹{Number(amount || 0)}</div>
-                                                </label>
-                                            );
-                                        })}
-
+                                                        <div className="text-sm font-semibold">₹{Number(amount || 0).toFixed(2)}</div>
+                                                    </label>
+                                                );
+                                            })}
                                     </div>
                                 )}
                             </div>
+
+                            {/* Current Deductions Summary */}
+                            {form.deductions && form.deductions.length > 0 && (
+                                <div className="border rounded-lg p-3">
+                                    <h4 className="font-medium mb-2">Current Deductions:</h4>
+                                    <div className="space-y-2">
+                                        {form.deductions.map((d: any, idx: number) => (
+                                            <div key={idx} className="flex justify-between items-center text-sm">
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`px-2 py-1 rounded text-xs ${d._fromRule
+                                                        ? 'bg-blue-100 text-blue-700'
+                                                        : 'bg-gray-100 text-gray-700'
+                                                        }`}>
+                                                        {d._fromRule ? 'Rule' : 'Manual'}
+                                                    </span>
+                                                    <span className="font-medium">{d.description || d.type}</span>
+                                                </div>
+                                                <span className="font-semibold">₹{Number(d.amount || 0).toFixed(2)}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
+
                     {/* Totals Preview */}
                     <div className="p-4 rounded-lg border bg-blue-50">
-                        <div className="flex items-center gap-2 text-blue-800 font-medium mb-2"><Calculator className="w-4 h-4" /> Totals (Preview)</div>
+                        <div className="flex items-center gap-2 text-blue-800 font-medium mb-2">
+                            <Calculator className="w-4 h-4" />
+                            Payroll Summary
+                        </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                             <div>
-                                <div className="text-gray-600">Gross / Earnings</div>
-                                <div className="text-xl font-semibold">₹ {totals.earnings.toFixed(2)}</div>
+                                <div className="text-gray-600">Gross Earnings</div>
+                                <div className="text-xl font-semibold text-green-600">₹ {totals.earnings.toFixed(2)}</div>
+                                <div className="text-xs text-gray-500 mt-1">
+                                    Basic: ₹{Number(form.salaryStructure?.basic || 0).toFixed(2)}<br />
+                                    HRA: ₹{Number(form.salaryStructure?.hra || 0).toFixed(2)}<br />
+                                    DA: ₹{Number(form.salaryStructure?.allowances || 0).toFixed(2)}
+                                </div>
                             </div>
                             <div>
                                 <div className="text-gray-600">Total Deductions</div>
-                                <div className="text-xl font-semibold">₹ {totals.deductions.toFixed(2)}</div>
+                                <div className="text-xl font-semibold text-red-600">₹ {totals.deductions.toFixed(2)}</div>
+                                <div className="text-xs text-gray-500 mt-1">
+                                    {form.deductions?.length || 0} deduction(s) applied
+                                </div>
                             </div>
                             <div>
                                 <div className="text-gray-600">Net Salary</div>
-                                <div className="text-xl font-semibold">₹ {totals.net.toFixed(2)}</div>
+                                <div className="text-2xl font-bold text-blue-600">₹ {totals.net.toFixed(2)}</div>
+                                <div className="text-xs text-gray-500 mt-1">
+                                    Take-home amount
+                                </div>
                             </div>
                         </div>
+
+                        {/* Employer Contributions Info - removed since using custom rules */}
                     </div>
 
                     {errors.submit && (
@@ -605,6 +692,6 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                     </button>
                 </div>
             </div>
-        </div >
+        </div>
     );
 }

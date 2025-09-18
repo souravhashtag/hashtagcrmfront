@@ -18,7 +18,7 @@ import Calender from './Calender';
 
 
 
-const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBreak,setIsTimmerReady}) => {
+const Timmer: React.FC<any> = ({ setIsClockedIn, isClockedIn, TakeaBreak, setTakeaBreak, setIsTimmerReady }) => {
   const [getAttendanceData, setAttendanceData] = useState<any>();
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -135,8 +135,8 @@ const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBr
         console.error("Take a break failed:", response);
       }
     } catch (error) {
-        setLoading(false);
-        console.error("Break error:", error);
+      setLoading(false);
+      console.error("Break error:", error);
     }
   };
 
@@ -201,17 +201,17 @@ const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBr
   };
 
   const formatTime = (totalSeconds: number) => {
-    if(totalSeconds!=0){
-        const hrs = Math.floor(totalSeconds / 3600)
-          .toString()
-          .padStart(2, "0");
-        const mins = Math.floor((totalSeconds % 3600) / 60)
-          .toString()
-          .padStart(2, "0");
-        const secs = (totalSeconds % 60).toString().padStart(2, "0");
-        return `${hrs}:${mins}:${secs}`;
-    }else{
-        return `00:00:00`;
+    if (totalSeconds != 0) {
+      const hrs = Math.floor(totalSeconds / 3600)
+        .toString()
+        .padStart(2, "0");
+      const mins = Math.floor((totalSeconds % 3600) / 60)
+        .toString()
+        .padStart(2, "0");
+      const secs = (totalSeconds % 60).toString().padStart(2, "0");
+      return `${hrs}:${mins}:${secs}`;
+    } else {
+      return `00:00:00`;
     }
   };
 
@@ -300,118 +300,118 @@ const Timmer: React.FC<any> = ({setIsClockedIn,isClockedIn,TakeaBreak,setTakeaBr
 
   useEffect(() => {
     getIndividualClockInData();
-  }, [getAttendanceData?.data?.length >0]);
+  }, [getAttendanceData?.data?.length > 0]);
 
   return (
     <>
       <div className="col-span-8 from-teal-400 to-teal-500 rounded-xl text-white">
-              <div className="shadow-md col-span-8 bg-[#E1F7EF] from-teal-400 to-teal-500 rounded-xl text-white h-32 mb-4 border border-[#0BB8A7] mb-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <div className="bg-white rounded-full mr-4 overflow-hidden ml-5 font-poppins">
-              <div className="bg-orange-400"><img src={`${user?.profilePicture}`} className="w-20 h-20"></img> </div>
+        <div className="shadow-md col-span-8 bg-[#E1F7EF] from-teal-400 to-teal-500 rounded-xl text-white h-32 mb-4 border border-[#0BB8A7] mb-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="bg-white rounded-full mr-4 overflow-hidden ml-5 font-poppins">
+                <div className="bg-orange-400"><img src={`${user?.profilePicture}`} className="w-20 h-20"></img> </div>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-[#000] mb-2">
+                  {user?.firstName} {user?.lastName}
+                </h3>
+                <p className="font-medium	text-[#000]">{user?.position}</p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-xl font-bold text-[#000] mb-2">
-                {user?.firstName} {user?.lastName}
-              </h3>
-              <p className="font-medium	text-[#000]">{user?.position}</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-6">
-            {isClockedIn && !TakeaBreak ? (
-              <button
-                className="bg-yellow-400 text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-yellow-300 transition-colors flex items-center justify-center disabled:opacity-70 w-[150px]"
-                onClick={handleTakeBreak}
-                disabled={loading}
-              >
-                {loading ? (
-                  <Loader2 className="h-6 w-5 animate-spin" />
-                ) : (
-                  "Take a break"
-                )}
-              </button>
-            ) : !isClockedIn && TakeaBreak ? (
-              <button
-                className="bg-yellow-400 text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-yellow-300 transition-colors"
-                onClick={handleResumeWork}
-              >
-                Resume Work
-              </button>
-            ) : (
-              ""
-            )}
+            <div className="flex items-center space-x-6">
+              {isClockedIn && !TakeaBreak ? (
+                <button
+                  className="bg-yellow-400 text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-yellow-300 transition-colors flex items-center justify-center disabled:opacity-70 w-[150px]"
+                  onClick={handleTakeBreak}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <Loader2 className="h-6 w-5 animate-spin" />
+                  ) : (
+                    "Take a break"
+                  )}
+                </button>
+              ) : !isClockedIn && TakeaBreak ? (
+                <button
+                  className="bg-yellow-400 text-gray-800 px-4 py-2 rounded-lg font-medium hover:bg-yellow-300 transition-colors"
+                  onClick={handleResumeWork}
+                >
+                  Resume Work
+                </button>
+              ) : (
+                ""
+              )}
 
-            {!isClockedIn && !TakeaBreak ? (
-              <button
-                className="bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors"
-                onClick={handleClockIn}
-                disabled={isClockedIn}
-              >
-                Clock In
-              </button>
-            ) : !TakeaBreak ? (
-              <button
-                className="bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors"
-                onClick={handleClockOut}
-              >
-                Clock Out
-              </button>
-            ) : (
-              ""
-            )}
+              {!isClockedIn && !TakeaBreak ? (
+                <button
+                  className="bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors"
+                  onClick={handleClockIn}
+                  disabled={isClockedIn}
+                >
+                  Clock In
+                </button>
+              ) : !TakeaBreak ? (
+                <button
+                  className="bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors"
+                  onClick={handleClockOut}
+                >
+                  Clock Out
+                </button>
+              ) : (
+                ""
+              )}
 
-            {/* Time Display Section */}
-            <div className="text-right h-[126px] bg-[#50E5D7] rounded-xl font-poppins">
-              <div className="flex flex-col items-end space-y-1">
-                <div className="text-[22px] p-4 pb-0 font-bold font-mono tracking-wider text-[#024C45] mt-5 font-poppins">
-                  {formatTime(displayTime)}
-                </div>
-                <div className="w-full text-xs capitalize tracking-wide text-center font-bold  text-[#000]">
-                  {TakeaBreak ? "ON BREAK" : isClockedIn ? "WORKING" : "OFFLINE"}
+              {/* Time Display Section */}
+              <div className="text-right h-[126px] bg-[#50E5D7] rounded-xl font-poppins">
+                <div className="flex flex-col items-end space-y-1">
+                  <div className="text-[22px] p-4 pb-0 font-bold font-mono tracking-wider text-[#024C45] mt-5 font-poppins">
+                    {formatTime(displayTime)}
+                  </div>
+                  <div className="w-full text-xs capitalize tracking-wide text-center font-bold  text-[#000]">
+                    {TakeaBreak ? "ON BREAK" : isClockedIn ? "WORKING" : "OFFLINE"}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-</div>
         {/* Total Working Hours Display */}
         {getWorkingHour && (
-           <div className="col-span-8 bg-[#E1F7EF] from-teal-400 to-teal-500 rounded-xl p-4 text-black h-40 border border-[#65e3d7]">
-        
-          <div className="mt-6 pt-4 border-t">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-black/20 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+          <div className="col-span-8 bg-[#E1F7EF] from-teal-400 to-teal-500 rounded-xl p-4 text-black h-40 border border-[#65e3d7]">
+
+            <div className="mt-6 pt-4 border-t">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-black/20 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-[#000] border border-[#fbcfe8] bg-[#fdf2f8] px-4 py-2 rounded-md text-center">
+                      Total Working Hours</p>
+                    <p className="text-xl font-medium tracking-wider text-[#000]">{getWorkingHour}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-[#000] border border-[#fbcfe8] bg-[#fdf2f8] px-4 py-2 rounded-md text-center">
-Total Working Hours</p>
-                  <p className="text-xl font-medium tracking-wider text-[#000]">{getWorkingHour}</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="inline-flex items-center px-3 py-1 bg-green-500/20 rounded-full">
-                  <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
-                  <span className="text-sm font-medium text-[#000]">Session Complete</span>
+                <div className="text-right">
+                  <div className="inline-flex items-center px-3 py-1 bg-green-500/20 rounded-full">
+                    <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                    <span className="text-sm font-medium text-[#000]">Session Complete</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>       
-      </div>
-      )}
-      {getTimerReady && (
+          </div>
+        )}
+        {getTimerReady && (
           <WorkingHours isClockedIn={isClockedIn} TakeaBreak={TakeaBreak} />
         )}
         <Calender />
 
       </div>
-       
-   
-      
+
+
+
     </>
   );
 };
