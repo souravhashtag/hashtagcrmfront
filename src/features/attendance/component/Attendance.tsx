@@ -247,7 +247,7 @@ const Attendance: React.FC = () => {
   // Get week info for roster query
   const weekInfo = getWeekInfo(selectedDate || new Date().toISOString().split('T')[0]);
   
-  console.log("employeesResponse", employeesResponse);
+  // console.log("employeesResponse", employeesResponse);
 
   // RTK Query hooks
   const { 
@@ -269,7 +269,7 @@ const Attendance: React.FC = () => {
   const attendance: Employee[] = attendanceResponse?.data?.attendance || [];
   const employeeData: Employee[] = employeesResponse?.data || [];
   const attendanceMap = new Map(attendance.map(item => [item.userId._id, item]));
-  console.log("attendanceMap", attendanceMap);
+  // console.log("attendanceMap", attendanceMap);
   
   const attendanceData: Employee[] = employeeData.map(emp => { 
     const attendanceGet = attendanceMap.get(emp?.userId?._id);
