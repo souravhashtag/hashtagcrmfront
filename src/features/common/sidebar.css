@@ -363,7 +363,7 @@ background:#111D32;
 }
 
 @media (max-width: 768px) {
-  .sidebar {
+  /* .sidebar {
     width: 100%;
     max-width: 280px;
     transform: translateX(-100%);
@@ -372,7 +372,7 @@ background:#111D32;
 
   .sidebar.open {
     transform: translateX(0);
-  }
+  } */
 }
 
 /* ========================================

@@ -7,7 +7,7 @@ const sharp = require('sharp');
 const axios = require('axios');
 const FormData = require('form-data');
 const cors = require('cors');
-const { JSDOM } = require('jsdom');
+const { execFile } = require('child_process'); // Added for running the .exe
 const ElectronStore = require('electron-store').default;
 const store = new ElectronStore();
 

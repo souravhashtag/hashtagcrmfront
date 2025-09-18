@@ -1,0 +1,1563 @@
+openapi: 3.0.3
+info:
+  title: HashtagCRM API
+  description: Full API documentation for CRM backend services (all endpoints)
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:5000
+
+paths:
+  # Auth endpoints
+  /api/V1/auth/login:
+    post:
+      summary: Login user
+      tags: [Auth]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/auth/screenshotupload:
+    post:
+      summary: Upload screenshot
+      tags: [Auth]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/auth/getscreenshot:
+    get:
+      summary: Get screenshot
+      tags: [Auth]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/auth/deletescreenshot:
+    get:
+      summary: Delete screenshot
+      tags: [Auth]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/auth/getuserdata:
+    get:
+      summary: Get user data
+      tags: [Auth]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/auth/userlogout:
+    post:
+      summary: Logout user
+      tags: [Auth]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/auth/tokenprotected:
+    get:
+      summary: Check token
+      tags: [Auth]
+      responses:
+        '200':
+          description: Success
+
+  # Attendance endpoints
+  /api/V1/attendance/create:
+    post:
+      summary: Create attendance
+      tags: [Attendance]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/attendance/clock-out:
+    post:
+      summary: Clock out
+      tags: [Attendance]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/attendance/get-individual-attendance:
+    get:
+      summary: Get individual attendance
+      tags: [Attendance]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/attendance/take-a-break:
+    get:
+      summary: Take a break
+      tags: [Attendance]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/attendance/resume-work:
+    get:
+      summary: Resume work
+      tags: [Attendance]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/attendance/geo-location:
+    get:
+      summary: Get geo location
+      tags: [Attendance]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/attendance/date/{date}:
+    get:
+      summary: Get attendance by date
+      tags: [Attendance]
+      parameters:
+        - name: date
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/attendance/get-attendance-by-date-range/{employeeId}:
+    get:
+      summary: Get attendance by range
+      tags: [Attendance]
+      parameters:
+        - name: employeeId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+
+  # Menu endpoints
+  /api/V1/menu/:
+    get:
+      summary: Get all menus
+      tags: [Menu]
+      responses:
+        '200':
+          description: Success
+    post:
+      summary: Create menu
+      tags: [Menu]
+      responses:
+        '200':
+          description: Success
+
+  /api/V1/menu/tree:
+    get:
+      summary: Get menu tree
+      tags: [Menu]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/menu/stats:
+    get:
+      summary: Get menu stats
+      tags: [Menu]
+      responses:
+        '200':
+          description: Success
+
+  /api/V1/menu/{id}:
+    get:
+      summary: Get menu by ID
+      tags: [Menu]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    put:
+      summary: Update menu
+      tags: [Menu]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    delete:
+      summary: Delete menu
+      tags: [Menu]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/menu/{id}/breadcrumb:
+    get:
+      summary: Get breadcrumb
+      tags: [Menu]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+
+  # Role endpoints
+  /api/V1/role/:
+    post:
+      summary: Create role
+      tags: [Role]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/role/list:
+    get:
+      summary: Get roles
+      tags: [Role]
+      responses:
+        '200':
+          description: Success
+
+  /api/V1/role/{id}:
+    get:
+      summary: Get role
+      tags: [Role]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    put:
+      summary: Update role
+      tags: [Role]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    delete:
+      summary: Delete role
+      tags: [Role]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+
+  /api/V1/role/{id}/assign:
+    post:
+      summary: Assign role
+      tags: [Role]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+
+  /api/V1/role/{id}/unassign:
+    post:
+      summary: Unassign role
+      tags: [Role]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+
+  /api/V1/role/{id}/users:
+    get:
+      summary: Get role users
+      tags: [Role]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/role/hierarchy/tree:
+    get:
+      summary: Role tree
+      tags: [Role]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/role/hierarchy/flat:
+    get:
+      summary: Role flat list
+      tags: [Role]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/role/hierarchy/stats:
+    get:
+      summary: Role stats
+      tags: [Role]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/role/{id}/children:
+    get:
+      summary: Role children
+      tags: [Role]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/role/{id}/ancestors:
+    get:
+      summary: Role ancestors
+      tags: [Role]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/role/{id}/descendants:
+    get:
+      summary: Role descendants
+      tags: [Role]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/role/{id}/move:
+    put:
+      summary: Move role
+      tags: [Role]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/role/validate-hierarchy:
+    get:
+      summary: Validate hierarchy
+      tags: [Role]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/role/level/{level}:
+    get:
+      summary: Get roles by level
+      tags: [Role]
+      parameters:
+        - name: level
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+
+  # Employee endpoints
+  /api/V1/employee/get-birthday-list:
+    get:
+      summary: Get birthday list
+      tags: [Employee]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/employee/get-employee-profile:
+    get:
+      summary: Get employee profile
+      tags: [Employee]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/employee/new-members:
+    get:
+      summary: Get new members
+      tags: [Employee]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/employee/new-members/{year}/{month}:
+    get:
+      summary: Get new members by month
+      tags: [Employee]
+      parameters:
+        - name: year
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: month
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+
+  /api/V1/employee/:
+    post:
+      summary: Create employee
+      tags: [Employee]
+      responses:
+        '200':
+          description: Success
+    get:
+      summary: Get employees
+      tags: [Employee]
+      responses:
+        '200':
+          description: Success
+
+  /api/V1/employee/{id}:
+    get:
+      summary: Get employee
+      tags: [Employee]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    put:
+      summary: Update employee
+      tags: [Employee]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    delete:
+      summary: Delete employee
+      tags: [Employee]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+
+  # Department endpoints
+  /api/V1/departments/:
+    post:
+      summary: Create department
+      tags: [Department]
+      responses:
+        '200':
+          description: Success
+    get:
+      summary: Get departments
+      tags: [Department]
+      responses:
+        '200':
+          description: Success
+
+  /api/V1/departments/{id}:
+    get:
+      summary: Get department
+      tags: [Department]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    put:
+      summary: Update department
+      tags: [Department]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    delete:
+      summary: Delete department
+      tags: [Department]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+
+  # Designation endpoints
+  /api/V1/designations/{id}:
+    get:
+      summary: Get designation
+      tags: [Designation]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    put:
+      summary: Update designation
+      tags: [Designation]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    delete:
+      summary: Delete designation
+      tags: [Designation]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+
+  # Holiday endpoints
+  /api/V1/holidays/{id}:
+    get:
+      summary: Get holiday
+      tags: [Holiday]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    put:
+      summary: Update holiday
+      tags: [Holiday]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    delete:
+      summary: Delete holiday
+      tags: [Holiday]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+
+  # Leave endpoints
+  /api/V1/leave/:
+    post:
+      summary: Create leave
+      tags: [Leave]
+      responses:
+        '200':
+          description: Success
+    get:
+      summary: Get all leaves
+      tags: [Leave]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/leave/my-leaves:
+    get:
+      summary: Get my leaves
+      tags: [Leave]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/leave/balance:
+    get:
+      summary: Get leave balance
+      tags: [Leave]
+      responses:
+        '200':
+          description: Success
+
+  /api/V1/leave/type:
+    post:
+      summary: Create leave type
+      tags: [Leave]
+      responses:
+        '200':
+          description: Success
+    get:
+      summary: Get leave types
+      tags: [Leave]
+      responses:
+        '200':
+          description: Success
+
+  /api/V1/leave/type/{id}:
+    put:
+      summary: Update leave type
+      tags: [Leave]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    delete:
+      summary: Delete leave type
+      tags: [Leave]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/leave/{id}:
+    get:
+      summary: Get leave by ID
+      tags: [Leave]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    put:
+      summary: Update leave
+      tags: [Leave]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    delete:
+      summary: Delete leave
+      tags: [Leave]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/leave/{id}/status:
+    patch:
+      summary: Update leave status
+      tags: [Leave]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/leave/{id}/cancel:
+    patch:
+      summary: Cancel leave
+      tags: [Leave]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+
+  # Assignment endpoints
+  /api/V1/assignments/{supervisorId}/assign:
+    post:
+      summary: Assign employees
+      tags: [Assignment]
+      parameters:
+        - name: supervisorId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/assignments/{supervisorId}/unassign:
+    delete:
+      summary: Unassign employees
+      tags: [Assignment]
+      parameters:
+        - name: supervisorId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/assignments/{supervisorId}/assigned:
+    get:
+      summary: Get assigned employees
+      tags: [Assignment]
+      parameters:
+        - name: supervisorId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/assignments/{supervisorId}/available-for-assignment:
+    get:
+      summary: Get available employees
+      tags: [Assignment]
+      parameters:
+        - name: supervisorId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/assignments/{employeeId}/transfer:
+    put:
+      summary: Transfer employee
+      tags: [Assignment]
+      parameters:
+        - name: employeeId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/assignments/assignment-history:
+    get:
+      summary: Get assignment history
+      tags: [Assignment]
+      responses:
+        '200':
+          description: Success
+
+  # Event endpoints
+  /api/V1/events/{year}/{month}:
+    get:
+      summary: Get calendar events
+      tags: [Event]
+      parameters:
+        - name: year
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: month
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+
+  # Company endpoints
+  /api/V1/company/:
+    get:
+      summary: Get company details
+      tags: [Company]
+      responses:
+        '200':
+          description: Success
+    put:
+      summary: Update company info
+      tags: [Company]
+      responses:
+        '200':
+          description: Success
+
+  /api/V1/company/initialize:
+    post:
+      summary: Initialize company
+      tags: [Company]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/company/exists:
+    get:
+      summary: Check if company exists
+      tags: [Company]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/company/ceo-talk:
+    put:
+      summary: Update CEO talk
+      tags: [Company]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/company/address:
+    put:
+      summary: Update address
+      tags: [Company]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/company/contact:
+    put:
+      summary: Update contact
+      tags: [Company]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/company/sender:
+    put:
+      summary: Update sender
+      tags: [Company]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/company/recipients:
+    post:
+      summary: Add recipient
+      tags: [Company]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/company/recipients/{recipientId}:
+    delete:
+      summary: Remove recipient
+      tags: [Company]
+      parameters:
+        - name: recipientId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/company/leave-allocation:
+    get:
+      summary: Get leave allocation
+      tags: [Company]
+      responses:
+        '200':
+          description: Success
+    put:
+      summary: Update leave allocation
+      tags: [Company]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/company/leave-allocations:
+    get:
+      summary: Get all leave allocations
+      tags: [Company]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/company/stats:
+    get:
+      summary: Get company stats
+      tags: [Company]
+      responses:
+        '200':
+          description: Success
+
+  /api/V1/company/payroll/components:
+    get:
+      summary: Get payroll components
+      tags: [Company]
+      responses:
+        '200':
+          description: Success
+    post:
+      summary: Create payroll component
+      tags: [Company]
+      responses:
+        '200':
+          description: Success
+    put:
+      summary: Update payroll components
+      tags: [Company]
+      responses:
+        '200':
+          description: Success
+
+  /api/V1/company/payroll/components/{code}:
+    patch:
+      summary: Patch payroll component
+      tags: [Company]
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    delete:
+      summary: Delete payroll component
+      tags: [Company]
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+
+  # Country endpoints
+  /api/V1/countries/:
+    post:
+      summary: Create country
+      tags: [Country]
+      responses:
+        '200':
+          description: Success
+    get:
+      summary: Get countries
+      tags: [Country]
+      responses:
+        '200':
+          description: Success
+
+  /api/V1/countries/{idOrCode}:
+    get:
+      summary: Get country
+      tags: [Country]
+      parameters:
+        - name: idOrCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    patch:
+      summary: Update country
+      tags: [Country]
+      parameters:
+        - name: idOrCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    delete:
+      summary: Delete country
+      tags: [Country]
+      parameters:
+        - name: idOrCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+
+  /api/V1/countries/{idOrCode}/states:
+    post:
+      summary: Add or update state
+      tags: [Country]
+      parameters:
+        - name: idOrCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/countries/{idOrCode}/states/{stateKey}:
+    delete:
+      summary: Remove state
+      tags: [Country]
+      parameters:
+        - name: idOrCode
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: stateKey
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/countries/bulk/upsert:
+    post:
+      summary: Bulk upsert countries
+      tags: [Country]
+      responses:
+        '200':
+          description: Success
+
+  # Notice endpoints
+  /api/V1/notices/:
+    get:
+      summary: Get all notices
+      tags: [Notice]
+      responses:
+        '200':
+          description: Success
+    post:
+      summary: Create notice
+      tags: [Notice]
+      responses:
+        '200':
+          description: Success
+
+  /api/V1/notices/{id}:
+    get:
+      summary: Get notice by ID
+      tags: [Notice]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    put:
+      summary: Update notice
+      tags: [Notice]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    delete:
+      summary: Delete notice
+      tags: [Notice]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+
+  # Payroll endpoints
+  /api/V1/payrolls/:
+    post:
+      summary: Create payroll
+      tags: [Payroll]
+      responses:
+        '200':
+          description: Success
+    get:
+      summary: List payrolls
+      tags: [Payroll]
+      responses:
+        '200':
+          description: Success
+
+  /api/V1/payrolls/generate:
+    post:
+      summary: Generate payrolls
+      tags: [Payroll]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/payrolls/my:
+    get:
+      summary: List my payrolls
+      tags: [Payroll]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/payrolls/my/{id}:
+    get:
+      summary: Get my payroll
+      tags: [Payroll]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+
+  /api/V1/payrolls/{id}:
+    get:
+      summary: Get payroll
+      tags: [Payroll]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    patch:
+      summary: Update payroll
+      tags: [Payroll]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    delete:
+      summary: Delete payroll
+      tags: [Payroll]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/payrolls/{id}/status:
+    patch:
+      summary: Set payment status
+      tags: [Payroll]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/payrolls/{id}/recalculate:
+    post:
+      summary: Recalculate totals
+      tags: [Payroll]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+
+  # EOD Report endpoints
+  /api/V1/eod-reports/:
+    post:
+      summary: Create EOD report
+      tags: [EODReport]
+      responses:
+        '200':
+          description: Success
+    get:
+      summary: Get all EOD reports
+      tags: [EODReport]
+      responses:
+        '200':
+          description: Success
+
+  /api/V1/eod-reports/{employeeName}:
+    get:
+      summary: Get by employee
+      tags: [EODReport]
+      parameters:
+        - name: employeeName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+
+  /api/V1/eod-reports/{id}:
+    get:
+      summary: Get report by ID
+      tags: [EODReport]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    put:
+      summary: Update report
+      tags: [EODReport]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    delete:
+      summary: Delete report
+      tags: [EODReport]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+
+  # Roster endpoints
+  /api/V1/roster/week/{year}/{weekNumber}:
+    get:
+      summary: Get week roster
+      tags: [Roster]
+      parameters:
+        - name: year
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: weekNumber
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/roster/employee/{employeeId}:
+    get:
+      summary: Get employee roster
+      tags: [Roster]
+      parameters:
+        - name: employeeId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/roster/stats/{year}/{weekNumber}:
+    get:
+      summary: Get roster stats
+      tags: [Roster]
+      parameters:
+        - name: year
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: weekNumber
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/roster/rosterforallemployee/{employeeId}:
+    get:
+      summary: Get roster for all employee
+      tags: [Roster]
+      parameters:
+        - name: employeeId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/roster/:
+    post:
+      summary: Add roster
+      tags: [Roster]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/roster/bulk:
+    post:
+      summary: Bulk add roster
+      tags: [Roster]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/roster/copy:
+    post:
+      summary: Copy roster from previous week
+      tags: [Roster]
+      responses:
+        '200':
+          description: Success
+
+  /api/V1/roster/{id}:
+    put:
+      summary: Update roster
+      tags: [Roster]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    delete:
+      summary: Delete roster
+      tags: [Roster]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+
+  # Salary Deduction endpoints
+  /api/V1/salary-deductions/:
+    post:
+      summary: Create deduction rule
+      tags: [SalaryDeduction]
+      responses:
+        '200':
+          description: Success
+    get:
+      summary: List deduction rules
+      tags: [SalaryDeduction]
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/salary-deductions/percent:
+    post:
+      summary: Upsert percent
+      tags: [SalaryDeduction]
+      responses:
+        '200':
+          description: Success
+
+  /api/V1/salary-deductions/{id}:
+    get:
+      summary: Get deduction rule
+      tags: [SalaryDeduction]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    delete:
+      summary: Delete deduction rule
+      tags: [SalaryDeduction]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  
+  /api/V1/salary-deductions/{id}/percent:
+    patch:
+      summary: Update percent
+      tags: [SalaryDeduction]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+
+  # Upload endpoints
+  /uploads:
+    get:
+      summary: Serve static uploads
+      tags: [Uploads]
+      responses:
+        '200':
+          description: Success

@@ -297,7 +297,7 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
                             )}
 
                             {/* Employee Actions - Edit/Cancel own pending leaves */}
-                            {isOwnLeave() && leave.status === 'pending' && (
+                            {!isOwnLeave() && !['cancelled', 'rejected'].includes(leave.status) && (
                                 <>
                                     {/* <button
                                         onClick={() => navigate(`/leave/edit/${leave._id}`)}
@@ -306,14 +306,28 @@ const LeaveView: React.FC<LeaveViewProps> = () => {
                                         <Edit className="w-4 h-4" />
                                         Edit
                                     </button> */}
+                                    {/* <button
+                                        onClick={handleCancelLeave}
+                                        className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+                                    >
+                                        Cancel Request
+                                    </button> */}
+                                </>
+                            )}
+
+
+                            {/* Employee Actions - Edit/Cancel own pending leaves */}
+                            {!isOwnLeave() &&
+                                !['cancelled', 'rejected'].includes(leave.status) &&
+                                !(leave.status === 'approved' && new Date(leave.startDate).toDateString() === new Date().toDateString()) && (
                                     <button
                                         onClick={handleCancelLeave}
                                         className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
                                     >
                                         Cancel Request
                                     </button>
-                                </>
-                            )}
+                                )}
+
                         </div>
                     </div>
 
