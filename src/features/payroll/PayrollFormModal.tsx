@@ -4,6 +4,7 @@ import {
     useCreatePayrollMutation,
     useUpdatePayrollMutation,
     PayrollDoc,
+    useGetPayrollsQuery,
 } from '../../services/payrollServices';
 import { useGetEmployeesQuery } from '../../services/employeeServices';
 import { useGetCompanyPartOfSalaryQuery } from '../../services/companyDetailsServices';
@@ -112,9 +113,18 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
         limit: 1000,
         search: ''
     });
+
+    const { data: payrolls } = useGetPayrollsQuery({
+        month: new Date().getMonth() + 1,
+        year: new Date().getFullYear(),
+    });
     const { data: rulesResp } = useListDeductionRulesQuery();
     const activeRules: DeductionRule[] = (rulesResp?.data || []).filter((r) => r.active);
     const [selectedRuleIds, setSelectedRuleIds] = useState<string[]>([]);
+
+    const existingPayrollEmployeeIds = new Set(
+        (payrolls?.items ?? []).map((p: any) => p.employeeId?._id)
+    );
 
     // helper: try to find the rule that created a saved deduction
     function findRuleIdForSavedDeduction(d: any, rules: DeductionRule[]) {
@@ -431,12 +441,15 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                                         className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                                     >
                                         <option value="">Select employee</option>
-                                        {(employees.data ?? []).map((emp: any) => (
-                                            <option key={emp._id} value={emp._id}>
-                                                {emp.userId?.firstName} {emp.userId?.lastName}
-                                            </option>
-                                        ))}
+                                        {(employees.data ?? [])
+                                            .filter((emp: any) => !existingPayrollEmployeeIds.has(emp._id)) // 🚀 hide employees with payroll this month
+                                            .map((emp: any) => (
+                                                <option key={emp._id} value={emp._id}>
+                                                    {emp.userId?.firstName} {emp.userId?.lastName}
+                                                </option>
+                                            ))}
                                     </select>
+
                                 )
                             )}
                             {errors.employeeId && <p className="text-sm text-red-600 mt-1">{errors.employeeId}</p>}
@@ -471,7 +484,7 @@ export default function PayrollFormModal({ isOpen, onClose, editId, initial, onS
                                 onChange={(e) => handle('grossSalary', e.target.value)}
                                 className={`w-full px-3 py-2 border rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed ${hasErr('grossSalary') ? 'border-red-500 focus:ring-red-500' : ''
                                     }`}
-                                placeholder="Enter gross salary"
+                                placeholder="Auto-Filled gross salary"
                             />
                             {err('grossSalary') && <p className="text-sm text-red-600 mt-1">{err('grossSalary')}</p>}
                         </div>
