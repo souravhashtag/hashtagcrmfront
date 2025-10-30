@@ -350,7 +350,7 @@ const Profile: React.FC = () => {
 
   const firstName = userData?.firstName || '';
   const lastName = userData?.lastName || '';
-  const profilePicture = previewImage || user?.profilePicture || userData?.profilePicture;
+  const profilePicture = user?.profilePicture || userData?.profilePicture;
   const hasProfilePicture = profilePicture && profilePicture.trim() !== '';
 
   if (!profileData || !userData) {
