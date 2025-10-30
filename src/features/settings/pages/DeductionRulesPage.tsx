@@ -13,7 +13,7 @@ type UIDeductionRule = {
     _id: string;
     name: string;
     code: string;
-    type: string;
+    // type: string;
     active: boolean;
     is_applicable: boolean;
     tax_slab: any[];
@@ -22,7 +22,7 @@ type UIDeductionRule = {
 
 const DeductionRulesPage: React.FC = () => {
     const [showModal, setShowModal] = useState(false);
-    const [editingRule, setEditingRule] = useState<UIDeductionRule | null>(null);
+    const [editingRule, setEditingRule] = useState<any | null>(null);
 
     const [search, setSearch] = useState('');
     const [activeOnly, setActiveOnly] = useState<boolean>(false);
@@ -32,6 +32,8 @@ const DeductionRulesPage: React.FC = () => {
 
     const rules: any[] = data?.data ?? [];
 
+
+    console.log('Fetched rules:', rules);
 
     const filtered = useMemo(() => {
         let arr = rules;
@@ -144,7 +146,6 @@ const DeductionRulesPage: React.FC = () => {
                 )}
 
                 {!isLoading && filtered.map((r) => {
-
                     return (
                         <div key={r._id} className="grid grid-cols-1 md:grid-cols-12 gap-3 px-4 py-4 border-b last:border-b-0">
                             <div className="md:col-span-3">

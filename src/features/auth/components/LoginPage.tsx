@@ -148,7 +148,7 @@ const LoginPage: React.FC = () => {
       <div className="login-section">
         <div className="login-content">
           <div className="brand-header">
-          <img src="images/logo.png" alt="Logo" className="brand-logo" style={{ height: '60px' }} />
+          <img src="images/logo.png" alt="Logo" className="brand-logo" style={{ height: '80px' }} />
 
           </div>
           

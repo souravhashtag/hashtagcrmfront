@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getIconComponent } from '../../utils/getIconComponent';
 import { Sun, Moon, ChevronDown, ChevronRight } from 'lucide-react';
 import { useUser } from "../dashboard/context/DashboardContext";
-import './sidebar.css'; 
+import './sidebar.css';
 
 const Sidebar = (): React.ReactElement => {
   const location = useLocation();
@@ -21,19 +21,19 @@ const Sidebar = (): React.ReactElement => {
   // Check if any submenu is active
   const isParentActive = (item: any): boolean => {
     if (getActiveMenuItem(item.slug)) return true;
-    
+
     if (item.submenu && Array.isArray(item.submenu)) {
       return item.submenu.some((subItem: any) => getActiveMenuItem(subItem.slug));
     }
-    
+
     return false;
   };
 
   // Check if menu item is settings related
   const isSettingsMenu = (item: any): boolean => {
     const settingsKeywords = ['settings', 'setting', 'config', 'configuration', 'preferences'];
-    return settingsKeywords.some(keyword => 
-      item.name?.toLowerCase().includes(keyword) || 
+    return settingsKeywords.some(keyword =>
+      item.name?.toLowerCase().includes(keyword) ||
       item.slug?.toLowerCase().includes(keyword)
     );
   };
@@ -77,12 +77,12 @@ const Sidebar = (): React.ReactElement => {
   useEffect(() => {
     if (user?.role?.menulist && Array.isArray(user.role.menulist)) {
       setMenuItems(user.role.menulist);
-      
+
       // Auto-expand menus that have active submenus (except settings menus)
       const menusToExpand = new Set<string>();
       user.role.menulist.forEach((item: any) => {
         if (item.submenu && Array.isArray(item.submenu) && !isSettingsMenu(item)) {
-          const hasActiveSubmenu = item.submenu.some((subItem: any) => 
+          const hasActiveSubmenu = item.submenu.some((subItem: any) =>
             getActiveMenuItem(subItem.slug)
           );
           if (hasActiveSubmenu) {
@@ -90,9 +90,9 @@ const Sidebar = (): React.ReactElement => {
           }
         }
       });
-      
+
       setExpandedMenus(prev => {
-        return new Set(prev);        
+        return new Set(prev);
       })
     } else {
       setMenuItems([]);
@@ -106,13 +106,13 @@ const Sidebar = (): React.ReactElement => {
     const isExpanded = expandedMenus.has(item.name);
     const isParentActiveMenu = isParentActive(item);
     const isSettings = isSettingsMenu(item);
-    
+
     return (
-      <li key={`${item.name}-${item.slug}`} className="menu-item">
+      <li key={`${item.name}-${item.slug}`} className="menu-item overflow-x-hidden">
         {hasSubmenu && !isSettings ? (
           <>
             {/* Parent menu with submenu (non-settings) */}
-            <div 
+            <div
               className={`menu-link parent-menu ${isParentActiveMenu ? 'active' : ''}`}
               onClick={() => handleMenuClick(item)}
               role="button"
@@ -138,14 +138,14 @@ const Sidebar = (): React.ReactElement => {
                 )}
               </span>
             </div>
-            
+
             {/* Submenu */}
             {isExpanded && (
               <ul className="submenu">
                 {item.submenu.map((subItem: any) => {
                   const SubIconComponent = getIconComponent(subItem.icon);
                   const isSubActive = getActiveMenuItem(subItem.slug);
-                  
+
                   return (
                     <li key={`${subItem.name}-${subItem.slug}`} className="submenu-item">
                       <Link
@@ -183,22 +183,23 @@ const Sidebar = (): React.ReactElement => {
     );
   };
 
+  const newLocal = <nav className="nav" role="navigation">
+    <ul className="menu-list">
+      {menuItems.map((item) => renderMenuItem(item))}
+    </ul>
+  </nav>;
   return (
     <div className="sidebar" data-theme={theme}>
       <div className="logo">
-        <img 
-          src={logo} 
-          alt="Hashtag Biz Logo" 
+        <img
+          src={logo}
+          alt="Hashtag Biz Logo"
           style={{ width: '90%', height: 'auto' }}
           loading="lazy"
         />
       </div>
 
-      <nav className="nav" role="navigation">
-        <ul className="menu-list">
-          {menuItems.map((item) => renderMenuItem(item))}
-        </ul>
-      </nav>
+      {newLocal}
 
       {/* <div className="theme-toggle" role="group" aria-label="Theme selection">
         <button

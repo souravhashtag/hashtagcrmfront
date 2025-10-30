@@ -4,6 +4,7 @@ import { ArrowLeft, Edit, Calculator, Check, RefreshCw } from 'lucide-react';
 import { useGetPayrollByIdQuery, useSetPaymentStatusMutation, useRecalcTotalsMutation } from '../../services/payrollServices';
 import PayrollFormModal from './PayrollFormModal';
 import PaymentStatusModal from './PaymentStatusModal';
+import PayslipDownloadButton from './PayslipGenerator';
 
 function useQuery() {
     const { search } = useLocation();
@@ -96,6 +97,14 @@ export default function PayrollView() {
                                 <Check className="w-4 h-4 inline mr-1" />
                                 Mark Paid
                             </button>
+                        )}
+                        {payroll.paymentStatus === 'paid' && (
+                            <PayslipDownloadButton
+                                payrollData={payroll}
+                                buttonText="Download Payslip"
+                                variant="pdf"
+                                className="inline-flex"
+                            />
                         )}
                     </div>
                 )}

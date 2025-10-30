@@ -5,6 +5,8 @@ interface SettingsSection {
     description: string;
 }
 
+
+
 interface Recipient {
     id: string;
     email: string;
