@@ -34,6 +34,7 @@ import PayrollView from '../features/payroll/PayrollView';
 import MyPayrolls from '../features/payroll/MyPayrolls';
 import EODReportsPage from '../features/projectManagement/EODReports/EODReportsPage';
 import AdminEODReportsPage from '../features/projectManagement/EODReports/AdminEODReportsPage';
+import IndivisualAttendance from '../features/attendance/component/IndivisualAttendance/IndivisualAttendance';
 
 
 
@@ -105,7 +106,7 @@ const AppRoutes = () => {
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<Settings />} />
             <Route path={`${base}screenshort`} element={<ScreenShort />} />
-            <Route path="/attendance" element={<Attendance />} />
+            <Route path="/attendance-management" element={<Attendance />} />
             <Route path="/holidays" element={<HolidayComponent />} />
             <Route path="/roster" element={<Roster />} />
 
@@ -132,6 +133,9 @@ const AppRoutes = () => {
             </Route>
             <Route path='/daily-report' element={<EODReportsPage />} />
             <Route path='/daily-report-management' element={<AdminEODReportsPage />} />
+
+
+            <Route path='/attendance' element={<IndivisualAttendance />} />
           </Route>
         </Route>
 

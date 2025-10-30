@@ -1,33 +1,82 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 import { Menu, X } from "lucide-react";
+import { getMissedClockOut, updateManualClockOut } from "../../services/AttendanceService";
+import PopupLogoutModal from "../dashboard/components/PopupLogoutModal";
 
 const Layout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    // new states for missed clock-out popup
+    const [showPopup, setShowPopup] = useState(false);
+    const [missedRecord, setMissedRecord] = useState<any>(null);
+    const [manualClockOutTime, setManualClockOutTime] = useState('');
+    const [reason, setReason] = useState('');
+
+    useEffect(() => {
+        const checkMissedClockOut = async () => {
+            try {
+                const res: any = await getMissedClockOut(); // from AttendanceService
+                if (res.hasMissedClockOut) {
+                    setMissedRecord(res);
+                    setShowPopup(true);
+                }
+            } catch (err) {
+                console.error('Error checking missed clock-out:', err);
+            }
+        };
+
+        // Run immediately on mount
+        checkMissedClockOut();
+
+        // Set up interval to run every 20 seconds (20000 ms)
+        const intervalId = setInterval(checkMissedClockOut, 20000);
+
+        // Cleanup: Clear interval on unmount
+        return () => clearInterval(intervalId);
+    }, []);
+
+    const handleSubmitManualClockOut = async () => {
+        if (!manualClockOutTime || !reason) {
+            alert('Please fill both fields before submitting.');
+            return;
+        }
+        try {
+            await updateManualClockOut({
+                recordId: missedRecord.recordId,
+                manualClockOutTime,
+                reason,
+            });
+            setShowPopup(false);
+            alert('Clock-out corrected successfully');
+        } catch (err) {
+            console.error('Error submitting manual clock-out:', err);
+            alert('Failed to update clock-out. Please try again.');
+        }
+    };
 
     return (
         <div className="flex h-screen bg-[#E8EDF2]">
             {/* Sidebar for mobile (overlay) */}
-            <div
-                className={`fixed inset-0 z-40 flex lg:hidden transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
-                    }`}
-            >
-                <div className="w-64 bg-teal-50 border-r border-teal-100 flex-shrink-0">
-                    <Sidebar />
-                </div>
-                {/* Background overlay */}
-                <div
-                    className="flex-1"
-                    onClick={() => setSidebarOpen(false)}
-                />
-            </div>
-
-            {/* Sidebar for desktop */}
-            <div className="hidden lg:flex w-64 bg-teal-50 border-r border-teal-100 flex-shrink-0">
-                <Sidebar />
-            </div>
+            {!showPopup &&
+                <>
+                    <div
+                        className={`fixed inset-0 z-40 flex lg:hidden transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+                    >
+                        <div className="w-64 bg-teal-50 border-r border-teal-100 flex-shrink-0">
+                            <Sidebar />
+                        </div>
+                        {/* Background overlay */}
+                        <div
+                            className="flex-1"
+                            onClick={() => setSidebarOpen(false)} />
+                    </div>
+                    <div className="hidden lg:flex w-64 bg-teal-50 border-r border-teal-100 flex-shrink-0">
+                        <Sidebar />
+                    </div>
+                </>
+            }
 
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col overflow-hidden">
@@ -52,6 +101,18 @@ const Layout = () => {
                     <Outlet />
                 </main>
             </div>
+
+            {/* 🧩 Missed Clock-Out Popup */}
+            <PopupLogoutModal
+                showPopup={showPopup}
+                setManualClockOutTime={setManualClockOutTime}
+                missedRecord={missedRecord}
+                manualClockOutTime={manualClockOutTime}
+                reason={reason}
+                setReason={setReason}
+                setShowPopup={setShowPopup}
+                handleSubmitManualClockOut={handleSubmitManualClockOut}
+            />
         </div>
     );
 };

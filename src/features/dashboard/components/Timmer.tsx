@@ -1,16 +1,18 @@
 import React, { useRef, useState, useEffect } from "react";
-import {
-  getScreenshots,
-  ScreenShotResponse,
-} from "../../../services/authService";
-import { Calendar, Loader2 } from "lucide-react";
+// import {
+//   getScreenshots,
+//   ScreenShotResponse,
+// } from "../../../services/authService";
+import { 
+  // Calendar,
+   Loader2 } from "lucide-react";
 import {
   ClockIn,
   ClockOut,
   getIndividualAttendanceData,
   handleBreak,
-  clockInScreenShotAPi,
-  clockOutScreenShotAPi
+  // clockInScreenShotAPi,
+  // clockOutScreenShotAPi
 } from "../../../services/AttendanceService";
 import { useUser } from "../context/DashboardContext";
 import WorkingHours from './WorkingHours';
@@ -28,7 +30,7 @@ const Timmer: React.FC<any> = ({ setIsClockedIn, isClockedIn, TakeaBreak, setTak
   // const [TakeaBreak, setTakeaBreak] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const [clockOutTime, setClockOutTime] = useState<Date | null>(null);
-  const [clockInTime, setClockInTime] = useState<Date | null>(null);
+  // const [clockInTime, setClockInTime] = useState<Date | null>(null);
 
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
   const [totalBreakTime, setTotalBreakTime] = useState(0);

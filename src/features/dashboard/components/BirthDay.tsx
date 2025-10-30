@@ -4,14 +4,15 @@ import {
 } from '../../../services/employeeServices';
 import NewMembers from "./NewMembers";
 import NoticeBoard from "./NoticeBoard";
+import demo from './bdaydemo.png';
 import CeoTalkCard from "./CeoTalk";
 const BirthDay: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const {
     data,
-    isLoading,
-    refetch,
-    isFetching
+    // isLoading,
+    // refetch,
+    // isFetching
   } = useGetEmployeeBirthDayQuery({});
   const margedBirthdayData = [...(data?.data?.[0]?.todaybirthday || []), ...(data?.data?.[1]?.thismonth || [])]
   const birthdays = margedBirthdayData;
@@ -40,10 +41,24 @@ const BirthDay: React.FC = () => {
             <h3 className="font-normal mb-4 tracking-wide">{birthdays[currentIndex]?.header}</h3>
 
             <div className="relative">
-              <div className="text-center">
-                <div className={`rounded-full mb-2`}><img src={birthdays[currentIndex]?.image} className="w-20 h-20 mx-auto" /></div>
-                <p className="font-medium">{birthdays[currentIndex]?.name}</p>
-                <p className="font-medium">{birthdays[currentIndex]?.date}</p>
+              <div className="text-center align-center">
+                <img
+                  src={birthdays[currentIndex]?.image || "demo.jpg"}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = demo;
+                  }}
+                  alt="Preview"
+                  className="w-20 h-20 object-cover rounded-lg border mx-auto"
+                />
+                {birthdays[currentIndex]?.name ? (
+                  <>
+                    <p className="font-medium">{birthdays[currentIndex]?.name}</p>
+                    <p className="font-medium">{birthdays[currentIndex]?.date}</p>
+                  </>
+                ) : (
+                  <p className="font-medium mt-5">No Birthday Available This Month</p>
+                )}
               </div>
 
               {birthdays.length > 1 && (

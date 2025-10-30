@@ -413,38 +413,38 @@ const EmployeeCreate: React.FC = () => {
         dob: formData.dob,
         issetrosterauto: formData.isrotationroster,
         deductionDetails: formData.deduction.filter((d) => d.trim() !== ""),
-        workingTimezone: formData.workingTimezone,  
+        workingTimezone: formData.workingTimezone,
         emergencyContact: formData.emergencyContactName
           ? {
-              name: formData.emergencyContactName,
-              relationship: formData.emergencyContactRelationship,
-              phone: formData.emergencyContactPhone,
-            }
+            name: formData.emergencyContactName,
+            relationship: formData.emergencyContactRelationship,
+            phone: formData.emergencyContactPhone,
+          }
           : undefined,
 
         salary: formData.salaryAmount
           ? {
-              amount: Number(formData.salaryAmount),
-              currency: formData.salaryCurrency,
-              paymentFrequency: formData.paymentFrequency,
-            }
+            amount: Number(formData.salaryAmount),
+            currency: formData.salaryCurrency,
+            paymentFrequency: formData.paymentFrequency,
+          }
           : undefined,
 
         taxInformation:
           formData.taxId || formData.taxBracket
             ? {
-                taxId: formData.taxId,
-                taxBracket: formData.taxBracket,
-              }
+              taxId: formData.taxId,
+              taxBracket: formData.taxBracket,
+            }
             : undefined,
 
         bankDetails: formData.accountNumber
           ? {
-              accountNumber: formData.accountNumber,
-              bankName: formData.bankName,
-              ifscCode: formData.ifscCode,
-              accountHolderName: formData.accountHolderName,
-            }
+            accountNumber: formData.accountNumber,
+            bankName: formData.bankName,
+            ifscCode: formData.ifscCode,
+            accountHolderName: formData.accountHolderName,
+          }
           : undefined,
 
         documents: documentsWithFiles.map((doc) => ({
@@ -504,8 +504,7 @@ const EmployeeCreate: React.FC = () => {
         alert(error.data.message);
       } else {
         alert(
-          `Failed to ${
-            isEditMode ? "update" : "create"
+          `Failed to ${isEditMode ? "update" : "create"
           } employee. Please try again.`
         );
       }
@@ -516,8 +515,8 @@ const EmployeeCreate: React.FC = () => {
     const shouldConfirm = isEditMode
       ? hasChanges
       : Object.values(formData).some(
-          (value) => typeof value === "string" && value.trim() !== ""
-        );
+        (value) => typeof value === "string" && value.trim() !== ""
+      );
 
     if (shouldConfirm) {
       if (
@@ -552,7 +551,7 @@ const EmployeeCreate: React.FC = () => {
           departmentId: "",
           position: "",
           status: "active",
-          employeeId: formData.employeeId, 
+          employeeId: formData.employeeId,
           workingTimezone: "",
           joiningDate: "",
           dob: "",
@@ -595,7 +594,7 @@ const EmployeeCreate: React.FC = () => {
   };
   useEffect(() => {
     GetDesignation(formData.departmentId);
-  }, [isEditMode,formData.departmentId]);
+  }, [isEditMode, formData.departmentId]);
   // Loading state for edit mode
   if (isEditMode && isLoadingEmployee) {
     return (
@@ -652,9 +651,8 @@ const EmployeeCreate: React.FC = () => {
                   name="firstName"
                   value={formData.firstName}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.firstName ? "border-red-500" : "border-gray-300"
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.firstName ? "border-red-500" : "border-gray-300"
+                    }`}
                   placeholder="Enter first name"
                 />
                 {errors.firstName && (
@@ -673,9 +671,8 @@ const EmployeeCreate: React.FC = () => {
                   name="lastName"
                   value={formData.lastName}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.lastName ? "border-red-500" : "border-gray-300"
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.lastName ? "border-red-500" : "border-gray-300"
+                    }`}
                   placeholder="Enter last name"
                 />
                 {errors.lastName && (
@@ -692,9 +689,8 @@ const EmployeeCreate: React.FC = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.email ? "border-red-500" : "border-gray-300"
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.email ? "border-red-500" : "border-gray-300"
+                    }`}
                   placeholder="Enter email address"
                 />
                 {errors.email && (
@@ -743,9 +739,8 @@ const EmployeeCreate: React.FC = () => {
                       name="password"
                       value={formData.password}
                       onChange={handleInputChange}
-                      className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                        errors.password ? "border-red-500" : "border-gray-300"
-                      }`}
+                      className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.password ? "border-red-500" : "border-gray-300"
+                        }`}
                       placeholder={
                         isEditMode
                           ? "Enter new password (optional)"
@@ -781,11 +776,10 @@ const EmployeeCreate: React.FC = () => {
                       name="confirmPassword"
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
-                      className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                        errors.confirmPassword
+                      className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.confirmPassword
                           ? "border-red-500"
                           : "border-gray-300"
-                      }`}
+                        }`}
                       placeholder={
                         isEditMode ? "Confirm new password" : "Confirm password"
                       }
@@ -837,9 +831,8 @@ const EmployeeCreate: React.FC = () => {
                   name="dob"
                   value={formData.dob}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.dob ? "border-red-500" : "border-gray-300"
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.dob ? "border-red-500" : "border-gray-300"
+                    }`}
                 />
                 {errors.dob && (
                   <p className="text-red-500 text-xs mt-1">{errors.dob}</p>
@@ -930,9 +923,8 @@ const EmployeeCreate: React.FC = () => {
                     name="employeeId"
                     value={formData.employeeId}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                      errors.employeeId ? "border-red-500" : "border-gray-300"
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.employeeId ? "border-red-500" : "border-gray-300"
+                      }`}
                     placeholder="Enter employee ID"
                   />
                   {errors.employeeId && (
@@ -952,9 +944,8 @@ const EmployeeCreate: React.FC = () => {
                   name="joiningDate"
                   value={formData.joiningDate}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.joiningDate ? "border-red-500" : "border-gray-300"
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.joiningDate ? "border-red-500" : "border-gray-300"
+                    }`}
                 />
                 {errors.joiningDate && (
                   <p className="text-red-500 text-xs mt-1">
@@ -985,9 +976,8 @@ const EmployeeCreate: React.FC = () => {
                     name="roleId"
                     value={formData.roleId}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                      errors.roleId ? "border-red-500" : "border-gray-300"
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.roleId ? "border-red-500" : "border-gray-300"
+                      }`}
                   >
                     <option value="">Select a role</option>
                     {roles.map((role: any) => (
@@ -1058,7 +1048,7 @@ const EmployeeCreate: React.FC = () => {
                         {des.title}
                       </option>
                     ))}
-                </select>                
+                </select>
               </div>
               <div className="">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1075,8 +1065,46 @@ const EmployeeCreate: React.FC = () => {
                 </select>
                 {errors.isrotationroster && (
                   <p className="text-red-500 text-xs mt-1">{errors.isrotationroster}</p>
-                )}                
+                )}
               </div>
+
+
+              {/* ✅ Conditionally show start & end time fields */}
+              {formData.isrotationroster === true && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Rotation Start Time *
+                    </label>
+                    <input
+                      type="time"
+                      name="rotationStartTime"
+                      // value={formData.rotationStartTime || ""}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    {errors.rotationStartTime && (
+                      <p className="text-red-500 text-xs mt-1">{errors.rotationStartTime}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Rotation End Time *
+                    </label>
+                    <input
+                      type="time"
+                      name="rotationEndTime"
+                      // value={formData.rotationEndTime || ""}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    {errors.rotationEndTime && (
+                      <p className="text-red-500 text-xs mt-1">{errors.rotationEndTime}</p>
+                    )}
+                  </div>
+                </div>
+              )}
               <div className="">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Working Timezone *
@@ -1095,7 +1123,7 @@ const EmployeeCreate: React.FC = () => {
                 </select>
                 {errors.workingTimezone && (
                   <p className="text-red-500 text-xs mt-1">{errors.workingTimezone}</p>
-                )}                
+                )}
               </div>
             </div>
           </div>
@@ -1119,9 +1147,8 @@ const EmployeeCreate: React.FC = () => {
                     name="salaryAmount"
                     value={formData.salaryAmount}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                      errors.salaryAmount ? "border-red-500" : "border-gray-300"
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.salaryAmount ? "border-red-500" : "border-gray-300"
+                      }`}
                     placeholder="Enter amount"
                   />
                   {errors.salaryAmount && (
@@ -1174,7 +1201,7 @@ const EmployeeCreate: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Select if deduction is applicable
                   </label>
-                  
+
                   {!deductionLoading && deductionList?.data?.map((item: any) => (
                     <div key={item._id} className="flex items-center mb-6">
                       <input
@@ -1466,11 +1493,10 @@ const EmployeeCreate: React.FC = () => {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key as any)}
-                className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition ${
-                  activeTab === tab.key
+                className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition ${activeTab === tab.key
                     ? "border-blue-500 text-blue-600"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
+                  }`}
               >
                 <Icon size={16} />
                 {tab.label}
@@ -1498,21 +1524,21 @@ const EmployeeCreate: React.FC = () => {
             {(isEditMode
               ? hasChanges
               : Object.values(formData).some(
-                  (value) =>
-                    typeof value === "string" &&
-                    value.trim() !== "" &&
-                    value !== "active" &&
-                    value !== "INR" &&
-                    value !== "monthly"
-                )) && (
-              <button
-                type="button"
-                onClick={handleReset}
-                className="px-4 py-2 text-orange-700 bg-orange-100 rounded-lg hover:bg-orange-200 transition"
-              >
-                {isEditMode ? "Reset Changes" : "Clear Form"}
-              </button>
-            )}
+                (value) =>
+                  typeof value === "string" &&
+                  value.trim() !== "" &&
+                  value !== "active" &&
+                  value !== "INR" &&
+                  value !== "monthly"
+              )) && (
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="px-4 py-2 text-orange-700 bg-orange-100 rounded-lg hover:bg-orange-200 transition"
+                >
+                  {isEditMode ? "Reset Changes" : "Clear Form"}
+                </button>
+              )}
           </div>
 
           <div className="flex items-center gap-3">

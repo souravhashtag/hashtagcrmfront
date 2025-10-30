@@ -35,7 +35,7 @@ export interface SalaryDeductionRule {
 
 // Map backend -> UI
 const mapToUIRule = (r: SalaryDeductionRule): DeductionRule => {
-  const known = ['tax', 'hInsurance', 'pf', 'esi', 'pTax', 'tds', 'loan', 'advance'] as const;
+  const known = ['tax', 'hInsurance', 'pf', 'esi', 'ptax', 'tds', 'loan', 'advance'] as const;
   const type = (known as readonly string[]).includes(r.code) ? (r.code as DeductionRule['type']) : 'other';
 
   return {

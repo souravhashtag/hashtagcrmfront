@@ -3,6 +3,7 @@ import { Search, Eye, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import { useGetMyPayrollsQuery } from '../../services/payrollServices';
+import { PayslipGenerator } from './PayslipGenerator';
 
 export default function MyPayrolls() {
     const navigate = useNavigate();
@@ -140,6 +141,13 @@ export default function MyPayrolls() {
                                             title="View"
                                         >
                                             <Eye className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => PayslipGenerator.downloadHTMLPayslip(p)}
+                                            className="p-1 text-green-600 hover:text-green-800"
+                                            title="Download Payslip PDF"
+                                        >
+                                            <Download className="w-4 h-4" />
                                         </button>
                                     </td>
                                 </tr>
